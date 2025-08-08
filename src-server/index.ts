@@ -15,12 +15,7 @@ app.use(
   }),
 );
 
-app.get('/', (c) =>
-  c.json({
-    message: 'Xin chào từ Hono!',
-    author: 'An',
-  }),
-);
+app.get('/', (c) => c.text('Hello from Hono!'));
 
 serve(
   {

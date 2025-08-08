@@ -1,3 +1,4 @@
+import { Command } from '@tauri-apps/plugin-shell';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
@@ -22,8 +23,8 @@ const root = createRoot(container!);
 
 (async () => {
   // Load server
-  // const command = Command.sidecar('binaries/app');
-  // await command.execute();
+  const command = Command.sidecar('binaries/server');
+  await command.spawn();
 
   // Render GUI
   root.render(

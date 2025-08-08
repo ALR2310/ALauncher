@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint",
     "update": "npm-check-updates -u",
-    "build:server": "esbuild server/main.ts --bundle --platform=node --target=node18 --minify --outfile=server/main.js && pkg server/main.js --targets node18-win-x64 --output server"
+    "build": "tsc && vite build",
+    "build:app": "tsx scripts/build.ts",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --target=node18 --minify --outfile=dist/server.js && pkg dist/server.js --targets node18-win-x64 --output src-tauri/binaries/server-x86_64-pc-windows-msvc.exe"
   },
   "dependencies": {
     "@hono/node-server": "^1.18.1",
@@ -53,7 +54,6 @@
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.0",
-
     "@tauri-apps/cli": "^2.7.1",
     "@types/node": "^24.2.0",
     "@yao-pkg/pkg": "^6.6.0",

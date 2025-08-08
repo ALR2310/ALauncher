@@ -4,6 +4,8 @@ import { cors } from 'hono/cors';
 
 const app = new Hono();
 
+console.log('path file: ', process.execPath);
+
 app.use(
   '*',
   cors({

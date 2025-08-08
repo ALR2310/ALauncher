@@ -10,10 +10,19 @@
     "process:default",
     "shell:default",
     {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "binaries/server",
+          "sidecar": true
+        }
+      ]
+    },
+    {
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "name": "binaries/app",
+          "name": "binaries/server",
           "sidecar": true
         }
       ]

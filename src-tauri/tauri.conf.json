@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "alauncher",
-        "width": 800,
-        "height": 600
+        "width": 400,
+        "height": 250
       }
     ],
     "security": {
@@ -22,8 +22,12 @@
     }
   },
   "bundle": {
+    "createUpdaterArtifacts": true,
+    "externalBin": [
+      "binaries/app"
+    ],
     "active": true,
-    "targets": "all",
+    "targets": "nsis",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -31,5 +35,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": ["https://github.com/ALR2310/ALauncher/releases/latest/download/latest.json"],
+      "dialog": true,
+      "windows": {
+        "installMode": "passive"
+      },
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM2MDg5RDU5RDU0NUMyRjkKUldUNXdrWFZXWjBJTnNuZHJoYWNKV3BEU0NDTHJyOS9QK3hhb0ZVL2JsNXUwZHV6dTlIRlZwUXoK"
+    }
   }
 }

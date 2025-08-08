@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+.env
+temp
+src-tauri/binaries
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

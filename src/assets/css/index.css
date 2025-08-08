@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark,
+    cupcake,
+    garden,
+    dracula;
+}
+
+@layer utilities {
+  .no-scrollbar {
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .select:focus,
+  .select:focus-within,
+  .input:focus,
+  .input:focus-within {
+    --input-color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  }
+}
+
+@utility container {
+  @variant 2xl {
+    max-width: 80rem;
+  }
+}
+
+.input-editor {
+  --input-color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  border: var(--border) solid #0000;
+  background-color: var(--color-base-100);
+  border-start-start-radius: var(--join-ss, var(--radius-field));
+  border-start-end-radius: var(--join-se, var(--radius-field));
+  border-end-start-radius: var(--join-es, var(--radius-field));
+  border-end-end-radius: var(--join-ee, var(--radius-field));
+  border-color: var(--input-color);
+  box-shadow:
+    0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset,
+    0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
+}
+
+.input-editor:focus,
+.input-editor:focus-within {
+  --input-color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  outline: 2px solid var(--input-color);
+  outline-offset: 2px;
+  isolation: isolate;
+  z-index: 1;
+}
+
+.react-datepicker {
+  color: var(--color-base-content) !important;
+  border: 1px solid var(--color-base-300) !important;
+  background-color: var(--color-base-100) !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: var(--color-base-content) !important;
+}
+
+.react-datepicker__header {
+  background-color: var(--color-base-200) !important;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  color: var(--color-base-content) !important;
+}
+
+.react-datepicker__day:not([aria-disabled='true']):hover,
+.react-datepicker__month-text:not([aria-disabled='true']):hover,
+.react-datepicker__quarter-text:not([aria-disabled='true']):hover,
+.react-datepicker__year-text:not([aria-disabled='true']):hover {
+  background-color: var(--color-primary) !important;
+}
+
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__month-text--keyboard-selected,
+.react-datepicker__quarter-text--keyboard-selected,
+.react-datepicker__year-text--keyboard-selected {
+  background-color: var(--color-primary) !important;
+}

@@ -23,10 +23,13 @@
     "jsx": "react-jsx",
     "paths": {
       "~": ["./src"],
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "~s": ["./src-server"],
+      "~s/*": ["./src-server/*"],
+      "@shared/*": ["./shared/*"]
     },
   },
-  "include": ["src", "server", ".d.ts"],
+  "include": ["src", "src-server", ".d.ts"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

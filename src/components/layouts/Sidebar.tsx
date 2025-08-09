@@ -6,7 +6,7 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   return (
-    <div className={`p-4 space-y-3 overflow-auto ${className}`}>
+    <div className={`p-3 space-y-3 overflow-auto ${className}`}>
       <div
         className="relative w-full h-[40%] group overflow-hidden"
         style={{

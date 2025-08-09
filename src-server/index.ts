@@ -1,28 +1,54 @@
-import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
+import { config } from 'dotenv';
+import { WebSocket, WebSocketServer } from 'ws';
 
-const app = new Hono();
+config();
 
-console.log('path file: ', process.execPath);
+interface WSRequest {
+  action: string;
+  payload?: any;
+}
 
-app.use(
-  '*',
-  cors({
-    origin: '*',
-    allowHeaders: ['*'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-  }),
-);
+interface WSResponse {
+  action: string;
+  data: any;
+}
 
-app.get('/', (c) => c.text('Hello from Hono!'));
+type WSHandler = (ws: WebSocket, payload?: any) => void;
+const handlers: Record<string, WSHandler> = {};
 
-serve(
-  {
-    fetch: app.fetch,
-    port: 8787,
-  },
-  (info) => {
-    console.log(`Listening on http://localhost:${info.port}`);
-  },
-);
+function on(action: string, handler: WSHandler) {
+  handlers[action] = handler;
+}
+
+function send(ws: WebSocket, action: string, data: any) {
+  const response: WSResponse = { action, data };
+  ws.send(JSON.stringify(response));
+}
+
+const wss = new WebSocketServer({ port: Number(process.env.VITE_WS_PORT) });
+
+wss.on('connection', (ws: WebSocket) => {
+  ws.on('message', (message: Buffer) => {
+    try {
+      const { action, payload } = JSON.parse(message.toString()) as WSRequest;
+
+      if (handlers[action]) {
+        handlers[action](ws, payload);
+      } else {
+        console.warn(`cannot find handler for action: ${action}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+});
+
+// ----------------------
+// Define handlers
+// ----------------------
+on('username', (ws, payload?: any) => {
+  console.log('server nhận được:', payload);
+  send(ws, 'username', { status: 'ok', received: payload });
+});
+
+console.log('WS Server started on port 8787');

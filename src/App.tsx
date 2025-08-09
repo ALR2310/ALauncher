@@ -1,19 +1,24 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import DockNav from './components/layouts/DockNav';
 import Sidebar from './components/layouts/Sidebar';
+import ManagerModPage from './pages/manager/ManagerModPage';
 import ManagerPage from './pages/manager/ManagerPage';
+import { VersionProvider } from './providers/VersionProvider';
+import { WebSocketProvider } from './providers/WebSocketProvider';
 import { checkForAppUpdates } from './services/updater';
 
 const isTauri = '__TAURI__' in window;
 
 function Layout() {
+  const location = useLocation();
+
   return (
     <div className="w-[1100px] h-[650px] flex flex-col bg-base-200">
       <div className="flex-1 flex flex-nowrap">
-        <Sidebar className="flex-1/5 bg-base-100" />
+        {location.pathname === '/' && <Sidebar className="flex-1/5 bg-base-100" />}
         <main className="flex-4/5 overflow-auto">
           <Outlet />
         </main>
@@ -30,13 +35,18 @@ export default function App() {
 
   return (
     <QueryClientProvider client={new QueryClient()}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<ManagerPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <WebSocketProvider>
+        <VersionProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<ManagerPage />} />
+                <Route path="mods" element={<ManagerModPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </VersionProvider>
+      </WebSocketProvider>
     </QueryClientProvider>
   );
 }

@@ -7,8 +7,18 @@ interface SidebarProps {
 export default function Sidebar({ className }: SidebarProps) {
   return (
     <div className={`p-3 space-y-3 overflow-auto ${className}`}>
+      <button className="btn btn-soft btn-primary w-full">
+        <i className="fa-light fa-plus"></i>
+        Tạo modpack
+      </button>
+
+      <label className="input">
+        <i className="fa-light fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" className="grow" placeholder="Tìm kiếm..." />
+      </label>
+
       <div
-        className="relative w-full h-[40%] group overflow-hidden"
+        className="relative w-full h-[35%] group overflow-hidden"
         style={{
           backgroundImage: `url(${modpackLogo})`,
           backgroundSize: 'cover',

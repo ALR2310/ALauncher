@@ -7,7 +7,7 @@ import { useWS } from '~/hook/useWS';
 export default function DockNav() {
   const { send, on } = useWS();
 
-  const { version, setVersion } = useVersion();
+  const { version, setVersion, versionList } = useVersion();
   const [username, setUsername] = useState('');
 
   on('username', (data) => {
@@ -32,16 +32,7 @@ export default function DockNav() {
         search={true}
         position="top"
         value={version}
-        options={[
-          {
-            label: '1.21.1',
-            value: '1.21.1',
-          },
-          {
-            label: '1.20.1',
-            value: '1.20.1',
-          },
-        ]}
+        options={versionList ?? []}
         onChange={(value) => setVersion(value)}
       />
 

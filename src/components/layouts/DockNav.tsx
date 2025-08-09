@@ -2,7 +2,7 @@ import Select from '~/components/Select';
 
 export default function DockNav() {
   return (
-    <div className="flex flex-nowrap gap-4 p-4">
+    <div className="flex flex-nowrap gap-4 p-4 bg-base-300">
       <input type="text" className="input flex-1" placeholder="Tên người dùng" />
 
       <Select

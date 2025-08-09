@@ -28,7 +28,7 @@ export default function Select({
   onChange,
   render,
 }: SelectProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState(value || '');
   const [searchValue, setSearchValue] = useState('');
   const selectRef = useRef<HTMLDivElement>(null);

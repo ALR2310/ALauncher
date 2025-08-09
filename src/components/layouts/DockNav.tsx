@@ -7,7 +7,7 @@ import { useWS } from '~/hook/useWS';
 export default function DockNav() {
   const { send, on } = useWS();
 
-  const { version, setVersion, versionList } = useVersion();
+  const { version, versionList } = useVersion();
   const [username, setUsername] = useState('');
 
   on('username', (data) => {
@@ -33,7 +33,9 @@ export default function DockNav() {
         position="top"
         value={version}
         options={versionList ?? []}
-        onChange={(value) => setVersion(value)}
+        onChange={(value) => {
+          send('appConfig', { key: 'version_selected', value });
+        }}
       />
 
       <button className="btn btn-primary flex-1">Vào trò chơi</button>

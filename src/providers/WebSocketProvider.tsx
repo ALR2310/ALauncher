@@ -1,7 +1,7 @@
 import { createContext, useEffect, useRef, useState } from 'react';
 
 type WSContextType = {
-  send: (action: string, payload: any) => void;
+  send: (action: string, payload?: any) => void;
   on: (action: string, handler: (data: any) => void) => void;
   off: (action: string, handler: (data: any) => void) => void;
 };
@@ -49,7 +49,7 @@ function WebSocketProvider({ children }: { children: React.ReactNode }) {
     return () => socket.close();
   }, []);
 
-  const send = (action: string, payload: any) => {
+  const send = (action: string, payload?: any) => {
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ action, payload }));
     } else {

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { createContext, useEffect, useState } from 'react';
 
+import { useWS } from '~/hook/useWS';
 import { getVersion } from '~/services/curseforge';
 
 const VersionContext = createContext<{
@@ -10,12 +11,24 @@ const VersionContext = createContext<{
 }>(null!);
 
 const VersionProvider = ({ children }) => {
+  const { send, on } = useWS();
   const [versionList, setVersionList] = useState<{ label: string; value: string }[]>([]);
-  const [version, setVersion] = useState('1.21.1');
+  const [version, setVersion] = useState('');
 
   const versionQuery = useQuery({
     queryKey: ['version'],
     queryFn: getVersion,
+  });
+
+  send('appConfig');
+  on('appConfig', (data) => {
+    if (versionList.length === 0) return;
+
+    if (data.version_selected === 'latest') {
+      setVersion(versionList[0].value);
+    } else {
+      setVersion(data.version_selected);
+    }
   });
 
   useEffect(() => {

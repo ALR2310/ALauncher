@@ -1,7 +1,10 @@
 import { config } from 'dotenv';
 import { WebSocket, WebSocketServer } from 'ws';
 
-config();
+import { appConfig } from './services/appConfig';
+
+config({ quiet: true });
+appConfig();
 
 interface WSRequest {
   action: string;
@@ -25,7 +28,7 @@ function send(ws: WebSocket, action: string, data: any) {
   ws.send(JSON.stringify(response));
 }
 
-const wss = new WebSocketServer({ port: Number(process.env.VITE_WS_PORT) });
+const wss = new WebSocketServer({ port: Number(process.env.VITE_WS_PORT) || 8787 });
 
 wss.on('connection', (ws: WebSocket) => {
   ws.on('message', (message: Buffer) => {
@@ -46,9 +49,17 @@ wss.on('connection', (ws: WebSocket) => {
 // ----------------------
 // Define handlers
 // ----------------------
+
 on('username', (ws, payload?: any) => {
   console.log('server nhận được:', payload);
   send(ws, 'username', { status: 'ok', received: payload });
+});
+
+on('appConfig', (ws, payload?: { key: string; value: any }) => {
+  const { key, value } = payload ? payload : { key: undefined, value: undefined };
+
+  const configs = appConfig(key, value);
+  send(ws, 'appConfig', configs);
 });
 
 console.log('WS Server started on port 8787');

@@ -12,7 +12,7 @@
     "update": "npm-check-updates -u",
     "build": "tsc && vite build",
     "build:app": "tsx scripts/build.ts",
-    "build:server": "esbuild server/index.ts --bundle --platform=node --target=node18 --minify --outfile=dist/server.js && pkg dist/server.js --targets node18-win-x64 --output src-tauri/binaries/server-x86_64-pc-windows-msvc.exe"
+    "build:server": "esbuild src-server/index.ts --bundle --platform=node --target=node18 --format=cjs --outfile=dist/server.cjs && pkg dist/server.cjs --targets node18-win-x64 --output src-tauri/binaries/server-x86_64-pc-windows-msvc.exe"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.84.1",

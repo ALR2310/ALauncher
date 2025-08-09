@@ -78,49 +78,60 @@ export default function Select({
     >
       {getSelectedLabel(selectedValue)}
       {isOpen && (
-        <ul
-          className={`absolute ${position === 'top' ? 'bottom-full' : 'top-full'} right-0 my-1 p-2 rounded w-full bg-base-100 shadow z-10 overflow-y-auto max-h-96`}
+        <div
+          className={`absolute ${position === 'top' ? 'bottom-full' : 'top-full'} right-0 my-1 rounded w-full bg-base-100 shadow z-10`}
+          onClick={(e) => e.stopPropagation()} // tránh toggle khi bấm bên trong dropdown
         >
-          {search && position === 'bottom' && (
-            <li className="py-1">
+          {/* Nếu position = 'bottom' thì show search ở trên cùng */}
+          {position === 'bottom' && search && (
+            <div className="p-2 border-b border-base-300">
               <input
                 type="text"
                 className="input input-sm w-full focus:outline-none focus-within:outline-none"
-                placeholder={'Tìm kiếm...'}
+                placeholder="Tìm kiếm..."
                 value={searchValue}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => setSearchValue(e.target.value)}
               />
-            </li>
+            </div>
           )}
-          {filteredOptions.map((option) => (
-            <li
-              key={option.value}
-              className="px-3 py-1 cursor-pointer hover:bg-base-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectOption(option.value);
-              }}
-            >
-              {render ? render(option, handleSelectOption) : <span>{option.label}</span>}
-            </li>
-          ))}
-          {filteredOptions.length === 0 && (
-            <li className="px-3 py-2 text-sm text-base-content/70 italic">{'Không có kết quả nào'}</li>
-          )}
-          {search && position === 'top' && (
-            <li className="py-1">
+
+          {/* Phần danh sách cuộn được (input không nằm trong phần này) */}
+          <ul className="overflow-y-auto max-h-64">
+            {filteredOptions.map((option) => (
+              <li
+                key={option.value}
+                className={`px-3 py-1 cursor-pointer hover:bg-base-300 ${
+                  selectedValue === option.value ? 'bg-base-300' : ''
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectOption(option.value);
+                }}
+              >
+                {render ? render(option, handleSelectOption) : <span>{option.label}</span>}
+              </li>
+            ))}
+
+            {filteredOptions.length === 0 && (
+              <li className="px-3 py-2 text-sm text-base-content/70 italic">Không có kết quả nào</li>
+            )}
+          </ul>
+
+          {/* Nếu position = 'top' thì show search ở dưới cùng */}
+          {position === 'top' && search && (
+            <div className="p-2 border-t border-base-300">
               <input
                 type="text"
                 className="input input-sm w-full focus:outline-none focus-within:outline-none"
-                placeholder={'Tìm kiếm...'}
+                placeholder="Tìm kiếm..."
                 value={searchValue}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => setSearchValue(e.target.value)}
               />
-            </li>
+            </div>
           )}
-        </ul>
+        </div>
       )}
     </div>
   );

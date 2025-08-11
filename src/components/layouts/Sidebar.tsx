@@ -1,4 +1,4 @@
-import modpackLogo from '~/assets/imgs/modpack-logo.webp';
+// import modpackLogo from '~/assets/imgs/modpack-logo.webp';
 
 interface SidebarProps {
   className?: string;
@@ -20,7 +20,7 @@ export default function Sidebar({ className }: SidebarProps) {
       <div
         className="relative w-full h-[35%] group overflow-hidden"
         style={{
-          backgroundImage: `url(${modpackLogo})`,
+          // backgroundImage: `url(${modpackLogo})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

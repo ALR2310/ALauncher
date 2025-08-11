@@ -1,16 +1,16 @@
+// useWS.ts
 import { useContext, useEffect } from 'react';
 
 import { WSContext } from '~/providers/WebSocketProvider';
 
 export function useWS() {
-  const { send, on, off } = useContext(WSContext);
+  return useContext(WSContext);
+}
 
-  const useOn = (action: string, handler: (data: any) => void) => {
-    useEffect(() => {
-      on(action, handler);
-      return () => off(action, handler);
-    }, [action, handler]);
-  };
-
-  return { send, on: useOn };
+export function useWSListener(action: string, handler: (data: any) => void) {
+  const { on } = useWS();
+  useEffect(() => {
+    const cleanup = on(action, handler);
+    return cleanup;
+  }, [action, handler, on]);
 }

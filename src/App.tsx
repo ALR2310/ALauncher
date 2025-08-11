@@ -6,7 +6,8 @@ import DockNav from './components/layouts/DockNav';
 import Sidebar from './components/layouts/Sidebar';
 import ManagerModPage from './pages/manager/ManagerModPage';
 import ManagerPage from './pages/manager/ManagerPage';
-import { VersionProvider } from './providers/VersionProvider';
+import { LauncherProvider } from './providers/LauncherProvider';
+import { ToastProvider } from './providers/ToastProvider';
 import { WebSocketProvider } from './providers/WebSocketProvider';
 import { checkForAppUpdates } from './services/updater';
 
@@ -36,16 +37,18 @@ export default function App() {
   return (
     <QueryClientProvider client={new QueryClient()}>
       <WebSocketProvider>
-        <VersionProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<ManagerPage />} />
-                <Route path="mods" element={<ManagerModPage />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </VersionProvider>
+        <LauncherProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<ManagerPage />} />
+                  <Route path="mods" element={<ManagerModPage />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </ToastProvider>
+        </LauncherProvider>
       </WebSocketProvider>
     </QueryClientProvider>
   );

@@ -26,4 +26,5 @@ src-tauri/binaries
 *.njsproj
 *.sln
 *.sw?
-*.json
+launcher.json
+minecraft/

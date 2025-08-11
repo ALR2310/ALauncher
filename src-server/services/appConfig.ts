@@ -14,18 +14,15 @@ const defaultConfig = {
   language: 'vi',
   download_multiple: 5,
   username: '',
-  version_selected: 'latest',
+  version_selected: 'latest_release',
   minecraft: {
     width: 400,
     height: 250,
     fullscreen: false,
     gamedir: './minecraft',
-    java: '',
+    java: 'jre',
     language: 'vi',
-    ram: {
-      value: 1,
-      unit: 'GB',
-    },
+    ram: '1024M'
   },
   modpack: [
     {
@@ -45,7 +42,7 @@ const defaultConfig = {
   auto_updates: true,
 };
 
-export function appConfig(keyPath?: string, value?: string | number | boolean) {
+export function appConfig(keyPath?: string, value?: string | number | boolean): typeof defaultConfig {
   const jsonPath = path.join('launcher.json');
 
   let config: any;

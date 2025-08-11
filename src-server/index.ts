@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import { WebSocket, WebSocketServer } from 'ws';
 
 import { appConfig } from './services/appConfig';
+import { launch } from './services/launcher';
 
 config({ quiet: true });
 appConfig();
@@ -50,16 +51,39 @@ wss.on('connection', (ws: WebSocket) => {
 // Define handlers
 // ----------------------
 
-on('username', (ws, payload?: any) => {
-  console.log('server nhận được:', payload);
-  send(ws, 'username', { status: 'ok', received: payload });
-});
-
 on('appConfig', (ws, payload?: { key: string; value: any }) => {
   const { key, value } = payload ? payload : { key: undefined, value: undefined };
 
   const configs = appConfig(key, value);
   send(ws, 'appConfig', configs);
+});
+
+on('launcher_play', async (ws) => {
+  try {
+    const game = await launch();
+
+    game.on('progress', (p, s) => {
+      const percent = ((p / s) * 100).toFixed(2);
+      send(ws, 'launcher_progress', percent);
+    });
+    game.on('log', (line) => {
+      send(ws, 'launcher_log', line);
+    });
+    game.on('speed', (s) => {
+      const speedMB = (s / 1024 / 1024).toFixed(2);
+      send(ws, 'launcher_speed', `${speedMB}MB/s`);
+    });
+    game.on('estimated', (t) => {
+      const m = Math.floor(t / 60);
+      const s = t % 60;
+      send(ws, 'launcher_estimated', `${m}m ${s}s`);
+    });
+    game.on('extract', (e) => console.log('extract', e));
+    game.on('close', () => send(ws, 'launcher_close', true));
+    game.on('error', (err) => console.error(err));
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 console.log('WS Server started on port 8787');

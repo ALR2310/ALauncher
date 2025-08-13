@@ -1,7 +1,8 @@
+import { LauncherConfigType } from '@shared/launcher.type';
 import { useQuery } from '@tanstack/react-query';
 import { createContext, useEffect, useState } from 'react';
 
-import { useWS, useWSListener } from '~/hook/useWS';
+import { useWS } from '~/hook/useWS';
 import { getVersion } from '~/services/curseforge';
 
 const LauncherContext = createContext<{
@@ -9,7 +10,7 @@ const LauncherContext = createContext<{
   progress: number;
   speed: string;
   estimated: string;
-  configs: any;
+  configs: LauncherConfigType | null;
   setConfigs: (key: string, value: any) => void;
   logs: string[];
   isPlaying: boolean;
@@ -22,7 +23,7 @@ const LauncherProvider = ({ children }) => {
   const [progress, setProgress] = useState(0);
   const [speed, setSpeed] = useState('');
   const [estimated, setEstimated] = useState('');
-  const [configs, setConfigs] = useState<any>(null);
+  const [configs, setConfigs] = useState<LauncherConfigType | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [version, setVersion] = useState('');
@@ -34,34 +35,44 @@ const LauncherProvider = ({ children }) => {
     queryFn: getVersion,
   });
 
+  // Fetch initial configs
+  useEffect(() => {
+    send('launcher:config');
+  }, [send]);
+
+  // Set configs when received from server
+  on('launcher:config', (data) => setConfigs(data));
+
+  // Function to set a config value
   const setConfigValue = (key: string, value: any) => {
-    send('appConfig', { key, value });
+    send('launcher:config', { key, value });
   };
 
+  // Function to launch the game
   const launch = () => {
-    send('launcher_play');
+    send('launcher:launch');
     setIsPlaying(true);
   };
 
-  useEffect(() => {
-    send('appConfig');
-  }, [on, send]);
-
-  useWSListener('appConfig', (data) => {
-    setConfigs(data);
+  // Set up WebSocket event listeners
+  on('launcher:log', (value) => setLogs((prev) => [...prev, value]));
+  on('launcher:progress', (value) => setProgress(Number(value)));
+  on('launcher:speed', (value) => setSpeed(value));
+  on('launcher:estimated', (value) => setEstimated(value));
+  on('launcher:extract', (value) => console.log('Extracting:', value));
+  on('launcher:patch', (value) => console.log('Patching:', value));
+  on('launcher:close', () => {
+    setIsPlaying(false);
+    setProgress(0);
   });
 
-  on('launcher_log', (value) => setLogs((prev) => [...prev, value]));
-  on('launcher_progress', (value) => setProgress(Number(value)));
-  on('launcher_speed', (value) => setSpeed(value));
-  on('launcher_estimated', (value) => setEstimated(value));
-  on('launcher_close', () => setIsPlaying(false));
-
+  // Set version list when received from server
   useEffect(() => {
     if (versionQuery.isLoading) return;
     setVersionList(versionQuery.data.map((v: any) => ({ label: v.versionString, value: v.versionString })));
   }, [versionQuery.data, versionQuery.isLoading]);
 
+  // Set version based on configs or latest release
   useEffect(() => {
     if (versionList.length === 0 || !configs) return;
     if (configs.version_selected === 'latest_release') {

@@ -5,7 +5,7 @@ import { useLauncher } from '~/hook/useLauncher';
 import { toast } from '~/hook/useToast';
 
 export default function DockNav() {
-  const { launch, progress, configs, setConfigs, isPlaying, version, versionList } = useLauncher();
+  const { launch, progress, speed, estimated, configs, setConfigs, isPlaying, version, versionList } = useLauncher();
   const [username, setUsername] = useState('');
 
   useEffect(() => {
@@ -16,7 +16,9 @@ export default function DockNav() {
     <div className="relative flex flex-nowrap gap-4 p-3 bg-base-300">
       {isPlaying && (
         <div className="absolute left-0 bottom-[90%] w-full">
-          <p className="absolute left-1/2 text-primary font-semibold z-10">{`${progress}%`}</p>
+          <p className="absolute left-1/2 text-primary font-semibold z-10">
+            {`${progress}% ${'- ' + speed} ${'- ' + estimated}`}
+          </p>
           <progress className="progress h-3 rounded-none" value={progress} max="100"></progress>
         </div>
       )}

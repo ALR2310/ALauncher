@@ -15,6 +15,7 @@ export async function launch() {
     .on('speed', (s) => emitter.emit('speed', s))
     .on('estimated', (t) => emitter.emit('estimated', t))
     .on('extract', (e) => emitter.emit('extract', e))
+    .on('patch', (e) => emitter.emit('patch', e))
     .on('close', () => emitter.emit('close'))
     .on('error', (err) => emitter.emit('error', err));
 

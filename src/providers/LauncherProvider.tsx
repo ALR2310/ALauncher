@@ -27,7 +27,8 @@ const LauncherProvider = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [version, setVersion] = useState('');
-  const [versionList, setVersionList] = useState<{ label: string; value: string }[]>([]);
+  const [versionList, setVersionList] = useState<{ label: string; value: string; downloaded: boolean }[]>([]);
+  const [versionDownloaded, setVersionDownloaded] = useState<string[]>([]);
 
   // Api get versions
   const versionQuery = useQuery({
@@ -38,10 +39,14 @@ const LauncherProvider = ({ children }) => {
   // Fetch initial configs
   useEffect(() => {
     send('launcher:config');
+    send('version:downloaded');
   }, [send]);
 
   // Set configs when received from server
   on('launcher:config', (data) => setConfigs(data));
+
+  // Set downloaded versions when received from server
+  on('version:downloaded', setVersionDownloaded);
 
   // Function to set a config value
   const setConfigValue = (key: string, value: any) => {
@@ -81,6 +86,19 @@ const LauncherProvider = ({ children }) => {
       setVersion(configs.version_selected);
     }
   }, [configs, versionList]);
+
+  // Update version list with downloaded status
+  useEffect(() => {
+    if (versionList.length && versionDownloaded.length) {
+      setVersionList((prev) => {
+        const downloadedSet = new Set(versionDownloaded);
+        return prev.map((item) => ({
+          ...item,
+          downloaded: downloadedSet.has(item.value),
+        }));
+      });
+    }
+  }, [versionDownloaded, versionList.length]);
 
   return (
     <LauncherContext.Provider

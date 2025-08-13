@@ -1,5 +1,7 @@
 import { config } from 'dotenv';
+import fs from 'fs';
 import throttle from 'lodash/throttle';
+import path from 'path';
 
 import { appConfig } from './services/appConfig';
 import { launch } from './services/launcher';
@@ -9,7 +11,7 @@ config({ quiet: true });
 
 startServer(process.env.VITE_WS_PORT ? parseInt(process.env.VITE_WS_PORT) : 8787);
 
-on('launcher:config', (payload?: { key: string; value: any }) => {
+on('launcher:config', (payload?: { key: string; value?: any }) => {
   const { key, value } = payload ? payload : { key: undefined, value: undefined };
   const configs = appConfig(key, value);
   send('launcher:config', configs);
@@ -64,4 +66,13 @@ on('launcher:launch', async () => {
     console.error('Error launching:', e);
     send('launcher:error', e);
   }
+});
+
+on('version:downloaded', () => {
+  const versionsPath = path.resolve(appConfig('minecraft.gamedir') as any, 'versions');
+  const dirs = fs
+    .readdirSync(versionsPath, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name);
+  send('version:downloaded', dirs);
 });

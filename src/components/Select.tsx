@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 interface OptionProps {
   value: string;
   label: string;
+  [key: string]: any;
 }
 
 interface SelectProps {
@@ -14,7 +15,7 @@ interface SelectProps {
   style?: React.CSSProperties;
   position?: 'top' | 'bottom';
   onChange?: (value: string) => void;
-  render?: (option: OptionProps, select: (value: string) => void) => React.ReactNode;
+  render?: (item: OptionProps, select: (value: string) => void) => React.ReactNode;
 }
 
 export default function Select({
@@ -98,18 +99,18 @@ export default function Select({
 
           {/* Phần danh sách cuộn được (input không nằm trong phần này) */}
           <ul className="overflow-y-auto max-h-64">
-            {filteredOptions.map((option) => (
+            {filteredOptions.map((item) => (
               <li
-                key={option.value}
-                className={`px-3 py-1 cursor-pointer hover:bg-base-300 ${
-                  selectedValue === option.value ? 'bg-base-300' : ''
+                key={item.value}
+                className={`${render ? undefined : 'px-3 py-1'} cursor-pointer hover:bg-base-300 ${
+                  selectedValue === item.value ? 'bg-base-300' : ''
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSelectOption(option.value);
+                  handleSelectOption(item.value);
                 }}
               >
-                {render ? render(option, handleSelectOption) : <span>{option.label}</span>}
+                {render ? render(item, handleSelectOption) : <span>{item.label}</span>}
               </li>
             ))}
 

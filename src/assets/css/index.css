@@ -33,6 +33,11 @@
   }
 }
 
+.progress-no-rounded,
+.progress-no-rounded::-webkit-progress-value {
+  border-radius: 0;
+}
+
 .input-editor {
   --input-color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
   border: var(--border) solid #0000;

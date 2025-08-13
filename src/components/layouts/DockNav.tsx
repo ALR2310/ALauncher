@@ -12,14 +12,22 @@ export default function DockNav() {
     if (configs) setUsername(configs.username);
   }, [configs]);
 
+  useEffect(() => {
+    console.log(versionList);
+  }, [versionList]);
+
   return (
     <div className="relative flex flex-nowrap gap-4 p-3 bg-base-300">
       {isPlaying && (
         <div className="absolute left-0 bottom-[90%] w-full">
           <p className="absolute left-1/2 text-primary font-semibold z-10">
-            {`${progress}% ${'- ' + speed} ${'- ' + estimated}`}
+            {progress ? `${progress}% ${'- ' + speed} ${'- ' + estimated}` : null}
           </p>
-          <progress className="progress h-3 rounded-none" value={progress} max="100"></progress>
+          <progress
+            className="progress h-3 progress-no-rounded"
+            value={progress ? progress : undefined}
+            max="100"
+          ></progress>
         </div>
       )}
 
@@ -42,6 +50,9 @@ export default function DockNav() {
         onChange={(value) => {
           setConfigs('version_selected', value);
         }}
+        render={(item) => (
+          <p className={`px-3 py-1 ${item.downloaded ? 'bg-base-content/10' : undefined}`}>{item.label}</p>
+        )}
       />
 
       <button

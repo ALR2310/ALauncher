@@ -29,15 +29,18 @@ export default function DockNav() {
         </div>
       )}
 
-      <input
-        type="text"
-        className="input flex-1"
-        placeholder="Tên người dùng"
-        value={username}
-        onChange={(e) => {
-          setConfigs('username', e.target.value);
-        }}
-      />
+      <label className="input flex-1">
+        <i className="fa-light fa-user"></i>
+        <input
+          type="text"
+          className="grow"
+          placeholder="Tên người dùng"
+          value={username}
+          onChange={(e) => {
+            setConfigs('username', e.target.value);
+          }}
+        />
+      </label>
 
       <Select
         className="flex-1"

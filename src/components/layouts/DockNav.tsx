@@ -3,18 +3,16 @@ import { useEffect, useState } from 'react';
 import Select from '~/components/Select';
 import { useLauncher } from '~/hook/useLauncher';
 import { toast } from '~/hook/useToast';
+import { useWS } from '~/hook/useWS';
 
 export default function DockNav() {
+  const { send } = useWS();
   const { launch, progress, speed, estimated, configs, setConfigs, isPlaying, version, versionList } = useLauncher();
   const [username, setUsername] = useState('');
 
   useEffect(() => {
     if (configs) setUsername(configs.username);
   }, [configs]);
-
-  useEffect(() => {
-    console.log(versionList);
-  }, [versionList]);
 
   return (
     <div className="relative flex flex-nowrap gap-4 p-3 bg-base-300">
@@ -67,11 +65,16 @@ export default function DockNav() {
       </button>
 
       <div className="flex-1 flex">
-        <button className="btn btn-ghost flex-1">
+        <button
+          className="btn btn-ghost flex-1"
+          onClick={() => {
+            window.location.reload();
+          }}
+        >
           <i className="fa-light fa-rotate-right"></i>
         </button>
 
-        <button className="btn btn-ghost flex-1">
+        <button className="btn btn-ghost flex-1" onClick={() => send('app:openFolder')}>
           <i className="fa-light fa-folder-closed"></i>
         </button>
 

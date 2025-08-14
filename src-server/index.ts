@@ -1,3 +1,4 @@
+import { spawn } from 'child_process';
 import { config } from 'dotenv';
 import fs from 'fs';
 import throttle from 'lodash/throttle';
@@ -75,4 +76,13 @@ on('version:downloaded', () => {
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => dirent.name);
   send('version:downloaded', dirs);
+});
+
+on('app:openFolder', () => {
+  const folderPath = path.resolve(appConfig('minecraft.gamedir') as any);
+  const platform = process.platform;
+
+  if (platform === 'win32') spawn('explorer', [folderPath]);
+  else if (platform === 'darwin') spawn('open', [folderPath]);
+  else spawn('xdg-open', [folderPath]);
 });

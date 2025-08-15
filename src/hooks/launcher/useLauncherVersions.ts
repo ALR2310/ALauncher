@@ -2,7 +2,7 @@ import { LauncherConfigType } from '@shared/launcher.type';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
-import { fetchVersion } from '~/services/curseforge';
+import { fetchVersion, fetchVersionLoader } from '~/services/curseforge';
 
 import { useWS } from '../useWS';
 
@@ -10,6 +10,7 @@ export function useLauncherVersions(configs: LauncherConfigType | null) {
   const { send, on } = useWS();
   const [versionDownloaded, setVersionDownloaded] = useState<string[]>([]);
   const [version, setVersion] = useState('');
+  const [versionLoader, setVersionLoader] = useState<string>('');
 
   useEffect(() => send('version:downloaded'), [send]);
   on('version:downloaded', (data: string[]) => setVersionDownloaded(data ?? []));
@@ -46,7 +47,17 @@ export function useLauncherVersions(configs: LauncherConfigType | null) {
     }
     const found = versionList.some((v) => v.value === desired);
     setVersion(found ? desired : versionList[0].value);
+    setVersionLoader(found ? desired : versionList[0].value);
   }, [configs, versionList]);
 
-  return { version, versionList, setVersion };
+  const loaderListQuery = useQuery({
+    queryKey: ['loader', versionLoader],
+    queryFn: () => fetchVersionLoader({ version: versionLoader }),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    enabled: !!versionLoader,
+  });
+
+  return { version, versionList, setVersionLoader, loaderList: loaderListQuery.data ?? [] };
 }

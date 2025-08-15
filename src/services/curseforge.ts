@@ -13,3 +13,8 @@ export const fetchVersion = async () => {
   const response = await api.get('minecraft/version');
   return response.data.data;
 };
+
+export const fetchVersionLoader = async (params: { version: string }) => {
+  const response = await api.get(`minecraft/modloader?version=${params.version}&includeAll=true`);
+  return response.data.data;
+};

@@ -8,6 +8,7 @@ import { useLauncherProgress } from '~/hooks/launcher/useLauncherProgress';
 import { useLauncherVersions } from '~/hooks/launcher/useLauncherVersions';
 
 type VersionItem = { label: string; value: string; downloaded: boolean };
+type versionLoader = { name: string; gameVersion: string; type: number; recommended?: boolean };
 
 const LauncherContext = createContext<{
   launch: () => void;
@@ -20,12 +21,15 @@ const LauncherContext = createContext<{
   logs: string[];
   isPlaying: boolean;
   version: string;
+  setVersion: (v: string) => void;
   versionList: VersionItem[];
+  setVersionLoader: React.Dispatch<React.SetStateAction<string>>;
+  loaderList: versionLoader[];
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
   const { configs, setConfigs } = useLauncherConfig();
-  const { version, versionList } = useLauncherVersions(configs);
+  const { version, versionList, setVersionLoader, loaderList } = useLauncherVersions(configs);
   const { isPlaying, launch, cancel } = useLauncherLifecycle();
   const { progress, speed, estimated } = useLauncherProgress();
   const { logs } = useLauncherLogs();
@@ -42,9 +46,26 @@ const LauncherProvider = ({ children }) => {
       logs,
       isPlaying,
       version,
+      setVersion: (v: string) => setConfigs('version_selected', v),
       versionList,
+      setVersionLoader,
+      loaderList,
     }),
-    [launch, cancel, progress, speed, estimated, configs, setConfigs, logs, isPlaying, version, versionList],
+    [
+      launch,
+      cancel,
+      progress,
+      speed,
+      estimated,
+      configs,
+      setConfigs,
+      logs,
+      isPlaying,
+      version,
+      versionList,
+      setVersionLoader,
+      loaderList,
+    ],
   );
 
   return <LauncherContext.Provider value={contextValue}>{children}</LauncherContext.Provider>;

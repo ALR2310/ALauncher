@@ -7,8 +7,19 @@ import { useWS } from '~/hooks/useWS';
 
 export default function DockNav() {
   const { send } = useWS();
-  const { launch, cancel, progress, speed, estimated, configs, setConfigs, isPlaying, version, versionList } =
-    useLauncher();
+  const {
+    launch,
+    cancel,
+    progress,
+    speed,
+    estimated,
+    configs,
+    setConfigs,
+    isPlaying,
+    version,
+    setVersion,
+    versionList,
+  } = useLauncher();
   const [username, setUsername] = useState('');
 
   useEffect(() => {
@@ -50,7 +61,7 @@ export default function DockNav() {
         value={version}
         options={versionList ?? []}
         onChange={(value) => {
-          setConfigs('version_selected', value);
+          setVersion(value);
         }}
         render={(item) => (
           <p className={`px-3 py-1 ${item.downloaded ? 'bg-base-content/10' : undefined}`}>{item.label}</p>

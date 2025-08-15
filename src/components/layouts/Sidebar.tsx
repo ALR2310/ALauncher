@@ -1,8 +1,14 @@
-// import modpackLogo from '~/assets/imgs/modpack-logo.webp';
+import React, { useEffect, useRef, useState } from 'react';
 
-import React, { useRef } from 'react';
+import fabricLogo from '~/assets/imgs/logos/fabric.png';
+import forgeLogo from '~/assets/imgs/logos/forge.jpg';
+import neoForgeLogo from '~/assets/imgs/logos/neoforge.png';
+import quiltLogo from '~/assets/imgs/logos/quilt.png';
+import modpackLogo from '~/assets/imgs/modpack-logo.webp';
+import { useLauncher } from '~/hooks/useLauncher';
 
 import Modal from '../Modal';
+import Select from '../Select';
 
 interface SidebarProps {
   className?: string;
@@ -10,6 +16,25 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
+  const [loaderType, setLoaderType] = useState<number>(1); // Forge: 1, Fabric: 4, Quilt: 5, NeoForge: 6
+  const [currLoader, setCurrLoader] = useState<string>('');
+  const { version, versionList, setVersionLoader, loaderList } = useLauncher();
+  const [uniqueLoaderList, setUniqueLoaderList] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!loaderList || !loaderList.length) return;
+    console.log('Loader list updated:', loaderList);
+    setUniqueLoaderList(
+      loaderList
+        .filter((loader) => loader.type === loaderType)
+        .filter((loader, idx, self) => idx === self.findIndex((l) => l.name === loader.name))
+        .map((loader) => ({
+          label: loader.name,
+          value: loader.name,
+          recommended: loader.recommended,
+        })),
+    );
+  }, [loaderList, loaderType]);
 
   return (
     <React.Fragment>
@@ -27,7 +52,7 @@ export default function Sidebar({ className }: SidebarProps) {
         <div
           className="relative w-full h-[35%] group overflow-hidden"
           style={{
-            // backgroundImage: `url(${modpackLogo})`,
+            backgroundImage: `url(${modpackLogo})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
@@ -50,23 +75,131 @@ export default function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
 
-      <Modal
-        title="Tạo Modpack"
-        ref={modalRef}
-        titlePosition="center"
-        btnOk={{ color: 'primary', text: 'Lưu' }}
-        btnCancel={{ text: 'Huỷ' }}
-      >
-        <div className="flex flex-col gap-4">
-          <label className="label">Tên Modpack:</label>
-          <input type="text" className="input" />
-        </div>
+      <Modal title="Tạo Modpack" ref={modalRef} titlePosition="center" btnShow={false} backdropClose={true}>
+        <div className="space-y-6 my-6">
+          <div className="flex gap-4">
+            <img src={modpackLogo} alt="Modpack logo" className="flex-1/3 h-28 object-cover" />
 
-        <div className="flex flex-col gap-4">
-          <label className="label">Phiên bản minecraft:</label>
-          
-        </div>
+            <div className="flex justify-center flex-col gap-2 flex-2/3">
+              <label className="font-semibold">Tên Modpack:</label>
+              <input type="text" className="input w-full" />
+            </div>
+          </div>
 
+          <div className="flex flex-col gap-2">
+            <label className="font-semibold">Loại game:</label>
+
+            <div className="flex flex-nowrap gap-2 justify-between">
+              <label className="label">
+                <input
+                  className="radio radio-primary"
+                  type="radio"
+                  name="loaderType"
+                  value="Forge"
+                  checked={loaderType === 1}
+                  onChange={() => setLoaderType(1)}
+                />
+                <img src={forgeLogo} alt="Forge" className="w-6 h-6" />
+                <span>Forge</span>
+              </label>
+
+              <label className="label">
+                <input
+                  className="radio radio-primary"
+                  type="radio"
+                  name="loaderType"
+                  value="Fabric"
+                  checked={loaderType === 4}
+                  onChange={() => setLoaderType(4)}
+                />
+                <img src={fabricLogo} alt="Fabric" className="w-6 h-6" />
+                <span>Fabric</span>
+              </label>
+
+              <label className="label">
+                <input
+                  className="radio radio-primary"
+                  type="radio"
+                  name="loaderType"
+                  value="Quilt"
+                  checked={loaderType === 5}
+                  onChange={() => setLoaderType(5)}
+                />
+                <img src={quiltLogo} alt="Quilt" className="w-6 h-6" />
+                <span>Quilt</span>
+              </label>
+
+              <label className="label">
+                <input
+                  className="radio radio-primary"
+                  type="radio"
+                  name="loaderType"
+                  value="NeoForge"
+                  checked={loaderType === 6}
+                  onChange={() => setLoaderType(6)}
+                />
+                <img src={neoForgeLogo} alt="NeoForge" className="w-6 h-6" />
+                <span>NeoForge</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-6">
+            <div className="flex flex-col gap-2 flex-1/2">
+              <label className="font-semibold">Phiên bản minecraft:</label>
+              <Select
+                className="w-full"
+                value={version}
+                optionHeight={200}
+                options={versionList ?? []}
+                onChange={(e) => {
+                  setUniqueLoaderList([]);
+                  setVersionLoader(e);
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1/2">
+              <label className="font-semibold">Phiên bản modloader:</label>
+              <Select
+                className="w-full"
+                value={currLoader}
+                optionHeight={200}
+                options={uniqueLoaderList}
+                onChange={(e) => setCurrLoader(e)}
+                render={(item) => (
+                  <div className="flex items-center gap-2 px-3 py-1">
+                    <span>{item.label}</span>
+                    {item.recommended && (
+                      <div className="rating rating-xs">
+                        <div className="mask mask-star-2 bg-yellow-500!"></div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-4">
+            <button
+              className="btn btn-soft w-1/4"
+              onClick={() => {
+                modalRef.current?.close();
+              }}
+            >
+              Huỷ
+            </button>
+            <button
+              className="btn btn-primary w-1/4"
+              onClick={() => {
+                modalRef.current?.close();
+              }}
+            >
+              Tạo
+            </button>
+          </div>
+        </div>
       </Modal>
     </React.Fragment>
   );

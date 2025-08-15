@@ -63,7 +63,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
             </form>
           )}
           <h3 className={`text-lg font-bold ${ConfirmClassMap.titlePosition[titlePosition]}`}>{title}</h3>
-          <div>{children}</div>
+          {children}
           {btnShow && (
             <div className="modal-action mt-0">{renderButtons({ allowBtnCloseModal, btnCancel, btnOk })}</div>
           )}

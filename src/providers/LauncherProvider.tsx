@@ -2,7 +2,7 @@ import { LauncherConfigType } from '@shared/launcher.type';
 import { useQuery } from '@tanstack/react-query';
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useWS } from '~/hook/useWS';
+import { useWS } from '~/hooks/useWS';
 import { getVersion } from '~/services/curseforge';
 
 type VersionItem = { label: string; value: string; downloaded: boolean };

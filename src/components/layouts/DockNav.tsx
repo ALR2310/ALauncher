@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
 import Select from '~/components/Select';
-import { useLauncher } from '~/hook/useLauncher';
-import { toast } from '~/hook/useToast';
-import { useWS } from '~/hook/useWS';
+import { useLauncher } from '~/hooks/useLauncher';
+import { toast } from '~/hooks/useToast';
+import { useWS } from '~/hooks/useWS';
 
 export default function DockNav() {
   const { send } = useWS();

@@ -2,7 +2,7 @@ import uniqueId from 'lodash/uniqueId';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 
-import { setToastFunction } from '~/hook/useToast';
+import { setToastFunction } from '~/hooks/useToast';
 type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 interface ToastProps {

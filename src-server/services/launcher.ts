@@ -1,15 +1,17 @@
 import EventEmitter from 'events';
-import { Launch, Mojang } from 'minecraft-java-core';
 
+import { Launch, Mojang } from '../libs/minecraft-java-core/build/Index';
 import { appConfig } from './appConfig';
+
+let launcherInstance: Launch | null = null;
 
 export async function launch() {
   const emitter = new EventEmitter();
   const config = appConfig();
-  const launcher = new Launch();
+  launcherInstance = new Launch();
   const auth = await Mojang.login(config.username);
 
-  launcher
+  launcherInstance
     .on('progress', (p, s) => emitter.emit('progress', p, s))
     .on('data', (line) => emitter.emit('log', line.toString()))
     .on('speed', (s) => emitter.emit('speed', s))
@@ -19,7 +21,7 @@ export async function launch() {
     .on('close', () => emitter.emit('close'))
     .on('error', (err) => emitter.emit('error', err));
 
-  launcher.Launch({
+  launcherInstance.Launch({
     path: config.minecraft.gamedir,
     version: config.version_selected,
     bypassOffline: true,
@@ -52,4 +54,12 @@ export async function launch() {
   });
 
   return emitter;
+}
+
+export function cancel() {
+  if (launcherInstance) {
+    launcherInstance.cancel();
+    launcherInstance = null;
+  }
+  return true;
 }

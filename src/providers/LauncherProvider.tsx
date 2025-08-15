@@ -9,6 +9,7 @@ type VersionItem = { label: string; value: string; downloaded: boolean };
 
 const LauncherContext = createContext<{
   launch: () => void;
+  cancel: () => void;
   progress: number;
   speed: string;
   estimated: string;
@@ -55,6 +56,11 @@ const LauncherProvider = ({ children }) => {
   const launch = useCallback(() => {
     send('launcher:launch');
     setIsPlaying(true);
+  }, [send]);
+
+  const cancel = useCallback(() => {
+    send('launcher:cancel');
+    setIsPlaying(false);
   }, [send]);
 
   // Set up WebSocket event listeners
@@ -112,6 +118,7 @@ const LauncherProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       launch,
+      cancel,
       progress,
       speed,
       estimated,
@@ -122,7 +129,7 @@ const LauncherProvider = ({ children }) => {
       version,
       versionList,
     }),
-    [launch, progress, speed, estimated, configs, setConfigValue, logs, isPlaying, version, versionList],
+    [launch, cancel, progress, speed, estimated, configs, setConfigValue, logs, isPlaying, version, versionList],
   );
 
   return <LauncherContext.Provider value={contextValue}>{children}</LauncherContext.Provider>;

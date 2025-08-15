@@ -7,7 +7,8 @@ import { useWS } from '~/hook/useWS';
 
 export default function DockNav() {
   const { send } = useWS();
-  const { launch, progress, speed, estimated, configs, setConfigs, isPlaying, version, versionList } = useLauncher();
+  const { launch, cancel, progress, speed, estimated, configs, setConfigs, isPlaying, version, versionList } =
+    useLauncher();
   const [username, setUsername] = useState('');
 
   useEffect(() => {
@@ -58,13 +59,14 @@ export default function DockNav() {
 
       <button
         className="btn btn-primary flex-1"
-        disabled={isPlaying}
         onClick={() => {
           if (!username) return toast.warning('Vui lòng nhập tên người dùng');
-          launch();
+          if (!isPlaying) {
+            launch();
+          } else cancel();
         }}
       >
-        Vào trò chơi
+        {isPlaying ? 'Huỷ' : 'Chơi'}
       </button>
 
       <div className="flex-1 flex">

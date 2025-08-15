@@ -5,7 +5,7 @@ import throttle from 'lodash/throttle';
 import path from 'path';
 
 import { appConfig } from './services/appConfig';
-import { launch } from './services/launcher';
+import { cancel, launch } from './services/launcher';
 import { on, send, startServer } from './services/wss';
 
 config({ quiet: true });
@@ -66,6 +66,15 @@ on('launcher:launch', async () => {
   } catch (e) {
     console.error('Error launching:', e);
     send('launcher:error', e);
+  }
+});
+
+on('launcher:cancel', () => {
+  try {
+    const result = cancel();
+    send('launcher:cancel', result);
+  } catch (e) {
+    console.error('Error cancelling launch:', e);
   }
 });
 

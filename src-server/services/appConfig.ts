@@ -1,3 +1,4 @@
+import { LauncherConfigType } from '@shared/launcher.type';
 import fs from 'fs';
 import get from 'lodash/get';
 import set from 'lodash/set';
@@ -22,7 +23,7 @@ const defaultConfig = {
     gamedir: './minecraft',
     java: 'jre',
     language: 'vi',
-    ram: '1024M'
+    ram: '1024M',
   },
   modpack: [
     {
@@ -42,7 +43,7 @@ const defaultConfig = {
   auto_updates: true,
 };
 
-export function appConfig(keyPath?: string, value?: string | number | boolean): typeof defaultConfig {
+export function appConfig(keyPath?: string, value?: string | number | boolean): LauncherConfigType {
   const jsonPath = path.join('launcher.json');
 
   let config: any;

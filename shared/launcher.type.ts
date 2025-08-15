@@ -26,37 +26,28 @@ export interface LauncherConfigType {
   auto_updates: boolean;
 }
 
-export interface ManifestType {
-  instances: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    version: string;
-    minecraft: string;
-    loader: string;
-    description: string;
-    icon: string;
-    url: string;
-    author: string;
-    last_updated: string;
-  }>;
-}
-
 export type InstanceType = {
   id: string;
   name: string;
   slug: string;
+  description: string;
   version: string;
   minecraft: string;
   loader: {
     name: string;
     version: string;
   };
-  last_updated: string;
   mods: Array<{
     id: string;
     name: string;
     file_name: string;
     download_url: string;
   }>;
+  icon: string;
+  url: string;
+  author: string;
+  last_updated: string;
 };
+export interface ManifestType {
+  instances: Array<InstanceType & Omit<InstanceType, 'mods'>>;
+}

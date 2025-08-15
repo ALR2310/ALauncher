@@ -19,7 +19,8 @@ export async function launch() {
     .on('extract', (e) => emitter.emit('extract', e))
     .on('patch', (e) => emitter.emit('patch', e))
     .on('close', () => emitter.emit('close'))
-    .on('error', (err) => emitter.emit('error', err));
+    .on('error', (err) => emitter.emit('error', err))
+    .on('cancelled', () => emitter.emit('cancelled'));
 
   launcherInstance.Launch({
     path: config.minecraft.gamedir,

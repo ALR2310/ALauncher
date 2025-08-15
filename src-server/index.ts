@@ -63,6 +63,7 @@ on('launcher:launch', async () => {
       console.error('Error launching:', err);
       send('launcher:error', err);
     });
+    game.on('cancelled', () => send('launcher:cancelled', true));
   } catch (e) {
     console.error('Error launching:', e);
     send('launcher:error', e);

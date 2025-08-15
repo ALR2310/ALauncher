@@ -56,7 +56,18 @@ export default function Sidebar({ className }: SidebarProps) {
         titlePosition="center"
         btnOk={{ color: 'primary', text: 'Lưu' }}
         btnCancel={{ text: 'Huỷ' }}
-      ></Modal>
+      >
+        <div className="flex flex-col gap-4">
+          <label className="label">Tên Modpack:</label>
+          <input type="text" className="input" />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <label className="label">Phiên bản minecraft:</label>
+          
+        </div>
+
+      </Modal>
     </React.Fragment>
   );
 }

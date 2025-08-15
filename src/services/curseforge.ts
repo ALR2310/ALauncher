@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-export const getVersion = async () => {
+export const fetchVersion = async () => {
   const response = await api.get('minecraft/version');
   return response.data.data;
 };

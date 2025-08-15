@@ -4,8 +4,8 @@ import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-
 
 import DockNav from './components/layouts/DockNav';
 import Sidebar from './components/layouts/Sidebar';
-import ManagerModPage from './pages/manager/ManagerModPage';
-import ManagerPage from './pages/manager/ManagerPage';
+import ManagerModPage from './pages/ManagerModPage';
+import ManagerPage from './pages/ManagerPage';
 import { LauncherProvider } from './providers/LauncherProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { WebSocketProvider } from './providers/WebSocketProvider';

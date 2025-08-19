@@ -1,25 +1,27 @@
 import { useEffect, useState } from 'react';
+import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
-import { useLauncher } from '~/hooks/useLauncher';
 import { toast } from '~/hooks/useToast';
 import { useWS } from '~/hooks/useWS';
+import { LauncherContext } from '~/providers/LauncherProvider';
 
 export default function DockNav() {
   const { send } = useWS();
-  const {
-    launch,
-    cancel,
-    progress,
-    speed,
-    estimated,
-    configs,
-    setConfigs,
-    isPlaying,
-    version,
-    setVersion,
-    versionList,
-  } = useLauncher();
+
+  // Launcher Context selectors
+  const launch = useContextSelector(LauncherContext, (ctx) => ctx.launch);
+  const cancel = useContextSelector(LauncherContext, (ctx) => ctx.cancel);
+  const progress = useContextSelector(LauncherContext, (ctx) => ctx.progress);
+  const speed = useContextSelector(LauncherContext, (ctx) => ctx.speed);
+  const estimated = useContextSelector(LauncherContext, (ctx) => ctx.estimated);
+  const configs = useContextSelector(LauncherContext, (ctx) => ctx.configs);
+  const setConfigs = useContextSelector(LauncherContext, (ctx) => ctx.setConfigs);
+  const isPlaying = useContextSelector(LauncherContext, (ctx) => ctx.isPlaying);
+  const version = useContextSelector(LauncherContext, (ctx) => ctx.version);
+  const setVersion = useContextSelector(LauncherContext, (ctx) => ctx.setVersion);
+  const versionList = useContextSelector(LauncherContext, (ctx) => ctx.versionList);
+
   const [username, setUsername] = useState('');
 
   useEffect(() => {

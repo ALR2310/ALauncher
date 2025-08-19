@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useContextSelector } from 'use-context-selector';
 
 import fabricLogo from '~/assets/imgs/logos/fabric.png';
 import forgeLogo from '~/assets/imgs/logos/forge.jpg';
 import neoForgeLogo from '~/assets/imgs/logos/neoforge.png';
 import quiltLogo from '~/assets/imgs/logos/quilt.png';
-import modpackLogo from '~/assets/imgs/modpack-logo.webp';
-import { useLauncher } from '~/hooks/useLauncher';
+import { LauncherContext } from '~/providers/LauncherProvider';
 
+// import modpackLogo from '~/assets/imgs/modpack-logo.webp';
 import Modal from '../Modal';
 import Select from '../Select';
+
+const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
 
 interface SidebarProps {
   className?: string;
@@ -18,12 +21,17 @@ export default function Sidebar({ className }: SidebarProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const [loaderType, setLoaderType] = useState<number>(1); // Forge: 1, Fabric: 4, Quilt: 5, NeoForge: 6
   const [currLoader, setCurrLoader] = useState<string>('');
-  const { version, versionList, setVersionLoader, loaderList } = useLauncher();
+
+  // Launcher Context selectors
+  const version = useContextSelector(LauncherContext, (ctx) => ctx.version);
+  const versionList = useContextSelector(LauncherContext, (ctx) => ctx.versionList);
+  const setVersionLoader = useContextSelector(LauncherContext, (ctx) => ctx.setVersionLoader);
+  const loaderList = useContextSelector(LauncherContext, (ctx) => ctx.loaderList);
+
   const [uniqueLoaderList, setUniqueLoaderList] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loaderList || !loaderList.length) return;
-    console.log('Loader list updated:', loaderList);
     setUniqueLoaderList(
       loaderList
         .filter((loader) => loader.type === loaderType)
@@ -78,7 +86,9 @@ export default function Sidebar({ className }: SidebarProps) {
       <Modal title="Tạo Modpack" ref={modalRef} titlePosition="center" btnShow={false} backdropClose={true}>
         <div className="space-y-6 my-6">
           <div className="flex gap-4">
-            <img src={modpackLogo} alt="Modpack logo" className="flex-1/3 h-28 object-cover" />
+            <div className="flex-1/3 h-28">
+              <img src={modpackLogo} alt="Modpack logo" className="w-full h-full object-cover" />
+            </div>
 
             <div className="flex justify-center flex-col gap-2 flex-2/3">
               <label className="font-semibold">Tên Modpack:</label>

@@ -1,5 +1,6 @@
 import { LauncherConfigType } from '@shared/launcher.type';
-import { createContext, useMemo } from 'react';
+import { useMemo } from 'react';
+import { createContext } from 'use-context-selector';
 
 import { useLauncherConfig } from '~/hooks/launcher/useLauncherConfig';
 import { useLauncherLifecycle } from '~/hooks/launcher/useLauncherLifecycle';

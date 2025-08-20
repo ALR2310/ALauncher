@@ -1,3 +1,4 @@
+import { InstanceType } from '@shared/launcher.type';
 import { spawn } from 'child_process';
 import { config } from 'dotenv';
 import fs from 'fs';
@@ -5,6 +6,7 @@ import throttle from 'lodash/throttle';
 import path from 'path';
 
 import { appConfig } from './services/appConfig';
+import { createInstance, deleteInstance, getInstance, updateInstance } from './services/instances';
 import { cancel, launch } from './services/launcher';
 import { on, send, startServer } from './services/wss';
 
@@ -95,4 +97,32 @@ on('app:openFolder', () => {
   if (platform === 'win32') spawn('explorer', [folderPath]);
   else if (platform === 'darwin') spawn('open', [folderPath]);
   else spawn('xdg-open', [folderPath]);
+});
+
+on('instance:getOne', async (slug: string) => {
+  const instance = await getInstance(slug);
+  send('instance:getOne', instance);
+});
+
+on('instance:getAll', async () => {
+  const instances = await getInstance();
+  send('instance:getAll', instances);
+});
+
+on('instance:create', async (instance: InstanceType) => {
+  const result = await createInstance(instance);
+  send('instance:create', result);
+  send('instance:getAll', await getInstance());
+});
+
+on('instance:update', async (instance: InstanceType) => {
+  const result = await updateInstance(instance.slug, instance);
+  send('instance:update', result);
+  send('instance:getAll', await getInstance());
+});
+
+on('instance:delete', async (slug: string) => {
+  const result = await deleteInstance(slug);
+  send('instance:delete', result);
+  send('instance:getAll', await getInstance());
 });

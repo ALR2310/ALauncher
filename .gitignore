@@ -27,4 +27,6 @@ src-tauri/binaries
 *.sln
 *.sw?
 launcher.json
+manifest.json
+/instances/
 /minecraft/

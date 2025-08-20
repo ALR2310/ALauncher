@@ -35,19 +35,22 @@ export type InstanceType = {
   minecraft: string;
   loader: {
     name: string;
-    version: string;
+    version: string | 'latest' | 'recommended';
   };
+  icon: string;
+  url?: string;
+  author: string;
+  last_updated: string;
   mods: Array<{
     id: string;
     name: string;
     file_name: string;
     download_url: string;
   }>;
-  icon: string;
-  url: string;
-  author: string;
-  last_updated: string;
 };
+
+export type InstanceMeta = Omit<InstanceType, 'mods'>;
+
 export interface ManifestType {
-  instances: Array<InstanceType & Omit<InstanceType, 'mods'>>;
+  instances: InstanceMeta[];
 }

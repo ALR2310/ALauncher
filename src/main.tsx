@@ -9,6 +9,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
+import { toast } from './hooks/useToast';
 
 // Initialize dayjs plugin
 dayjs.extend(utc);
@@ -21,6 +22,11 @@ dayjs.locale('vi');
 const container = document.getElementById('root');
 const root = createRoot(container!);
 const isTauri = '__TAURI__' in window;
+
+// Global
+(window as any).dayjs = dayjs;
+(window as any).isTauri = isTauri;
+(window as any).toast = toast;
 
 (async () => {
   // Load server

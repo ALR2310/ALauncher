@@ -27,10 +27,15 @@ const LauncherContext = createContext<{
   versionList: VersionItem[];
   setVersionLoader: React.Dispatch<React.SetStateAction<string>>;
   loaderList: versionLoader[];
-  instances: InstanceType[];
+  instance: InstanceType | null;
+  instances: InstanceMeta[];
+  getInstance: (slug: string) => void;
   createInstance: (instance: InstanceMeta) => void;
+  createInstanceResult: any;
   updateInstance: (instance: InstanceMeta) => void;
+  updateInstanceResult: any;
   deleteInstance: (slug: string) => void;
+  deleteInstanceResult: any;
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
@@ -39,7 +44,17 @@ const LauncherProvider = ({ children }) => {
   const { isPlaying, launch, cancel } = useLauncherLifecycle();
   const { progress, speed, estimated } = useLauncherProgress();
   const { logs } = useLauncherLogs();
-  const { instances, createInstance, updateInstance, deleteInstance } = useLauncherModpack();
+  const {
+    instance,
+    instances,
+    getInstance,
+    createInstance,
+    createInstanceResult,
+    updateInstance,
+    updateInstanceResult,
+    deleteInstance,
+    deleteInstanceResult,
+  } = useLauncherModpack();
 
   const contextValue = useMemo(
     () => ({
@@ -57,10 +72,15 @@ const LauncherProvider = ({ children }) => {
       versionList,
       setVersionLoader,
       loaderList,
+      instance,
       instances,
+      getInstance,
       createInstance,
+      createInstanceResult,
       updateInstance,
+      updateInstanceResult,
       deleteInstance,
+      deleteInstanceResult,
     }),
     [
       launch,
@@ -76,10 +96,15 @@ const LauncherProvider = ({ children }) => {
       versionList,
       setVersionLoader,
       loaderList,
+      instance,
       instances,
+      getInstance,
       createInstance,
+      createInstanceResult,
       updateInstance,
+      updateInstanceResult,
       deleteInstance,
+      deleteInstanceResult,
     ],
   );
 

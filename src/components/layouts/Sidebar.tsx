@@ -17,17 +17,17 @@ import Select from '../Select';
 
 const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
 
-interface LoaderType {
-  name: string;
-  value: number; // Forge: 1, Fabric: 4, Quilt: 5, NeoForge: 6
-}
+type LoaderType = 'forge' | 'fabric' | 'quilt' | 'neoforge';
+
 interface SidebarProps {
   className?: string;
 }
 
 export default function Sidebar({ className }: SidebarProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
-  const [loaderType, setLoaderType] = useState<LoaderType>({ name: 'forge', value: 1 });
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [loaderType, setLoaderType] = useState<LoaderType>('forge');
   const [loaderVersion, setLoaderVersion] = useState<string>('latest');
   const [modpackName, setModpackName] = useState('');
 
@@ -39,6 +39,11 @@ export default function Sidebar({ className }: SidebarProps) {
   const instances = useContextSelector(LauncherContext, (ctx) => ctx.instances);
   const username = useContextSelector(LauncherContext, (ctx) => ctx.configs?.username);
   const createInstance = useContextSelector(LauncherContext, (ctx) => ctx.createInstance);
+  const createInstanceResult = useContextSelector(LauncherContext, (ctx) => ctx.createInstanceResult);
+  const updateInstance = useContextSelector(LauncherContext, (ctx) => ctx.updateInstance);
+  const updateInstanceResult = useContextSelector(LauncherContext, (ctx) => ctx.updateInstanceResult);
+  const deleteInstance = useContextSelector(LauncherContext, (ctx) => ctx.deleteInstance);
+  const deleteInstanceResult = useContextSelector(LauncherContext, (ctx) => ctx.deleteInstanceResult);
 
   // Unique loader list based on selected loader type
   const [uniqueLoaderList, setUniqueLoaderList] = useState<any[]>([]);
@@ -47,7 +52,10 @@ export default function Sidebar({ className }: SidebarProps) {
     if (!loaderList || !loaderList.length) return;
 
     const uniqueList = loaderList
-      .filter((loader) => loader.type === loaderType.value)
+      .filter(
+        (loader) =>
+          loader.type === (loaderType === 'forge' ? 1 : loaderType === 'fabric' ? 4 : loaderType === 'quilt' ? 5 : 6),
+      )
       .filter((loader, idx, self) => idx === self.findIndex((l) => l.name === loader.name))
       .map((loader) => ({
         label: loader.name,
@@ -62,7 +70,7 @@ export default function Sidebar({ className }: SidebarProps) {
     setUniqueLoaderList([...extraOptions, ...uniqueList]);
   }, [loaderList, loaderType]);
 
-  const handleCreateModpack = () => {
+  const handleUpsertModpack = () => {
     if (!modpackName) return toast.warning('Vui lòng nhập tên modpack');
     if (!loaderVersion) return toast.warning('Vui lòng chọn phiên bản modloader');
 
@@ -74,7 +82,7 @@ export default function Sidebar({ className }: SidebarProps) {
       version: '1.0.0',
       minecraft: version,
       loader: {
-        name: loaderType.name,
+        name: loaderType,
         version: loaderVersion,
       },
       icon: modpackLogo,
@@ -82,15 +90,49 @@ export default function Sidebar({ className }: SidebarProps) {
       last_updated: dayjs().toISOString(),
     };
 
-    createInstance(data);
-    modalRef.current?.close();
-    toast.success('Tạo modpack thành công');
+    if (isEditing) updateInstance(data);
+    else createInstance(data);
   };
+
+  useEffect(() => {
+    if (!createInstanceResult) return;
+    if (createInstanceResult.success) {
+      toast.success(createInstanceResult?.message);
+
+      setModpackName('');
+      setLoaderType('forge');
+      setLoaderVersion('latest');
+      modalRef.current?.close();
+    } else toast.error(createInstanceResult?.message);
+  }, [createInstanceResult]);
+
+  useEffect(() => {
+    if (!updateInstanceResult) return;
+    if (updateInstanceResult.success) toast.success(updateInstanceResult?.message);
+    else toast.error(updateInstanceResult?.message);
+
+    setModpackName('');
+    setLoaderType('forge');
+    setLoaderVersion('latest');
+    modalRef.current?.close();
+  }, [updateInstanceResult]);
+
+  useEffect(() => {
+    if (!deleteInstanceResult) return;
+    if (deleteInstanceResult.success) toast.success(deleteInstanceResult?.message);
+    else toast.error(deleteInstanceResult?.message);
+  }, [deleteInstanceResult]);
 
   return (
     <React.Fragment>
       <div className={`p-3 space-y-3 flex flex-col ${className}`}>
-        <button className="btn btn-soft btn-primary w-full" onClick={() => modalRef.current?.showModal()}>
+        <button
+          className="btn btn-soft btn-primary w-full"
+          onClick={() => {
+            setIsEditing(false);
+            modalRef.current?.showModal();
+          }}
+        >
           <i className="fa-light fa-plus"></i>
           Tạo modpack
         </button>
@@ -100,7 +142,7 @@ export default function Sidebar({ className }: SidebarProps) {
           <input type="search" className="grow" placeholder="Tìm kiếm..." />
         </label>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 space-y-3 overflow-auto">
           {[...instances]
             .sort((a, b) => new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime())
             .map((instance) => (
@@ -122,18 +164,34 @@ export default function Sidebar({ className }: SidebarProps) {
 
                 {/* Button action */}
                 <div className="absolute top-0 left-0">
-                  <button className="btn btn-sm btn-soft btn-primary btn-circle">
-                    <i className="fa-light fa-pen-to-square"></i>
+                  <button
+                    className="btn btn-sm btn-soft btn-primary btn-circle"
+                    onClick={() => {
+                      deleteInstance(instance.slug);
+                    }}
+                  >
+                    <i className="fa-light fa-trash-can"></i>
                   </button>
                 </div>
 
                 {/* Info */}
-                <div
-                  className="absolute left-0 right-0 bottom-0 p-4 bg-base-300/60 space-y-4 transform transition-transform duration-300
-               translate-y-[calc(100%-48px)] group-hover:translate-y-0 group-focus:translate-y-0"
-                >
+                <div className="absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-4 transform transition-transform duration-300 translate-y-[calc(100%-48px)] group-hover:translate-y-0 group-focus:translate-y-0">
                   <p className="font-semibold">{instance.name}</p>
-                  <button className="btn btn-primary w-full">Tải về</button>
+                  <div className="join flex">
+                    <button
+                      className="btn btn-primary join-item"
+                      onClick={() => {
+                        setIsEditing(true);
+                        setModpackName(instance.name);
+                        setLoaderType(instance.loader.name as LoaderType);
+                        setLoaderVersion(instance.loader.version);
+                        modalRef.current?.showModal();
+                      }}
+                    >
+                      <i className="fa-light fa-pen-to-square"></i>
+                    </button>
+                    <button className="btn btn-primary join-item flex-1">Tải về</button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -167,9 +225,11 @@ export default function Sidebar({ className }: SidebarProps) {
                   className="radio radio-primary"
                   type="radio"
                   name="loaderType"
-                  value="Forge"
-                  checked={loaderType.value === 1}
-                  onChange={() => setLoaderType({ name: 'forge', value: 1 })}
+                  checked={loaderType === 'forge'}
+                  onChange={() => {
+                    setLoaderType('forge');
+                    setLoaderVersion('latest');
+                  }}
                 />
                 <img src={forgeLogo} alt="Forge" className="w-6 h-6" />
                 <span>Forge</span>
@@ -180,9 +240,11 @@ export default function Sidebar({ className }: SidebarProps) {
                   className="radio radio-primary"
                   type="radio"
                   name="loaderType"
-                  value="Fabric"
-                  checked={loaderType.value === 4}
-                  onChange={() => setLoaderType({ name: 'fabric', value: 4 })}
+                  checked={loaderType === 'fabric'}
+                  onChange={() => {
+                    setLoaderType('fabric');
+                    setLoaderVersion('latest');
+                  }}
                 />
                 <img src={fabricLogo} alt="Fabric" className="w-6 h-6" />
                 <span>Fabric</span>
@@ -193,9 +255,11 @@ export default function Sidebar({ className }: SidebarProps) {
                   className="radio radio-primary"
                   type="radio"
                   name="loaderType"
-                  value="Quilt"
-                  checked={loaderType.value === 5}
-                  onChange={() => setLoaderType({ name: 'quilt', value: 5 })}
+                  checked={loaderType === 'quilt'}
+                  onChange={() => {
+                    setLoaderType('quilt');
+                    setLoaderVersion('latest');
+                  }}
                 />
                 <img src={quiltLogo} alt="Quilt" className="w-6 h-6" />
                 <span>Quilt</span>
@@ -206,9 +270,11 @@ export default function Sidebar({ className }: SidebarProps) {
                   className="radio radio-primary"
                   type="radio"
                   name="loaderType"
-                  value="NeoForge"
-                  checked={loaderType.value === 6}
-                  onChange={() => setLoaderType({ name: 'neoforge', value: 6 })}
+                  checked={loaderType === 'neoforge'}
+                  onChange={() => {
+                    setLoaderType('neoforge');
+                    setLoaderVersion('latest');
+                  }}
                 />
                 <img src={neoForgeLogo} alt="NeoForge" className="w-6 h-6" />
                 <span>NeoForge</span>
@@ -238,9 +304,7 @@ export default function Sidebar({ className }: SidebarProps) {
                 value={loaderVersion}
                 optionHeight={200}
                 options={uniqueLoaderList}
-                onChange={(e) =>
-                  setLoaderVersion(e === 'recommended' ? 'recommended' : e === 'latest' ? 'latest' : e.split('-')[1])
-                }
+                onChange={setLoaderVersion}
               />
             </div>
           </div>
@@ -249,8 +313,8 @@ export default function Sidebar({ className }: SidebarProps) {
             <button className="btn btn-soft w-1/4" onClick={() => modalRef.current?.close()}>
               Huỷ
             </button>
-            <button className="btn btn-primary w-1/4" onClick={handleCreateModpack}>
-              Tạo
+            <button className="btn btn-primary w-1/4" onClick={() => handleUpsertModpack()}>
+              Lưu
             </button>
           </div>
         </div>

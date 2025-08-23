@@ -13,5 +13,5 @@ interface ImportMeta {
 }
 
 interface ImportMetaEnv {
-  readonly VITE_WS_PORT: string;
+  readonly VITE_SERVER_PORT: string;
 }

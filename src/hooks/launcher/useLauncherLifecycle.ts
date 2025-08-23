@@ -1,24 +1,83 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useWS } from '../useWS';
+import { api } from '~/configs/axios';
 
 export function useLauncherLifecycle() {
-  const { send, on } = useWS();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [speed, setSpeed] = useState('');
+  const [estimated, setEstimated] = useState('');
+  const [extract, setExtract] = useState('');
+  const [patch, setPatch] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const evtRef = useRef<EventSource | null>(null);
 
   const launch = useCallback(() => {
-    send('launcher:launch');
-    setIsPlaying(true);
-  }, [send]);
+    if (evtRef.current) return;
+
+    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT}/launcher/launch`);
+
+    setIsRunning(true);
+    setIsDownloading(true);
+
+    evtRef.current.addEventListener('progress', (e: MessageEvent) => setProgress(Number(e.data)));
+    evtRef.current.addEventListener('log', (e: MessageEvent) => {
+      setLogs((prev) => [...prev, e.data]);
+      setIsDownloading(false);
+    });
+    evtRef.current.addEventListener('speed', (e: MessageEvent) => setSpeed(e.data));
+    evtRef.current.addEventListener('estimated', (e: MessageEvent) => setEstimated(e.data));
+    evtRef.current.addEventListener('extract', (e: MessageEvent) => setExtract(e.data));
+    evtRef.current.addEventListener('patch', (e: MessageEvent) => setPatch(e.data));
+    evtRef.current.addEventListener('close', () => {
+      setIsRunning(false);
+      setIsDownloading(false);
+      evtRef.current?.close();
+      evtRef.current = null;
+    });
+    evtRef.current?.addEventListener('cancelled', () => {
+      setIsRunning(false);
+      setIsDownloading(false);
+      evtRef.current?.close();
+      evtRef.current = null;
+    });
+    evtRef.current?.addEventListener('error', (e) => {
+      console.error('SSE error', e);
+      setIsRunning(false);
+      setIsDownloading(false);
+      evtRef.current?.close();
+      evtRef.current = null;
+    });
+  }, []);
 
   const cancel = useCallback(() => {
-    send('launcher:cancel');
-    setIsPlaying(false);
-  }, [send]);
+    api.get('launcher/cancel');
 
-  on('launcher:close', () => setIsPlaying(false));
-  on('launcher:error', () => setIsPlaying(false));
-  on('launcher:cancelled', () => setIsPlaying(false));
+    // Reset state
+    setIsRunning(false);
+    setIsDownloading(false);
+    setProgress(0);
+    setLogs([]);
+    setSpeed('');
+    setEstimated('');
+    setExtract('');
+    setPatch('');
 
-  return { isPlaying, launch, cancel };
+    if (evtRef.current) {
+      evtRef.current.close();
+      evtRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (evtRef.current) {
+        evtRef.current.close();
+      }
+    };
+  }, []);
+
+  return { launch, cancel, progress, logs, speed, estimated, extract, patch, isRunning, isDownloading };
 }

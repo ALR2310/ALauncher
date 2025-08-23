@@ -1,128 +1,25 @@
-import { InstanceType } from '@shared/launcher.type';
-import { spawn } from 'child_process';
+import { serve } from '@hono/node-server';
 import { config } from 'dotenv';
-import fs from 'fs';
-import throttle from 'lodash/throttle';
-import path from 'path';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
 
-import { appConfig } from './services/appConfig';
-import { createInstance, deleteInstance, getInstance, updateInstance } from './services/instances';
-import { cancel, launch } from './services/launcher';
-import { on, send, startServer } from './services/wss';
+import instanceController from './controllers/instanceController';
+import launcherController from './controllers/launcherController';
+import versionController from './controllers/versionController';
 
 config({ quiet: true });
 
-startServer(process.env.VITE_WS_PORT ? parseInt(process.env.VITE_WS_PORT) : 8787);
+const app = new Hono();
 
-on('launcher:config', (payload?: { key: string; value?: any }) => {
-  const { key, value } = payload ? payload : { key: undefined, value: undefined };
-  const configs = appConfig(key, value);
-  send('launcher:config', configs);
+app.use('*', cors({ origin: '*' }));
+app.use('*', logger());
+
+serve({ fetch: app.fetch, port: Number(process.env.VITE_SERVER_PORT ?? 1421) }, (info) => {
+  console.log(`Listening on http://localhost:${info.port}`);
 });
 
-on('launcher:launch', async () => {
-  try {
-    const game = await launch();
-
-    game.on(
-      'progress',
-      throttle((p, s) => {
-        const percent = ((p / s) * 100).toFixed(2);
-        send('launcher:progress', percent);
-      }, 500),
-    );
-    game.on(
-      'log',
-      throttle((line) => {
-        send('launcher:log', line);
-      }, 500),
-    );
-    game.on(
-      'speed',
-      throttle((s) => {
-        const speedMB = (s / 1024 / 1024).toFixed(2);
-        send('launcher:speed', `${speedMB}MB/s`);
-      }, 500),
-    );
-    game.on(
-      'estimated',
-      throttle((t) => {
-        const m = Math.floor(t / 60);
-        const s = Math.floor(t % 60);
-        send('launcher:estimated', `${m}m ${s}s`);
-      }, 500),
-    );
-    game.on(
-      'extract',
-      throttle((e) => send('launcher:extract', e), 500),
-    );
-    game.on(
-      'patch',
-      throttle((e) => send('launcher:patch', e), 500),
-    );
-    game.on('close', () => send('launcher:close', true));
-    game.on('error', (err) => {
-      console.error('Error launching:', err);
-      send('launcher:error', err);
-    });
-    game.on('cancelled', () => send('launcher:cancelled', true));
-  } catch (e) {
-    console.error('Error launching:', e);
-    send('launcher:error', e);
-  }
-});
-
-on('launcher:cancel', () => {
-  try {
-    const result = cancel();
-    send('launcher:cancel', result);
-  } catch (e) {
-    console.error('Error cancelling launch:', e);
-  }
-});
-
-on('version:downloaded', () => {
-  const versionsPath = path.resolve(appConfig('minecraft.gamedir') as any, 'versions');
-  const dirs = fs
-    .readdirSync(versionsPath, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
-  send('version:downloaded', dirs);
-});
-
-on('app:openFolder', () => {
-  const folderPath = path.resolve(appConfig('minecraft.gamedir') as any);
-  const platform = process.platform;
-
-  if (platform === 'win32') spawn('explorer', [folderPath]);
-  else if (platform === 'darwin') spawn('open', [folderPath]);
-  else spawn('xdg-open', [folderPath]);
-});
-
-on('instance:getOne', async (slug: string) => {
-  const instance = await getInstance(slug);
-  send('instance:getOne', instance);
-});
-
-on('instance:getAll', async () => {
-  const instances = await getInstance();
-  send('instance:getAll', instances);
-});
-
-on('instance:create', async (instance: InstanceType) => {
-  const result = await createInstance(instance);
-  send('instance:create', result);
-  send('instance:getAll', await getInstance());
-});
-
-on('instance:update', async (instance: InstanceType) => {
-  const result = await updateInstance(instance.slug, instance);
-  send('instance:update', result);
-  send('instance:getAll', await getInstance());
-});
-
-on('instance:delete', async (slug: string) => {
-  const result = await deleteInstance(slug);
-  send('instance:delete', result);
-  send('instance:getAll', await getInstance());
-});
+// Routes
+app.route('/launcher', launcherController);
+app.route('/versions', versionController);
+app.route('/instances', instanceController);

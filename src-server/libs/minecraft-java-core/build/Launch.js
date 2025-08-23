@@ -67,7 +67,7 @@ class Launch extends events_1.EventEmitter {
             },
             memory: {
                 min: '1G',
-                max: '2G'
+                max: '2G',
             },
             ...opt,
         };
@@ -84,7 +84,7 @@ class Launch extends events_1.EventEmitter {
             this.options.loader.build = this.options.loader.build.toLowerCase();
         }
         if (!this.options.authenticator)
-            return this.emit("error", { error: "Authenticator not found" });
+            return this.emit('error', { error: 'Authenticator not found' });
         if (this.options.downloadFileMultiple < 1)
             this.options.downloadFileMultiple = 1;
         if (this.options.downloadFileMultiple > 30)
@@ -99,6 +99,10 @@ class Launch extends events_1.EventEmitter {
             return;
         }
         let data = await this.DownloadGame();
+        if (data.cancelled) {
+            this.emit('cancelled', 'Launch has been cancelled');
+            return;
+        }
         if (data.error)
             return this.emit('error', data);
         if (this.isCancelled) {
@@ -118,7 +122,7 @@ class Launch extends events_1.EventEmitter {
             ...loaderArguments.jvm,
             minecraftArguments.mainClass,
             ...minecraftArguments.game,
-            ...loaderArguments.game
+            ...loaderArguments.game,
         ];
         let java = this.options.java.path ? this.options.java.path : minecraftJava.path;
         let logs = this.options.instance ? `${this.options.path}/instances/${this.options.instance}` : this.options.path;
@@ -132,7 +136,7 @@ class Launch extends events_1.EventEmitter {
         argumentsLogs = argumentsLogs.replaceAll(`${this.options.path}/`, '');
         this.emit('data', `Launching with arguments ${argumentsLogs}`);
         if (this.isCancelled) {
-            this.emit('error', { error: 'Launch has been cancelled' });
+            this.emit('cancelled', 'Launch has been cancelled');
             return;
         }
         this.minecraftProcess = (0, child_process_1.spawn)(java, Arguments, { cwd: logs, detached: this.options.detached });
@@ -148,7 +152,7 @@ class Launch extends events_1.EventEmitter {
         let InfoVersion = await new Minecraft_Json_js_1.default(this.options).GetInfoVersion();
         let loaderJson = null;
         if ('error' in InfoVersion) {
-            return this.emit('error', InfoVersion);
+            return { error: InfoVersion.error };
         }
         let { json, version } = InfoVersion;
         let libraries = new Minecraft_Libraries_js_1.default(this.options);
@@ -165,11 +169,16 @@ class Launch extends events_1.EventEmitter {
         let gameAssets = await new Minecraft_Assets_js_1.default(this.options).getAssets(json);
         let gameJava = this.options.java.path ? { files: [] } : await java.getJavaFiles(json);
         if (gameJava.error)
-            return gameJava;
-        let filesList = await bundle.checkBundle([...gameLibraries, ...gameAssetsOther, ...gameAssets, ...gameJava.files]);
+            return { error: gameJava.error };
+        let filesList = await bundle.checkBundle([
+            ...gameLibraries,
+            ...gameAssetsOther,
+            ...gameAssets,
+            ...gameJava.files,
+        ]);
         if (filesList.length > 0) {
             if (this.isCancelled)
-                return { error: 'Download has been cancelled' };
+                return { cancelled: true };
             this.currentDownloader = new Downloader_js_1.default();
             let totsize = await bundle.getTotalSize(filesList);
             this.currentDownloader.on('progress', (DL, totDL, element) => {
@@ -189,7 +198,7 @@ class Launch extends events_1.EventEmitter {
             this.currentDownloader = null;
             this.downloadPromise = null;
             if (this.isCancelled) {
-                return { error: 'Download has been cancelled' };
+                return { cancelled: true };
             }
         }
         if (this.options.loader.enable === true) {
@@ -206,20 +215,21 @@ class Launch extends events_1.EventEmitter {
             loaderInstall.on('patch', (patch) => {
                 this.emit('patch', patch);
             });
-            let jsonLoader = await loaderInstall.GetLoader(version, this.options.java.path ? this.options.java.path : gameJava.path)
+            let jsonLoader = await loaderInstall
+                .GetLoader(version, this.options.java.path ? this.options.java.path : gameJava.path)
                 .then((data) => data)
                 .catch((err) => err);
             if (jsonLoader.error)
-                return jsonLoader;
+                return { error: jsonLoader.error };
             loaderJson = jsonLoader;
         }
         try {
             if (this.isCancelled)
-                return { error: 'Download has been cancelled' };
+                return { cancelled: true };
             if (this.options.verify)
                 await bundle.checkFiles([...gameLibraries, ...gameAssetsOther, ...gameAssets, ...gameJava.files]);
             if (this.isCancelled)
-                return { error: 'Download has been cancelled' };
+                return { cancelled: true };
             let natives = await libraries.natives(gameLibraries);
             if (natives.length === 0)
                 json.nativesList = false;
@@ -231,12 +241,12 @@ class Launch extends events_1.EventEmitter {
                 minecraftJson: json,
                 minecraftLoader: loaderJson,
                 minecraftVersion: version,
-                minecraftJava: gameJava
+                minecraftJava: gameJava,
             };
         }
         catch (e) {
             if (this.isCancelled)
-                return { error: 'Download has been cancelled' };
+                return { cancelled: true };
             this.emit('error', e);
             return { error: e?.message || e };
         }

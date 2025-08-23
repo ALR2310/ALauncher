@@ -1,21 +1,22 @@
 import { InstanceMeta } from '@shared/launcher.type';
 import { formatToSlug, uniqueId } from '@shared/utils';
-import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { useContextSelector } from 'use-context-selector';
 
 import fabricLogo from '~/assets/imgs/logos/fabric.png';
 import forgeLogo from '~/assets/imgs/logos/forge.jpg';
 import neoForgeLogo from '~/assets/imgs/logos/neoforge.png';
 import quiltLogo from '~/assets/imgs/logos/quilt.png';
+import modpackLogo from '~/assets/imgs/modpack-logo.webp';
+import { useLauncherConfig } from '~/hooks/launcher/useLauncherConfig';
+import { useLauncherInstances } from '~/hooks/launcher/useLauncherInstances';
+import { LDVersion, useLauncherVersion } from '~/hooks/launcher/useLauncherVersions';
+import { confirm } from '~/hooks/useConfirm';
 import { toast } from '~/hooks/useToast';
-import { LauncherContext } from '~/providers/LauncherProvider';
 
-// import modpackLogo from '~/assets/imgs/modpack-logo.webp';
 import Modal from '../Modal';
 import Select from '../Select';
 
-const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
+// const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
 
 type LoaderType = 'forge' | 'fabric' | 'quilt' | 'neoforge';
 
@@ -25,54 +26,46 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [curSlug, setCurSlug] = useState('');
 
   const [loaderType, setLoaderType] = useState<LoaderType>('forge');
   const [loaderVersion, setLoaderVersion] = useState<string>('latest');
   const [modpackName, setModpackName] = useState('');
+  const [version, setVersion] = useState('');
+  const [searchKey, setSearchKey] = useState('');
 
-  // Launcher Context selectors
-  const version = useContextSelector(LauncherContext, (ctx) => ctx.version);
-  const versionList = useContextSelector(LauncherContext, (ctx) => ctx.versionList);
-  const setVersionLoader = useContextSelector(LauncherContext, (ctx) => ctx.setVersionLoader);
-  const loaderList = useContextSelector(LauncherContext, (ctx) => ctx.loaderList);
-  const instances = useContextSelector(LauncherContext, (ctx) => ctx.instances);
-  const username = useContextSelector(LauncherContext, (ctx) => ctx.configs?.username);
-  const createInstance = useContextSelector(LauncherContext, (ctx) => ctx.createInstance);
-  const createInstanceResult = useContextSelector(LauncherContext, (ctx) => ctx.createInstanceResult);
-  const updateInstance = useContextSelector(LauncherContext, (ctx) => ctx.updateInstance);
-  const updateInstanceResult = useContextSelector(LauncherContext, (ctx) => ctx.updateInstanceResult);
-  const deleteInstance = useContextSelector(LauncherContext, (ctx) => ctx.deleteInstance);
-  const deleteInstanceResult = useContextSelector(LauncherContext, (ctx) => ctx.deleteInstanceResult);
+  // Launcher state
+  const { getConfig } = useLauncherConfig();
+  const { getInstances, createInstance, updateInstance, deleteInstance } = useLauncherInstances();
+  const { getVersions, getLoaders } = useLauncherVersion();
+  const [ldVersion, setLdVersion] = useState<LDVersion[]>([]);
 
-  // Unique loader list based on selected loader type
-  const [uniqueLoaderList, setUniqueLoaderList] = useState<any[]>([]);
+  const mcVersions = getVersions.data;
+  const username = getConfig.data?.username;
+  const instances = getInstances.data;
 
+  // Get loader when change mc version
   useEffect(() => {
-    if (!loaderList || !loaderList.length) return;
+    if (mcVersions?.length) {
+      setVersion(mcVersions[0].version);
+      getLoaders.mutateAsync(mcVersions[0].version).then((data) => {
+        setLdVersion(data);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mcVersions]);
 
-    const uniqueList = loaderList
-      .filter(
-        (loader) =>
-          loader.type === (loaderType === 'forge' ? 1 : loaderType === 'fabric' ? 4 : loaderType === 'quilt' ? 5 : 6),
-      )
-      .filter((loader, idx, self) => idx === self.findIndex((l) => l.name === loader.name))
-      .map((loader) => ({
-        label: loader.name,
-        value: loader.name,
-      }));
+  // Update loader when change mc version
+  useEffect(() => {
+    if (!version) return;
+    getLoaders.mutateAsync(version).then((data) => {
+      setLdVersion(data);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version]);
 
-    const extraOptions = [
-      { label: 'latest', value: 'latest' },
-      { label: 'recommended', value: 'recommended' },
-    ];
-
-    setUniqueLoaderList([...extraOptions, ...uniqueList]);
-  }, [loaderList, loaderType]);
-
-  const handleUpsertModpack = () => {
-    if (!modpackName) return toast.warning('Vui lòng nhập tên modpack');
-    if (!loaderVersion) return toast.warning('Vui lòng chọn phiên bản modloader');
+  const handleCreateOrUpdateInstance = async () => {
+    if (!modpackName.trim()) return toast.warning('Vui lòng nhập tên modpack');
 
     const data: InstanceMeta = {
       id: uniqueId(),
@@ -86,42 +79,43 @@ export default function Sidebar({ className }: SidebarProps) {
         version: loaderVersion,
       },
       icon: modpackLogo,
-      author: username!,
-      last_updated: dayjs().toISOString(),
+      url: '',
+      author: username ?? '',
+      last_updated: new Date().toISOString(),
     };
 
-    if (isEditing) updateInstance(data);
-    else createInstance(data);
-  };
+    if (!curSlug) {
+      const result = await createInstance.mutateAsync(data);
+      if (!result.success) return toast.error(result.message ?? 'Có lỗi xảy ra, vui lòng thử lại sau!');
+    } else {
+      const result = await updateInstance.mutateAsync({ slug: curSlug, instance: data });
+      if (!result.success) return toast.error(result.message ?? 'Có lỗi xảy ra, vui lòng thử lại sau!');
+    }
 
-  useEffect(() => {
-    if (!createInstanceResult) return;
-    if (createInstanceResult.success) {
-      toast.success(createInstanceResult?.message);
-
-      setModpackName('');
-      setLoaderType('forge');
-      setLoaderVersion('latest');
-      modalRef.current?.close();
-    } else toast.error(createInstanceResult?.message);
-  }, [createInstanceResult]);
-
-  useEffect(() => {
-    if (!updateInstanceResult) return;
-    if (updateInstanceResult.success) toast.success(updateInstanceResult?.message);
-    else toast.error(updateInstanceResult?.message);
-
+    getInstances.refetch();
+    modalRef.current?.close();
+    toast.success(`${!curSlug ? 'tạo' : 'cập nhật'} Modpack thành công!`);
+    setCurSlug('');
     setModpackName('');
     setLoaderType('forge');
     setLoaderVersion('latest');
-    modalRef.current?.close();
-  }, [updateInstanceResult]);
+    setVersion(mcVersions?.[0].version ?? '');
+  };
 
-  useEffect(() => {
-    if (!deleteInstanceResult) return;
-    if (deleteInstanceResult.success) toast.success(deleteInstanceResult?.message);
-    else toast.error(deleteInstanceResult?.message);
-  }, [deleteInstanceResult]);
+  const handleDeleteInstance = async (slug: string) => {
+    const isOK = await confirm({
+      title: 'Xoá Modpack',
+      content: 'Bạn có chắc muốn xoá modpack này? Hành động này không thể hoàn tác!',
+      classNameContent: 'absolute top-1/5',
+    });
+
+    if (isOK) {
+      const result = await deleteInstance.mutateAsync(slug);
+      if (!result.success) return toast.error(result.message ?? 'Có lỗi xảy ra, vui lòng thử lại sau!');
+      getInstances.refetch();
+      toast.success('Xoá Modpack thành công!');
+    }
+  };
 
   return (
     <React.Fragment>
@@ -129,7 +123,7 @@ export default function Sidebar({ className }: SidebarProps) {
         <button
           className="btn btn-soft btn-primary w-full"
           onClick={() => {
-            setIsEditing(false);
+            setCurSlug('');
             modalRef.current?.showModal();
           }}
         >
@@ -139,62 +133,76 @@ export default function Sidebar({ className }: SidebarProps) {
 
         <label className="input">
           <i className="fa-light fa-magnifying-glass text-base-content/60"></i>
-          <input type="search" className="grow" placeholder="Tìm kiếm..." />
+          <input
+            type="search"
+            className="grow"
+            placeholder="Tìm kiếm..."
+            value={searchKey}
+            onChange={(e) => setSearchKey(e.target.value)}
+          />
         </label>
 
         <div className="flex-1 space-y-3 overflow-auto">
-          {[...instances]
-            .sort((a, b) => new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime())
-            .map((instance) => (
-              <div
-                key={instance.id}
-                className="relative w-full h-[35%] group overflow-hidden"
-                style={{
-                  backgroundImage: `url(${instance.icon})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-                tabIndex={0}
-              >
-                {/* Version */}
-                <div className="absolute top-0 right-0 bg-base-300/60 m-1 p-1 rounded-box">
-                  <i className="fa-light fa-gamepad-modern"></i>
-                  {instance.minecraft}
-                </div>
+          {instances?.length ? (
+            instances
+              .filter((i) => i.name.toLowerCase().includes(searchKey.toLowerCase()))
+              .sort((a, b) => new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime())
+              .map((instance) => (
+                <div
+                  key={instance.slug}
+                  className="relative w-full h-[32%] group overflow-hidden"
+                  style={{
+                    backgroundImage: `url(${modpackLogo})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                  tabIndex={0}
+                >
+                  {/* Version */}
+                  <div className="absolute top-0 right-0 bg-base-300/60 m-1 p-1 rounded-box text-sm">
+                    <i className="fa-light fa-gamepad-modern"></i>
+                    {` ${instance.loader.name}-${instance.minecraft}`}
+                  </div>
 
-                {/* Button action */}
-                <div className="absolute top-0 left-0">
-                  <button
-                    className="btn btn-sm btn-soft btn-primary btn-circle"
-                    onClick={() => {
-                      deleteInstance(instance.slug);
-                    }}
-                  >
-                    <i className="fa-light fa-trash-can"></i>
-                  </button>
-                </div>
-
-                {/* Info */}
-                <div className="absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-4 transform transition-transform duration-300 translate-y-[calc(100%-48px)] group-hover:translate-y-0 group-focus:translate-y-0">
-                  <p className="font-semibold">{instance.name}</p>
-                  <div className="join flex">
+                  {/* Button action */}
+                  <div className="absolute top-0 left-0">
                     <button
-                      className="btn btn-primary join-item"
-                      onClick={() => {
-                        setIsEditing(true);
-                        setModpackName(instance.name);
-                        setLoaderType(instance.loader.name as LoaderType);
-                        setLoaderVersion(instance.loader.version);
-                        modalRef.current?.showModal();
-                      }}
+                      className="btn btn-sm btn-ghost btn-circle"
+                      onClick={() => handleDeleteInstance(instance.slug)}
                     >
-                      <i className="fa-light fa-pen-to-square"></i>
+                      <i className="fa-light fa-trash-can"></i>
                     </button>
-                    <button className="btn btn-primary join-item flex-1">Tải về</button>
+                  </div>
+
+                  {/* Info */}
+                  <div
+                    className="absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 
+                    space-y-3 transform transition-transform duration-300 translate-y-[calc(100%-40px)] 
+                    group-hover:translate-y-0 group-focus:translate-y-0"
+                  >
+                    <p className="font-semibold">{instance.name}</p>
+                    <div className="join flex">
+                      <button
+                        className="btn btn-primary join-item"
+                        onClick={() => {
+                          setCurSlug(instance.slug);
+                          setModpackName(instance.name);
+                          setLoaderType(instance.loader.name as LoaderType);
+                          setLoaderVersion(instance.loader.version);
+                          setVersion(instance.minecraft);
+                          modalRef.current?.showModal();
+                        }}
+                      >
+                        <i className="fa-light fa-pen-to-square"></i>
+                      </button>
+                      <button className="btn btn-primary join-item flex-1">Tải về</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+          ) : (
+            <p className="text-center text-base-content/60">Không có modpack nào</p>
+          )}
         </div>
       </div>
 
@@ -289,11 +297,8 @@ export default function Sidebar({ className }: SidebarProps) {
                 className="w-full"
                 value={version}
                 optionHeight={200}
-                options={versionList ?? []}
-                onChange={(e) => {
-                  setUniqueLoaderList([]);
-                  setVersionLoader(e);
-                }}
+                options={mcVersions?.map((v) => ({ label: v.name, value: v.version })) ?? []}
+                onChange={setVersion}
               />
             </div>
 
@@ -303,7 +308,16 @@ export default function Sidebar({ className }: SidebarProps) {
                 className="w-full"
                 value={loaderVersion}
                 optionHeight={200}
-                options={uniqueLoaderList}
+                options={[
+                  { label: 'Latest', value: 'latest' },
+                  { label: 'Recommended', value: 'recommended' },
+                  ...ldVersion
+                    .filter((v) => v.type === loaderType)
+                    .map((v) => ({
+                      label: `${v.type}-${v.name}`,
+                      value: v.name,
+                    })),
+                ]}
                 onChange={setLoaderVersion}
               />
             </div>
@@ -313,7 +327,7 @@ export default function Sidebar({ className }: SidebarProps) {
             <button className="btn btn-soft w-1/4" onClick={() => modalRef.current?.close()}>
               Huỷ
             </button>
-            <button className="btn btn-primary w-1/4" onClick={() => handleUpsertModpack()}>
+            <button className="btn btn-primary w-1/4" onClick={handleCreateOrUpdateInstance}>
               Lưu
             </button>
           </div>

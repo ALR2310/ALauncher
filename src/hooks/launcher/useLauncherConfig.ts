@@ -1,24 +1,26 @@
 import { LauncherConfigType } from '@shared/launcher.type';
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { useWS } from '../useWS';
+import { api } from '~/configs/axios';
 
 export function useLauncherConfig() {
-  const { send, on } = useWS();
-  const [configs, setConfigs] = useState<LauncherConfigType | null>(null);
-
-  useEffect(() => {
-    send('launcher:config');
-  }, [send]);
-
-  on('launcher:config', (data) => setConfigs(data));
-
-  const setConfigValue = useCallback(
-    (key: string, value: any) => {
-      send('launcher:config', { key, value });
+  const configQuery = useQuery({
+    queryKey: ['launcherConfig'],
+    queryFn: async () => {
+      const res = await api('launcher/config');
+      return res.data as LauncherConfigType;
     },
-    [send],
-  );
+  });
 
-  return { configs, setConfigs: setConfigValue };
+  const setConfigMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: keyof LauncherConfigType; value: any }) => {
+      const res = await api.post('launcher/config', { key, value });
+      return res.data as LauncherConfigType;
+    },
+  });
+
+  return {
+    getConfig: configQuery,
+    setConfig: setConfigMutation,
+  };
 }

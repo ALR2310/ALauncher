@@ -13,6 +13,7 @@ interface ModalProps {
   titlePosition?: 'left' | 'center' | 'right';
   btnShow?: boolean;
   className?: string;
+  classNameContent?: string;
   children?: React.ReactNode;
   iconClose?: boolean;
   btnOk?: ButtonProps;
@@ -45,6 +46,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
       children,
       btnShow = true,
       className,
+      classNameContent,
       iconClose = false,
       btnOk,
       btnCancel,
@@ -56,7 +58,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
   ) => {
     return (
       <dialog ref={ref} className={`modal ${className}`}>
-        <div className="modal-box p-4" style={{ maxWidth: width }}>
+        <div className={`modal-box p-4 ${classNameContent}`} style={{ maxWidth: width }}>
           {iconClose && (
             <form method="dialog">
               <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>

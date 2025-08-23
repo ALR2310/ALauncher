@@ -6,12 +6,20 @@ import DockNav from './components/layouts/DockNav';
 import Sidebar from './components/layouts/Sidebar';
 import ManagerModPage from './pages/ManagerModPage';
 import ManagerPage from './pages/ManagerPage';
-import { LauncherProvider } from './providers/LauncherProvider';
+import { ConfirmProvider } from './providers/ConfirmProvider';
 import { ToastProvider } from './providers/ToastProvider';
-import { WebSocketProvider } from './providers/WebSocketProvider';
 import { checkForAppUpdates } from './services/updater';
 
 const isTauri = '__TAURI__' in window;
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 function Layout() {
   const location = useLocation();
@@ -35,21 +43,19 @@ export default function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={new QueryClient()}>
-      <WebSocketProvider>
-        <LauncherProvider>
-          <ToastProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<ManagerPage />} />
-                  <Route path="mods" element={<ManagerModPage />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </ToastProvider>
-        </LauncherProvider>
-      </WebSocketProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <ConfirmProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<ManagerPage />} />
+                <Route path="mods" element={<ManagerModPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </ConfirmProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

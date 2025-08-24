@@ -5,6 +5,7 @@ import { api } from '~/configs/axios';
 export interface MCVersion {
   name: string;
   version: string;
+  type: string;
   downloaded: boolean;
 }
 

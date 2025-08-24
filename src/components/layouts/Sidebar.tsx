@@ -40,20 +40,20 @@ export default function Sidebar({ className }: SidebarProps) {
   const { getVersions, getLoaders } = useLauncherVersion();
   const [ldVersion, setLdVersion] = useState<LDVersion[]>([]);
 
-  const mcVersions = getVersions.data;
+  const mcVersions = getVersions.data?.filter((v) => v.type !== 'modified');
   const username = getConfig.data?.username;
   const instances = getInstances.data;
 
   // Get loader when change mc version
   useEffect(() => {
-    if (mcVersions?.length) {
+    if (mcVersions?.length && !version) {
       setVersion(mcVersions[0].version);
       getLoaders.mutateAsync(mcVersions[0].version).then((data) => {
         setLdVersion(data);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mcVersions]);
+  }, [mcVersions, version]);
 
   // Update loader when change mc version
   useEffect(() => {

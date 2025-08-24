@@ -1,4 +1,5 @@
-import { readdir } from 'fs/promises';
+import { InstanceType } from '@shared/launcher.type';
+import { readdir, readFile } from 'fs/promises';
 import { Hono } from 'hono';
 import path from 'path';
 
@@ -20,22 +21,58 @@ async function getVersionDownloaded(): Promise<string[]> {
   }
 }
 
+async function getInstanceDownloaded(): Promise<InstanceType[]> {
+  try {
+    const pathDir = path.resolve('instances');
+    const files = await readdir(pathDir);
+    const instances = await Promise.all(
+      files.map(async (file) => {
+        const fullPath = path.resolve(pathDir, file);
+        return readFile(fullPath, 'utf-8')
+          .then((data) => JSON.parse(data))
+          .catch(() => null);
+      }),
+    );
+    return instances.filter((i): i is InstanceType => i !== null);
+  } catch (err: any) {
+    if (err.code === 'ENOENT') return [];
+    throw err;
+  }
+}
+
 export default versionController
   .get('/', async (c) => {
-    const [versions, versionDownloaded] = await Promise.all([
+    const [versions, versionDownloaded, instances] = await Promise.all([
       curseForgeService.getMinecraftVersion(),
       getVersionDownloaded(),
+      getInstanceDownloaded(),
     ]);
 
-    const result = versions
-      .filter((v) => !v.versionString.toLocaleLowerCase().includes('snapshot'))
-      .map((v) => ({
-        name: `Release ${v.versionString}`,
-        version: v.versionString,
-        downloaded: versionDownloaded.includes(v.versionString),
-      }));
+    const groupedInstances = (instances as InstanceType[]).reduce<Record<string, any[]>>((acc, ins) => {
+      const obj = {
+        name: ins.name,
+        version: ins.slug,
+        type: 'modified',
+        downloaded: false,
+        minecraft: ins.minecraft,
+      };
+      (acc[ins.minecraft] ??= []).push(obj);
+      return acc;
+    }, {});
 
-    return c.json(result);
+    const merged = versions
+      .filter((v) => !v.versionString.toLowerCase().includes('snapshot'))
+      .flatMap((v) => [
+        ...(groupedInstances[v.versionString] ?? []),
+        {
+          name: `Release ${v.versionString}`,
+          version: v.versionString,
+          type: 'release',
+          downloaded: versionDownloaded.includes(v.versionString),
+        },
+      ]);
+
+    return c.json(merged);
   })
   .get('/loader/:version', async (c) => {
     const { version } = c.req.param();

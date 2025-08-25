@@ -33,7 +33,7 @@ export default function DockNav() {
   }, [config, versions]);
 
   return (
-    <div className="relative flex flex-nowrap gap-4 p-3 bg-base-300">
+    <div id="dockNavbar" className="relative flex flex-nowrap gap-4 p-3 bg-base-300">
       {isDownloading && (
         <div className="absolute left-0 bottom-[90%] w-full">
           <p className="absolute left-1/2 text-primary font-semibold z-10">

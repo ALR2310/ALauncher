@@ -119,7 +119,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
   return (
     <React.Fragment>
-      <div className={`p-3 space-y-3 flex flex-col ${className}`}>
+      <div id="sidebar" className={`p-3 space-y-3 flex flex-col ${className}`}>
         <button
           className="btn btn-soft btn-primary w-full"
           onClick={() => {
@@ -142,7 +142,7 @@ export default function Sidebar({ className }: SidebarProps) {
           />
         </label>
 
-        <div className="flex-1 space-y-3 overflow-auto">
+        <div className="flex-1 space-y-3 overflow-auto no-scrollbar">
           {instances?.length ? (
             instances
               .filter((i) => i.name.toLowerCase().includes(searchKey.toLowerCase()))

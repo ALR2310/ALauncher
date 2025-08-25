@@ -4,8 +4,9 @@ import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-
 
 import DockNav from './components/layouts/DockNav';
 import Sidebar from './components/layouts/Sidebar';
-import ManagerModPage from './pages/ManagerModPage';
+import BrowserModPage from './pages/BrowserModPage';
 import ManagerPage from './pages/ManagerPage';
+import ReleaseNotePage from './pages/ReleaseNotePage';
 import { ConfirmProvider } from './providers/ConfirmProvider';
 import { ToastProvider } from './providers/ToastProvider';
 import { checkForAppUpdates } from './services/updater';
@@ -25,10 +26,10 @@ function Layout() {
   const location = useLocation();
 
   return (
-    <div className="w-[1100px] h-[650px] flex flex-col bg-base-200">
+    <div id="layout" className="w-[1100px] h-[650px] flex flex-col bg-base-200">
       <div className="flex-1 flex flex-nowrap">
         {location.pathname === '/' && <Sidebar className="flex-1/5 bg-base-100" />}
-        <main className="flex-4/5 overflow-auto">
+        <main className="flex-4/5">
           <Outlet />
         </main>
       </div>
@@ -49,8 +50,11 @@ export default function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Layout />}>
-                <Route index element={<ManagerPage />} />
-                <Route path="mods" element={<ManagerModPage />} />
+                <Route index element={<ReleaseNotePage />} />
+                <Route path="manager" element={<ManagerPage />} />
+                <Route path="browser">
+                  <Route path="mods" element={<BrowserModPage />} />
+                </Route>
               </Route>
             </Routes>
           </BrowserRouter>

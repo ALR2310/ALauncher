@@ -6,7 +6,7 @@ import fabricLogo from '~/assets/imgs/logos/fabric.png';
 import forgeLogo from '~/assets/imgs/logos/forge.jpg';
 import neoForgeLogo from '~/assets/imgs/logos/neoforge.png';
 import quiltLogo from '~/assets/imgs/logos/quilt.png';
-import modpackLogo from '~/assets/imgs/modpack-logo.webp';
+// import modpackLogo from '~/assets/imgs/modpack-logo.webp';
 import { useLauncherConfig } from '~/hooks/launcher/useLauncherConfig';
 import { useLauncherInstances } from '~/hooks/launcher/useLauncherInstances';
 import { LDVersion, useLauncherVersion } from '~/hooks/launcher/useLauncherVersions';
@@ -16,7 +16,7 @@ import { toast } from '~/hooks/useToast';
 import Modal from '../Modal';
 import Select from '../Select';
 
-// const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
+const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
 
 type LoaderType = 'forge' | 'fabric' | 'quilt' | 'neoforge';
 

@@ -17,7 +17,11 @@ const launcherConfigs: LauncherConfigType = {
   language: 'vi',
   download_multiple: 5,
   username: '',
-  version_selected: 'latest_release',
+  version_selected: {
+    name: 'Latest Release',
+    version: 'latest_release',
+    type: 'release',
+  },
   minecraft: {
     width: 400,
     height: 250,
@@ -47,7 +51,7 @@ class LauncherService {
     }
   }
 
-  async setConfig(keyPath: string, value: string | number | boolean) {
+  async setConfig(keyPath: string, value: string | number | boolean | object) {
     const config = await this.getConfig();
     set(config, keyPath, value);
     await writeFile(LAUNCHER_CONFIG_PATH, JSON.stringify(config, null, 2));
@@ -95,7 +99,7 @@ class LauncherService {
 
       this.launcherInstance.Launch({
         path: config.minecraft.gamedir,
-        version: config.version_selected,
+        version: config.version_selected.version,
         bypassOffline: true,
         authenticator: auth,
         loader: {

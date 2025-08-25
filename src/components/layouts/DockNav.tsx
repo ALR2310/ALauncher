@@ -27,9 +27,9 @@ export default function DockNav() {
   // Set initial version selected from config
   useEffect(() => {
     if (!config || !versions) return;
-    if (config.version_selected === 'latest_release') {
+    if (config.version_selected.version === 'latest_release') {
       setVersionSelected(versions[0].version);
-    } else setVersionSelected(config.version_selected);
+    } else setVersionSelected(config.version_selected.version);
   }, [config, versions]);
 
   return (
@@ -70,10 +70,20 @@ export default function DockNav() {
             label: v.name,
             value: v.version,
             downloaded: v.downloaded,
+            type: v.type,
           })) ?? []
         }
         onChange={(value) => {
-          setConfig.mutateAsync({ key: 'version_selected', value }).then(() => getConfig.refetch());
+          setConfig
+            .mutateAsync({
+              key: 'version_selected',
+              value: {
+                name: versions?.find((v) => v.version === value)?.name || 'Unknown',
+                version: value,
+                type: versions?.find((v) => v.version === value)?.type || 'release',
+              },
+            })
+            .then(() => getConfig.refetch());
         }}
         render={(item) => (
           <p className={`px-3 py-1 ${item.downloaded ? 'bg-base-content/10' : undefined}`}>{item.label}</p>

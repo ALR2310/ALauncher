@@ -13,7 +13,11 @@ export interface LauncherConfigType {
   language: LANGUAGE;
   download_multiple: number;
   username: string;
-  version_selected: string;
+  version_selected: {
+    name: string;
+    version: string;
+    type: string;
+  };
   minecraft: {
     width: number;
     height: number;

@@ -37,8 +37,9 @@ export default function ReleaseNotePage() {
   const divRef = useRef<HTMLDivElement>(null);
 
   const [releases, setReleases] = useState<ReleaseNoteDetails[]>([]);
-  const [offset] = useState(0);
+  const [offset, setOffset] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const limit = 5;
 
   const listQuery = useQuery({
@@ -57,17 +58,25 @@ export default function ReleaseNotePage() {
   });
 
   useEffect(() => {
-    if (listQuery.isLoading || !listQuery.data) return;
+    if (listQuery.isLoading || !listQuery.data || !hasMore) return;
     const list = listQuery.data.entries.filter((entry) => entry.type === 'release');
     const entries = list.slice(offset, offset + limit);
 
+    if (entries.length === 0 || offset >= list.length) return setHasMore(false);
+
     entries.forEach((entry) => {
+      console.log('fetched', entry.version);
       releaseMutation.mutateAsync(entry).then((data) => {
-        setReleases((prev) => [...prev, data]);
+        setReleases((prev) => {
+          if (prev.find((r) => r.version === data.version)) return prev;
+          return [...prev, data];
+        });
       });
     });
+    if (offset + limit >= list.length) setHasMore(false);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listQuery.data, listQuery.isLoading]);
+  }, [listQuery.data, listQuery.isLoading, offset, hasMore]);
 
   useEffect(() => {
     if (!divRef.current) return;
@@ -77,9 +86,7 @@ export default function ReleaseNotePage() {
 
     let divHeight = 0;
     let divWidth = 0;
-    // Calculate available height
     if (dockEl) divHeight = layoutEl.offsetHeight - dockEl.offsetHeight;
-    // Calculate available width
     if (sideEl) divWidth = layoutEl.offsetWidth - sideEl.offsetWidth;
 
     divRef.current.style.height = `${divHeight}px`;
@@ -87,6 +94,22 @@ export default function ReleaseNotePage() {
 
     setIsReady(true);
   }, []);
+
+  useEffect(() => {
+    const el = divRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      if (!hasMore) return;
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      if (scrollHeight - scrollTop - clientHeight < 300) {
+        setOffset((prev) => prev + limit);
+      }
+    };
+
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [hasMore]);
 
   return (
     <div ref={divRef} className="h-full w-full p-4 space-y-4 overflow-auto 1no-scrollbar">

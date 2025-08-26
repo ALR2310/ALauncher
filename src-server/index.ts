@@ -15,11 +15,11 @@ const app = new Hono();
 app.use('*', cors({ origin: '*' }));
 app.use('*', logger());
 
-serve({ fetch: app.fetch, port: Number(process.env.VITE_SERVER_PORT ?? 1421) }, (info) => {
-  console.log(`Listening on http://localhost:${info.port}`);
-});
-
 // Routes
 app.route('/launcher', launcherController);
 app.route('/versions', versionController);
 app.route('/instances', instanceController);
+
+serve({ fetch: app.fetch, port: Number(process.env.VITE_SERVER_PORT ?? 1421) }, (info) => {
+  console.log(`Listening on http://localhost:${info.port}`);
+});

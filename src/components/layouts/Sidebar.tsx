@@ -93,6 +93,7 @@ export default function Sidebar({ className }: SidebarProps) {
     }
 
     getInstances.refetch();
+    getVersions.refetch();
     modalRef.current?.close();
     toast.success(`${!curSlug ? 'tạo' : 'cập nhật'} Modpack thành công!`);
     setCurSlug('');
@@ -104,16 +105,17 @@ export default function Sidebar({ className }: SidebarProps) {
 
   const handleDeleteInstance = async (slug: string) => {
     const isOK = await confirm({
-      title: 'Xoá Modpack',
-      content: 'Bạn có chắc muốn xoá modpack này? Hành động này không thể hoàn tác!',
+      title: 'Delete Modpack',
+      content: 'Do you want to remove this modpack? this action cannot be undone.',
       classNameContent: 'absolute top-1/5',
     });
 
     if (isOK) {
       const result = await deleteInstance.mutateAsync(slug);
-      if (!result.success) return toast.error(result.message ?? 'Có lỗi xảy ra, vui lòng thử lại sau!');
+      if (!result.success) return toast.error(result.message ?? 'An error occurred!');
       getInstances.refetch();
-      toast.success('Xoá Modpack thành công!');
+      getVersions.refetch();
+      toast.success('Delete Successfully!');
     }
   };
 
@@ -128,7 +130,7 @@ export default function Sidebar({ className }: SidebarProps) {
           }}
         >
           <i className="fa-light fa-plus"></i>
-          Tạo modpack
+          Create Modpack
         </button>
 
         <label className="input">
@@ -136,7 +138,7 @@ export default function Sidebar({ className }: SidebarProps) {
           <input
             type="search"
             className="grow"
-            placeholder="Tìm kiếm..."
+            placeholder="Search..."
             value={searchKey}
             onChange={(e) => setSearchKey(e.target.value)}
           />
@@ -206,7 +208,7 @@ export default function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
 
-      <Modal title="Tạo Modpack" ref={modalRef} titlePosition="center" btnShow={false} backdropClose={true}>
+      <Modal title="Create Modpack" ref={modalRef} titlePosition="center" btnShow={false} backdropClose={true}>
         <div className="space-y-6 my-6">
           <div className="flex gap-4">
             <div className="flex-1/3 h-28">
@@ -214,7 +216,7 @@ export default function Sidebar({ className }: SidebarProps) {
             </div>
 
             <div className="flex justify-center flex-col gap-2 flex-2/3">
-              <label className="font-semibold">Tên Modpack:</label>
+              <label className="font-semibold">Modpack Name:</label>
               <input
                 type="text"
                 className="input w-full"
@@ -225,7 +227,7 @@ export default function Sidebar({ className }: SidebarProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-semibold">Loại game:</label>
+            <label className="font-semibold">Game type:</label>
 
             <div className="flex flex-nowrap gap-2 justify-between">
               <label className="label">
@@ -292,7 +294,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
           <div className="flex gap-6">
             <div className="flex flex-col gap-2 flex-1/2">
-              <label className="font-semibold">Phiên bản minecraft:</label>
+              <label className="font-semibold">Minecraft version:</label>
               <Select
                 className="w-full"
                 value={version}
@@ -303,7 +305,7 @@ export default function Sidebar({ className }: SidebarProps) {
             </div>
 
             <div className="flex flex-col gap-2 flex-1/2">
-              <label className="font-semibold">Phiên bản modloader:</label>
+              <label className="font-semibold">ModLoader version:</label>
               <Select
                 className="w-full"
                 value={loaderVersion}
@@ -325,10 +327,10 @@ export default function Sidebar({ className }: SidebarProps) {
 
           <div className="flex justify-end gap-4">
             <button className="btn btn-soft w-1/4" onClick={() => modalRef.current?.close()}>
-              Huỷ
+              Cancel
             </button>
             <button className="btn btn-primary w-1/4" onClick={handleCreateOrUpdateInstance}>
-              Lưu
+              Save
             </button>
           </div>
         </div>

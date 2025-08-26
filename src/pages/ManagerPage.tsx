@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 
-import DataTable from '~/components/DataTable';
-
 export default function ManagerPage() {
   const [tab, setTab] = useState('mods');
 
@@ -33,11 +31,28 @@ export default function ManagerPage() {
 
         <Link to={`${tab}`} className="btn btn-soft">
           <i className="fa-light fa-plus"></i>
-          Thêm nội dung
+          Add Contents
         </Link>
       </div>
 
-      <DataTable className="p-3" />
+      <div className={`overflow-auto flex flex-col h-full justify-between p-3`}>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>
+                <label>
+                  <input type="checkbox" className="checkbox" />
+                </label>
+              </th>
+              <th>Additional utilities</th>
+              <th>Author</th>
+              <th>Activity</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+        </table>
+      </div>
     </div>
   );
 }

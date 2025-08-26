@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import Select from '~/components/Select';
 import { api } from '~/configs/axios';
@@ -10,6 +11,7 @@ import { toast } from '~/hooks/useToast';
 export default function DockNav() {
   const [username, setUsername] = useState('');
   const [versionSelected, setVersionSelected] = useState('');
+  const navigate = useNavigate();
 
   // Launcher state
   const { getConfig, setConfig } = useLauncherConfig();
@@ -52,7 +54,7 @@ export default function DockNav() {
         <input
           type="text"
           className="grow"
-          placeholder="Tên người dùng"
+          placeholder="Username"
           value={username}
           onChange={(e) => {
             setConfig.mutateAsync({ key: 'username', value: e.target.value }).then(() => getConfig.refetch());
@@ -73,7 +75,7 @@ export default function DockNav() {
             type: v.type,
           })) ?? []
         }
-        onChange={(value) => {
+        onChange={(value, data) => {
           setConfig
             .mutateAsync({
               key: 'version_selected',
@@ -83,7 +85,11 @@ export default function DockNav() {
                 type: versions?.find((v) => v.version === value)?.type || 'release',
               },
             })
-            .then(() => getConfig.refetch());
+            .then(() => {
+              getConfig.refetch();
+              if (data.type !== 'release') navigate('manager');
+              else navigate('/');
+            });
         }}
         render={(item) => (
           <p className={`px-3 py-1 ${item.downloaded ? 'bg-base-content/10' : undefined}`}>{item.label}</p>
@@ -93,13 +99,13 @@ export default function DockNav() {
       <button
         className="btn btn-primary flex-1"
         onClick={() => {
-          if (!username) return toast.warning('Vui lòng nhập tên người dùng');
+          if (!username) return toast.warning('Please enter your username');
           if (!isRunning) {
             launch();
           } else cancel();
         }}
       >
-        {isRunning ? 'Huỷ' : 'Chơi'}
+        {isRunning ? 'Cancel' : 'Play'}
       </button>
 
       <div className="flex-1 flex">

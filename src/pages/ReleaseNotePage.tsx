@@ -99,7 +99,11 @@ export default function ReleaseNotePage() {
 
   return (
     <div ref={divRef} className="h-full w-full p-4 space-y-4 overflow-auto">
-      {listQuery.isLoading && <div>Đang tải danh sách...</div>}
+      {listQuery.isLoading && (
+        <div>
+          Loading <span className="loading loading-dots loading-md"></span>
+        </div>
+      )}
       {isReady &&
         data?.pages.flatMap((page) =>
           page.data.map((note) => (
@@ -112,7 +116,13 @@ export default function ReleaseNotePage() {
             </div>
           )),
         )}
-      {isFetchingNextPage && <div className="text-center">Đang tải thêm...</div>}
+      {isFetchingNextPage && (
+        <div className="text-center">
+          <div>
+            Loading <span className="loading loading-dots loading-md"></span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

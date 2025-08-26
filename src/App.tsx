@@ -4,7 +4,7 @@ import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-
 
 import DockNav from './components/layouts/DockNav';
 import Sidebar from './components/layouts/Sidebar';
-import BrowserModPage from './pages/BrowserModPage';
+import BrowsePage from './pages/browsePage';
 import ManagerPage from './pages/ManagerPage';
 import ReleaseNotePage from './pages/ReleaseNotePage';
 import { ConfirmProvider } from './providers/ConfirmProvider';
@@ -28,7 +28,7 @@ function Layout() {
   return (
     <div id="layout" className="w-[1100px] h-[650px] flex flex-col bg-base-200">
       <div className="flex-1 flex flex-nowrap">
-        {location.pathname === '/' && <Sidebar className="flex-1/5 bg-base-100" />}
+        {!location.pathname.startsWith('/browse') && <Sidebar className="flex-1/5 bg-base-100" />}
         <main className="flex-4/5">
           <Outlet />
         </main>
@@ -52,8 +52,8 @@ export default function App() {
               <Route path="/" element={<Layout />}>
                 <Route index element={<ReleaseNotePage />} />
                 <Route path="manager" element={<ManagerPage />} />
-                <Route path="browser">
-                  <Route path="mods" element={<BrowserModPage />} />
+                <Route path="browse">
+                  <Route index element={<BrowsePage />} />
                 </Route>
               </Route>
             </Routes>

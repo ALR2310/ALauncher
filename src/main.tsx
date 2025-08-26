@@ -25,7 +25,6 @@ const isTauri = '__TAURI__' in window;
 
 // Global
 (window as any).dayjs = dayjs;
-(window as any).isTauri = isTauri;
 (window as any).toast = toast;
 
 (async () => {

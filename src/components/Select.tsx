@@ -15,7 +15,7 @@ interface SelectProps {
   className?: string;
   style?: React.CSSProperties;
   position?: 'top' | 'bottom';
-  onChange?: (value: string) => void;
+  onChange?: (value: string, data: OptionProps) => void;
   render?: (item: OptionProps, select: (value: string) => void) => React.ReactNode;
   optionHeight?: number;
 }
@@ -59,9 +59,12 @@ export default function Select(props: SelectProps) {
     setIsOpen((v) => !v);
   };
   const handleSelectOption = (v: string) => {
+    const selectedOption = options.find((opt) => opt.value === v);
     setSelectedValue(v);
     setIsOpen(false);
-    onChange?.(v);
+    if (selectedOption) {
+      onChange?.(v, selectedOption);
+    }
   };
 
   const getSelectedLabel = (v: string) => options?.find((o) => o.value === v)?.label ?? placeholder;
@@ -103,7 +106,7 @@ export default function Select(props: SelectProps) {
         <div className="p-2 border-b border-base-300">
           <input
             className="input input-sm w-full focus:outline-none"
-            placeholder="Tìm kiếm..."
+            placeholder="Search..."
             value={searchValue}
             onClick={(e) => e.stopPropagation()}
             onChange={(e) => setSearchValue(e.target.value)}
@@ -133,7 +136,7 @@ export default function Select(props: SelectProps) {
         <div className="p-2 border-t border-base-300">
           <input
             className="input input-sm w-full focus:outline-none"
-            placeholder="Tìm kiếm..."
+            placeholder="Search..."
             value={searchValue}
             onClick={(e) => e.stopPropagation()}
             onChange={(e) => setSearchValue(e.target.value)}

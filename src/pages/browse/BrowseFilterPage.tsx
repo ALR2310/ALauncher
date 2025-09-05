@@ -1,10 +1,9 @@
 import { Category } from '@shared/types/category.type';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { throttle } from 'lodash';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
+import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 interface BrowseFilterPageProps {
@@ -13,8 +12,8 @@ interface BrowseFilterPageProps {
 }
 
 export default function BrowseFilterPage({ className, categoryId }: BrowseFilterPageProps) {
-  const divRef = useRef<HTMLDivElement>(null);
-  const isReady = useRef<boolean>(false);
+  const { isReady, height } = useContentHeight();
+
   const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
 
   useEffect(() => {
@@ -61,30 +60,8 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
     </li>
   );
 
-  const updateMenuHeight = throttle(() => {
-    if (!divRef.current) return;
-    const layoutEl = document.getElementById('layout')!;
-    const dockEl = document.getElementById('dockNav')!;
-    const height = layoutEl.offsetHeight - dockEl.offsetHeight;
-    divRef.current.style.height = `${height}px`;
-    isReady.current = true;
-  }, 200);
-
-  useEffect(() => {
-    updateMenuHeight();
-
-    if (window.isTauri) {
-      const unlistenPromise = getCurrentWindow().onResized(() => {
-        updateMenuHeight();
-      });
-      return () => {
-        unlistenPromise.then((unlisten) => unlisten());
-      };
-    }
-  }, [updateMenuHeight]);
-
   return (
-    <div ref={divRef} className={`${className} flex flex-col p-3 bg-base-300/60 space-y-4`}>
+    <div className={`${className} flex flex-col p-3 bg-base-300/60 space-y-4`} style={{ height }}>
       <div className="flex items-center justify-between gap-4">
         <label className="label flex-1/3">Type:</label>
         <Select className="flex-2/3" options={[]} />
@@ -101,7 +78,7 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
       </div>
 
       <div className="flex-1 overflow-auto">
-        {isReady.current && <ul className="menu flex-nowrap">{tree.map(renderNode)}</ul>}
+        {isReady && <ul className="menu flex-nowrap">{tree.map(renderNode)}</ul>}
       </div>
     </div>
   );

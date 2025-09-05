@@ -1,9 +1,8 @@
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import dayjs from 'dayjs';
-import throttle from 'lodash/throttle';
 import { useEffect, useRef } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
+import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 function prepareBody(html: string): string {
@@ -19,7 +18,7 @@ function prepareBody(html: string): string {
 
 export default function HomeNotePage({ className }: { className?: string }) {
   const divRef = useRef<HTMLDivElement>(null);
-  const isReady = useRef<boolean>(false);
+  const { height, isReady } = useContentHeight();
   const releaseNoteQuery = useContextSelector(LauncherContext, (v) => v.releaseNoteQuery);
 
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } = releaseNoteQuery;
@@ -37,32 +36,13 @@ export default function HomeNotePage({ className }: { className?: string }) {
     return () => el.removeEventListener('scroll', handleScroll);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const updateHeight = throttle(() => {
-    if (!divRef.current) return;
-    const layoutEl = document.getElementById('layout')!;
-    const dockEl = document.getElementById('dockNav')!;
-    const height = layoutEl.offsetHeight - dockEl.offsetHeight;
-    divRef.current.style.height = `${height}px`;
-    isReady.current = true;
-  }, 200);
-
-  useEffect(() => {
-    updateHeight();
-
-    if (window.isTauri) {
-      const unlistenPromise = getCurrentWindow().onResized(() => {
-        updateHeight();
-      });
-
-      return () => {
-        unlistenPromise.then((unlisten) => unlisten());
-      };
-    }
-  }, [updateHeight]);
-
   return (
-    <div ref={divRef} className={`${className} h-full bg-base-300/50 p-3 space-y-4 overflow-y-scroll`}>
-      {isReady.current &&
+    <div
+      ref={divRef}
+      className={`${className} h-full bg-base-300/50 p-3 space-y-4 overflow-y-scroll`}
+      style={{ height }}
+    >
+      {isReady &&
         data?.pages.flatMap((page) =>
           page.map((note) => (
             <div key={note.version} className="space-y-2">

@@ -8,6 +8,7 @@ import BrowsePage from './pages/browse/BrowsePage';
 import HomePage from './pages/home/HomePage';
 import ManagerPage from './pages/manager/ManagerPage';
 import { ConfirmProvider } from './providers/ConfirmProvider';
+import { ContentHeightProvider } from './providers/ContentHeightProvider';
 import { LauncherProvider } from './providers/LauncherProvider';
 import { ToastProvider } from './providers/ToastProvider';
 
@@ -32,16 +33,18 @@ function Layout() {
   const cssHeight = realHeight / window.devicePixelRatio;
 
   return (
-    <div
-      id="layout"
-      className="flex flex-col bg-base-200"
-      style={{ width: isTauri ? '100vw' : `${cssWidth}px`, height: isTauri ? '100vh' : `${cssHeight}px` }}
-    >
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <DockNav />
-    </div>
+    <ContentHeightProvider>
+      <div
+        id="layout"
+        className="flex flex-col bg-base-200"
+        style={{ width: isTauri ? '100vw' : `${cssWidth}px`, height: isTauri ? '100vh' : `${cssHeight}px` }}
+      >
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <DockNav />
+      </div>
+    </ContentHeightProvider>
   );
 }
 

@@ -11,7 +11,20 @@ export default function BrowseContentPage({ className }: { className?: string })
     <div className={`${className} flex flex-col p-3 space-y-3`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Select className="w-auto" options={[{ label: 'Total download', value: 'Total download' }]} />
+          <Select
+            className="w-36"
+            value="2"
+            options={[
+              { label: 'Featured', value: '1' },
+              { label: 'Popularity', value: '2' },
+              { label: 'LastUpdated', value: '3' },
+              { label: 'Name', value: '4' },
+              { label: 'Author', value: '5' },
+              { label: 'TotalDownloads', value: '6' },
+              { label: 'ReleasedDate', value: '11' },
+              { label: 'Rating', value: '12' },
+            ]}
+          />
           <label className="input w-64">
             <i className="fa-light fa-magnifying-glass"></i>
             <input type="text" placeholder="Search..." className="grow" />

@@ -1,6 +1,6 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import throttle from 'lodash/throttle';
-import { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 
 const ContentHeightContext = createContext<{ height: number; isReady: boolean }>({
   height: 0,

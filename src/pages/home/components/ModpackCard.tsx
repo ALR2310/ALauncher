@@ -1,5 +1,9 @@
 import { Instance } from '@shared/schema/instance.schema';
 import { useNavigate } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
+
+import { toast } from '~/hooks/useToast';
+import { LauncherContext } from '~/providers/LauncherProvider';
 
 // import modpackLogo from '~/assets/imgs/modpack-logo.webp';
 
@@ -11,6 +15,16 @@ interface ModpackCardProps {
 
 export default function ModpackCard({ data }: ModpackCardProps) {
   const navigate = useNavigate();
+
+  const deleteInstanceMutation = useContextSelector(LauncherContext, (v) => v.deleteInstanceMutation);
+  const getAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.getAllInstanceQuery);
+
+  const handleDeleteInstance = () => {
+    deleteInstanceMutation.mutateAsync(data.id!).then(() => {
+      getAllInstanceQuery.refetch();
+      toast.success('Instance deleted successfully');
+    });
+  };
 
   return (
     <div
@@ -30,7 +44,7 @@ export default function ModpackCard({ data }: ModpackCardProps) {
 
       {/* Button action */}
       <div className="absolute top-0 left-0">
-        <button className="btn btn-sm btn-ghost btn-circle" onClick={() => {}}>
+        <button className="btn btn-sm btn-ghost btn-circle" onClick={handleDeleteInstance}>
           <i className="fa-light fa-trash-can"></i>
         </button>
       </div>

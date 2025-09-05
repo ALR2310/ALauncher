@@ -114,9 +114,9 @@ export default function Select(props: SelectProps) {
         </div>
       )}
       <ul className="overflow-y-auto" style={{ maxHeight: `${optionHeight || 256}px` }}>
-        {filteredOptions.map((item) => (
+        {filteredOptions.map((item, index) => (
           <li
-            key={item.value}
+            key={index}
             className={`${render ? '' : 'px-3 py-1'} cursor-pointer hover:bg-base-300 ${
               selectedValue === item.value ? 'bg-base-300' : ''
             }`}
@@ -129,7 +129,7 @@ export default function Select(props: SelectProps) {
           </li>
         ))}
         {filteredOptions.length === 0 && (
-          <li className="px-3 py-2 text-sm text-base-content/70 italic">Không có kết quả nào</li>
+          <li className="px-3 py-2 text-sm text-base-content/70 italic">No results found</li>
         )}
       </ul>
       {position === 'top' && search && (

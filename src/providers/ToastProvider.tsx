@@ -28,10 +28,10 @@ const classMap = {
 };
 
 const titleMap = {
-  success: 'Thành công',
-  error: 'Thất bại',
-  warning: 'Cảnh báo',
-  info: 'Thông tin',
+  success: 'Successfully',
+  error: 'Failed',
+  warning: 'Warning',
+  info: 'Information',
 };
 
 const Toast: React.FC<ToastProps & { onClose: () => void }> = ({ type, message, title, isLoading, onClose }) => {

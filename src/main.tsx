@@ -21,7 +21,6 @@ dayjs.locale('vi');
 
 const container = document.getElementById('root');
 const root = createRoot(container!);
-const isTauri = '__TAURI__' in window;
 
 // Global
 (window as any).dayjs = dayjs;
@@ -29,7 +28,7 @@ const isTauri = '__TAURI__' in window;
 
 (async () => {
   // Load server
-  if (isTauri) {
+  if (window.isTauri) {
     const command = Command.sidecar('binaries/server');
     await command.spawn();
   }

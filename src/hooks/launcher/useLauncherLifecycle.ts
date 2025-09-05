@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
-import { api } from '~/configs/axios';
+import api from '~/configs/axios';
 
-export function useLauncherLifecycle() {
+export function useLauncherLifeCycle() {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
   const [speed, setSpeed] = useState('');
@@ -17,7 +17,7 @@ export function useLauncherLifecycle() {
   const launch = useCallback(() => {
     if (evtRef.current) return;
 
-    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT}/launcher/launch`);
+    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/launcher/launch`);
 
     setIsRunning(true);
     setIsDownloading(true);
@@ -71,13 +71,18 @@ export function useLauncherLifecycle() {
     }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (evtRef.current) {
-        evtRef.current.close();
-      }
-    };
-  }, []);
-
-  return { launch, cancel, progress, logs, speed, estimated, extract, patch, isRunning, isDownloading };
+  return {
+    event: {
+      progress,
+      logs,
+      speed,
+      estimated,
+      extract,
+      patch,
+    },
+    isRunning,
+    isDownloading,
+    launch,
+    cancel,
+  };
 }

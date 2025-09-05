@@ -1,0 +1,65 @@
+import axios from 'axios';
+
+const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
+
+const api = axios.create({
+  baseURL: 'https://api.curseforge.com/v1',
+  headers: {
+    'x-api-key': API_KEY,
+  },
+});
+
+class CurseForgeService {
+  async getMinecraftVersions() {
+    try {
+      const res = await api.get('/minecraft/version');
+      return res.data;
+    } catch (err) {
+      console.error('Error fetching Minecraft version:', err);
+      return [];
+    }
+  }
+
+  async getLoaderVersions(version?: string) {
+    try {
+      const res = await api.get(`minecraft/modloader`, {
+        params: {
+          includeAll: true,
+          version,
+        },
+      });
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching Loader version:', e);
+      return [];
+    }
+  }
+
+  async getModFiles(modId: number, gameVersion?: string, modLoaderType?: number, pageSize = 1) {
+    try {
+      const res = await api.get(`mods/${modId}/files`, {
+        params: {
+          gameVersion,
+          modLoaderType,
+          pageSize,
+        },
+      });
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching mod files:', e);
+      return [];
+    }
+  }
+
+  async getCategories(gameId: number, classId?: number, classesOnly?: boolean) {
+    try {
+      const res = await api.get('categories', { params: { gameId, classId, classesOnly } });
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching categories:', e);
+      return [];
+    }
+  }
+}
+
+export const curseForgeService = new CurseForgeService();

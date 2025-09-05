@@ -1,9 +1,13 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import dotenv from 'dotenv';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
+dotenv.config({ quiet: true });
+
 const host = process.env.TAURI_DEV_HOST;
+const clientPort = Number(process.env.VITE_CLIENT_PORT) || 1420;
 
 export default defineConfig(async () => ({
   build: {
@@ -12,7 +16,7 @@ export default defineConfig(async () => ({
     emptyOutDir: true,
   },
   server: {
-    port: 1420,
+    port: clientPort,
     strictPort: true,
     host: host || false,
     hmr: host

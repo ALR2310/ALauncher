@@ -1,41 +1,45 @@
+import { Version } from '@shared/types/version.type';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
 
-import Select from '~/components/Select';
-import { api } from '~/configs/axios';
-import { useLauncherConfig } from '~/hooks/launcher/useLauncherConfig';
-import { useLauncherLifecycle } from '~/hooks/launcher/useLauncherLifecycle';
-import { useLauncherVersion } from '~/hooks/launcher/useLauncherVersions';
 import { toast } from '~/hooks/useToast';
+import { LauncherContext } from '~/providers/LauncherProvider';
+
+import Select from '../Select';
 
 export default function DockNav() {
-  const [username, setUsername] = useState('');
-  const [versionSelected, setVersionSelected] = useState('');
-  const navigate = useNavigate();
+  const [version, setVersion] = useState<Version>(null!);
 
-  // Launcher state
-  const { getConfig, setConfig } = useLauncherConfig();
-  const { getVersions } = useLauncherVersion();
-  const { launch, cancel, progress, speed, estimated, isRunning, isDownloading } = useLauncherLifecycle();
+  // Launcher context
+  const config = useContextSelector(LauncherContext, (v) => v.getConfig());
+  const setConfig = useContextSelector(LauncherContext, (v) => v.setConfig);
+  const openFolder = useContextSelector(LauncherContext, (v) => v.openFolder);
+  const versionsQuery = useContextSelector(LauncherContext, (v) => v.versionsQuery);
+  const launch = useContextSelector(LauncherContext, (v) => v.launch);
+  const cancel = useContextSelector(LauncherContext, (v) => v.cancel);
+  const isDownloading = useContextSelector(LauncherContext, (v) => v.isDownloading);
+  const isRunning = useContextSelector(LauncherContext, (v) => v.isRunning);
+  const progress = useContextSelector(LauncherContext, (v) => v.event.progress);
+  const speed = useContextSelector(LauncherContext, (v) => v.event.speed);
+  const estimated = useContextSelector(LauncherContext, (v) => v.event.estimated);
 
-  const config = getConfig.data;
-  const versions = getVersions.data;
-
-  // Set initial username from config
+  // Sync version when config or versions change
   useEffect(() => {
-    if (config) setUsername(config.username);
-  }, [config]);
+    if (versionsQuery.isLoading || !config) return;
+    if (versionsQuery.isError) return toast.error('Failed to fetch versions');
 
-  // Set initial version selected from config
-  useEffect(() => {
-    if (!config || !versions) return;
-    if (config.version_selected.version === 'latest_release') {
-      setVersionSelected(versions[0].version);
-    } else setVersionSelected(config.version_selected.version);
-  }, [config, versions]);
+    const versions = versionsQuery.data!;
+
+    if (config.profile_selected.version === 'latest_release') {
+      const latestRelease = versions.find((v) => v.type === 'release');
+      if (latestRelease) setVersion(latestRelease);
+    } else {
+      setVersion(config.profile_selected);
+    }
+  }, [config, versionsQuery.data, versionsQuery.isError, versionsQuery.isLoading]);
 
   return (
-    <div id="dockNavbar" className="relative flex flex-nowrap gap-4 p-3 bg-base-300">
+    <div id="dockNav" className="relative flex gap-4 p-3 bg-base-300">
       {isDownloading && (
         <div className="absolute left-0 bottom-[90%] w-full">
           <p className="absolute left-1/2 text-primary font-semibold z-10">
@@ -55,9 +59,9 @@ export default function DockNav() {
           type="text"
           className="grow"
           placeholder="Username"
-          value={username}
+          value={config?.auth.username || ''}
           onChange={(e) => {
-            setConfig.mutateAsync({ key: 'username', value: e.target.value }).then(() => getConfig.refetch());
+            setConfig('auth.username', e.target.value);
           }}
         />
       </label>
@@ -66,30 +70,17 @@ export default function DockNav() {
         className="flex-1"
         search={true}
         position="top"
-        value={versionSelected}
+        value={version?.name || ''}
         options={
-          versions?.map((v) => ({
+          versionsQuery.data?.map((v) => ({
             label: v.name,
-            value: v.version,
+            value: v.name,
             downloaded: v.downloaded,
-            type: v.type,
-          })) ?? []
+          })) || []
         }
-        onChange={(value, data) => {
-          setConfig
-            .mutateAsync({
-              key: 'version_selected',
-              value: {
-                name: versions?.find((v) => v.version === value)?.name || 'Unknown',
-                version: value,
-                type: versions?.find((v) => v.version === value)?.type || 'release',
-              },
-            })
-            .then(() => {
-              getConfig.refetch();
-              if (data.type !== 'release') navigate('manager');
-              else navigate('/');
-            });
+        onChange={(v) => {
+          const selected = versionsQuery.data?.find((ver) => ver.name === v);
+          if (selected) setConfig('profile_selected', selected);
         }}
         render={(item) => (
           <p className={`px-3 py-1 ${item.downloaded ? 'bg-base-content/10' : undefined}`}>{item.label}</p>
@@ -99,31 +90,23 @@ export default function DockNav() {
       <button
         className="btn btn-primary flex-1"
         onClick={() => {
-          if (!username) return toast.warning('Please enter your username');
-          if (!isRunning) {
+          if (isRunning) cancel();
+          else {
+            if (!config?.auth.username) return toast.warning('Please enter your username');
+            if (!version) return toast.warning('Please select a version');
             launch();
-          } else cancel();
+          }
         }}
       >
         {isRunning ? 'Cancel' : 'Play'}
       </button>
 
       <div className="flex-1 flex">
-        <button
-          className="btn btn-ghost flex-1"
-          onClick={() => {
-            window.location.reload();
-          }}
-        >
+        <button className="btn btn-ghost flex-1" onClick={() => window.location.reload()}>
           <i className="fa-light fa-rotate-right"></i>
         </button>
 
-        <button
-          className="btn btn-ghost flex-1"
-          onClick={() => {
-            api.get('launcher/openFolder');
-          }}
-        >
+        <button className="btn btn-ghost flex-1" onClick={openFolder}>
           <i className="fa-light fa-folder-closed"></i>
         </button>
 

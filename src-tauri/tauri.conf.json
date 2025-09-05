@@ -10,13 +10,6 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "title": "ALauncher",
-        "width": 400,
-        "height": 250
-      }
-    ],
     "security": {
       "csp": null
     }

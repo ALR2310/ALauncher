@@ -1,38 +1,45 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router';
 
 import DockNav from './components/layouts/DockNav';
-import Sidebar from './components/layouts/Sidebar';
-import BrowsePage from './pages/browsePage';
-import ManagerPage from './pages/ManagerPage';
-import ReleaseNotePage from './pages/ReleaseNotePage';
+import { checkForAppUpdates } from './hooks/useUpdater';
+import BrowsePage from './pages/browse/BrowsePage';
+import HomePage from './pages/home/HomePage';
+import ManagerPage from './pages/manager/ManagerPage';
 import { ConfirmProvider } from './providers/ConfirmProvider';
+import { LauncherProvider } from './providers/LauncherProvider';
 import { ToastProvider } from './providers/ToastProvider';
-import { checkForAppUpdates } from './services/updater';
 
-const isTauri = '__TAURI__' in window;
+const isTauri = window.isTauri;
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      retry: 1,
+      staleTime: Infinity,
     },
   },
 });
 
 function Layout() {
-  const location = useLocation();
+  const realWidth = 1150;
+  const realHeight = 650;
+
+  const cssWidth = realWidth / window.devicePixelRatio;
+  const cssHeight = realHeight / window.devicePixelRatio;
 
   return (
-    <div id="layout" className="w-[1100px] h-[650px] flex flex-col bg-base-200">
-      <div className="flex-1 flex flex-nowrap">
-        {!location.pathname.startsWith('/browse') && <Sidebar className="flex-1/5 bg-base-100" />}
-        <main className="flex-4/5">
-          <Outlet />
-        </main>
-      </div>
+    <div
+      id="layout"
+      className="flex flex-col bg-base-200"
+      style={{ width: isTauri ? '100vw' : `${cssWidth}px`, height: isTauri ? '100vh' : `${cssHeight}px` }}
+    >
+      <main className="flex-1">
+        <Outlet />
+      </main>
       <DockNav />
     </div>
   );
@@ -47,17 +54,17 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <ConfirmProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<ReleaseNotePage />} />
-                <Route path="manager" element={<ManagerPage />} />
-                <Route path="browse">
-                  <Route index element={<BrowsePage />} />
+          <LauncherProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="/manager" element={<ManagerPage />} />
+                  <Route path="/browse" element={<BrowsePage />} />
                 </Route>
-              </Route>
-            </Routes>
-          </BrowserRouter>
+              </Routes>
+            </BrowserRouter>
+          </LauncherProvider>
         </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>

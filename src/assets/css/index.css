@@ -19,6 +19,22 @@
     scrollbar-width: none;
   }
 
+  .text-ellipsis-1 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 1;
+  }
+
+  .text-ellipsis-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 2;
+  }
+
   .select:focus,
   .select:focus-within,
   .input:focus,

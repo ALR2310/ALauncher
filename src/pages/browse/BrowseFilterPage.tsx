@@ -11,31 +11,60 @@ interface BrowseFilterPageProps {
   categoryId?: number;
 }
 
-const renderNode = (node: any) => (
-  <li key={node.id}>
-    {node.children.length > 0 ? (
-      <details>
-        <summary>{node.name}</summary>
-        <ul>{node.children.map(renderNode)}</ul>
-      </details>
-    ) : (
-      <label>
-        <a className="flex items-center gap-3">
-          <input type="checkbox" className="checkbox checkbox-sm" /> {node.name}
-        </a>
-      </label>
-    )}
-  </li>
-);
-
 export default function BrowseFilterPage({ className, categoryId }: BrowseFilterPageProps) {
   const { isReady, height } = useContentHeight();
   const [categoryType, setCategoryType] = useState('mc-mods');
   const [versionSelected, setVersionSelected] = useState('');
   const [loaderType, setLoaderType] = useState('all');
+  const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
 
   const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
+
+  const handleCategoryChange = (categoryId: number, checked: boolean, node: any) => {
+    const newSelected = new Set(selectedCategories);
+
+    if (checked) {
+      newSelected.add(categoryId);
+      console.log('Category selected:', {
+        id: categoryId,
+        name: node.name,
+        parentCategoryId: node.parentCategoryId,
+        gameId: node.gameId,
+      });
+    } else {
+      newSelected.delete(categoryId);
+      console.log('Category deselected:', {
+        id: categoryId,
+        name: node.name,
+      });
+    }
+
+    setSelectedCategories(newSelected);
+  };
+
+  const renderNode = (node: any) => (
+    <li key={node.id}>
+      {node.children.length > 0 ? (
+        <details>
+          <summary>{node.name}</summary>
+          <ul>{node.children.map(renderNode)}</ul>
+        </details>
+      ) : (
+        <label>
+          <a className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={selectedCategories.has(node.id)}
+              onChange={(e) => handleCategoryChange(node.id, e.target.checked, node)}
+            />
+            {node.name}
+          </a>
+        </label>
+      )}
+    </li>
+  );
 
   // Fetch the initial category data
   useEffect(() => {

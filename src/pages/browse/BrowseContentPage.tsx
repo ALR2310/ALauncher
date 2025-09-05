@@ -1,18 +1,32 @@
+import { useNavigate, useParams } from 'react-router';
+
 import Select from '~/components/Select';
 
 export default function BrowseContentPage({ className }: { className?: string }) {
+  const { instanceId } = useParams<{ instanceId: string }>();
+
+  const navigate = useNavigate();
+
   return (
     <div className={`${className} flex flex-col p-3 space-y-3`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Select options={[{ label: 'Total download', value: 'Total download' }]} />
-          <p className="text-base-content/60 text-nowrap">100+ Projects found</p>
+          <Select className="w-auto" options={[{ label: 'Total download', value: 'Total download' }]} />
+          <label className="input w-64">
+            <i className="fa-light fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search..." className="grow" />
+          </label>
         </div>
 
-        <label className="input w-64">
-          <i className="fa-light fa-magnifying-glass"></i>
-          <input type="text" placeholder="Search..." className="grow" />
-        </label>
+        <button
+          className="btn btn-soft btn-circle"
+          onClick={() => {
+            if (window.history.length > 1) navigate(-1);
+            else navigate(`/manager/${instanceId}`);
+          }}
+        >
+          <i className="fa-light fa-xmark"></i>
+        </button>
       </div>
 
       <div className="flex-1 overflow-auto">

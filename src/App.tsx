@@ -59,8 +59,8 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Layout />}>
                   <Route index element={<HomePage />} />
-                  <Route path="/manager" element={<ManagerPage />} />
-                  <Route path="/browse" element={<BrowsePage />} />
+                  <Route path="/manager/:instanceId" element={<ManagerPage />} />
+                  <Route path="/browse/:instanceId" element={<BrowsePage />} />
                 </Route>
               </Routes>
             </BrowserRouter>

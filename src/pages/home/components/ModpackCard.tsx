@@ -53,7 +53,7 @@ export default function ModpackCard({ data }: ModpackCardProps) {
       <div className="absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-3 transform transition-transform duration-300 translate-y-[calc(100%-40px)] group-hover:translate-y-0 group-focus:translate-y-0">
         <p className="font-semibold">{data.name}</p>
         <div className="join flex">
-          <button className="btn btn-primary join-item flex-1" onClick={() => navigate('/manager')}>
+          <button className="btn btn-primary join-item flex-1" onClick={() => navigate(`/manager/${data.id}`)}>
             Customize
           </button>
         </div>

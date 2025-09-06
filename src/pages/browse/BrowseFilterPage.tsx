@@ -16,10 +16,14 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { isReady, height } = useContentHeight();
-  const [categoryType, setCategoryType] = useState('mc-mods');
-  const [gameVersion, setGameVersion] = useState('');
-  const [loaderType, setLoaderType] = useState('0');
-  const [categoryIds, setCategoryIds] = useState<Set<number>>(new Set());
+
+  const [categoryType, setCategoryType] = useState(searchParams.get('categoryType') || 'mc-mods');
+  const [gameVersion, setGameVersion] = useState(searchParams.get('gameVersion') || '');
+  const [loaderType, setLoaderType] = useState(searchParams.get('loaderType') || '0');
+  const [categoryIds, setCategoryIds] = useState<Set<number>>(() => {
+    const raw = searchParams.get('categoryIds');
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  });
 
   const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
@@ -35,8 +39,8 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
   // Set default selected version when data is loaded
   useEffect(() => {
     if (releaseVersionsQuery.isLoading) return;
-    if (releaseVersionsQuery.data?.length) setGameVersion(releaseVersionsQuery.data[0].version);
-  }, [releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
+    if (releaseVersionsQuery.data?.length && !gameVersion) setGameVersion(releaseVersionsQuery.data[0].version);
+  }, [gameVersion, releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams);

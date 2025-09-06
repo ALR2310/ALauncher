@@ -3,6 +3,7 @@ import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
+import { useDebounce } from '~/hooks/useDebounce';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 import AdditionalCard from './components/AdditionalCard';
@@ -25,8 +26,9 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
   const { instanceId } = useParams<{ instanceId: string }>();
   const { height, isReady } = useContentHeight();
 
-  const searchFilter = searchParams.get('searchFilter') || '';
   const sortField = searchParams.get('sortField') || '2';
+  const searchFilter = searchParams.get('searchFilter') || '';
+  const debouncedSearchFilter = useDebounce(searchFilter, 500);
 
   const categoryType = searchParams.get('categoryType') || 'mc-mods';
   const gameVersion = searchParams.get('gameVersion') || '';
@@ -40,7 +42,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
       classId: categoryTypeMap[categoryType],
       categoryIds,
       gameVersion,
-      searchFilter,
+      searchFilter: debouncedSearchFilter,
       sortField,
       modLoaderType: loaderType === '0' ? undefined : loaderType,
       pageSize: 20,

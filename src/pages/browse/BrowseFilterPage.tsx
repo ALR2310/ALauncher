@@ -1,25 +1,20 @@
 import { Category } from '@shared/types/category.type';
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
-export interface FilterState {
-  categoryType: string;
-  versionSelected: string;
-  loaderType: string;
-  selectedCategories: Set<number>;
-}
-
 interface BrowseFilterPageProps {
   className?: string;
   categoryId?: number;
-  onChange?: (filters: FilterState) => void;
 }
 
-export default function BrowseFilterPage({ className, categoryId, onChange }: BrowseFilterPageProps) {
+export default function BrowseFilterPage({ className, categoryId }: BrowseFilterPageProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { isReady, height } = useContentHeight();
   const [categoryType, setCategoryType] = useState('mc-mods');
   const [versionSelected, setVersionSelected] = useState('');
@@ -28,6 +23,33 @@ export default function BrowseFilterPage({ className, categoryId, onChange }: Br
 
   const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
+
+  // Fetch the initial category data
+  useEffect(() => {
+    if (categoryId) {
+      categoryMutation.mutate({ classId: categoryId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId]);
+
+  // Set default selected version when data is loaded
+  useEffect(() => {
+    if (releaseVersionsQuery.isLoading) return;
+    if (releaseVersionsQuery.data?.length) setVersionSelected(releaseVersionsQuery.data[0].version);
+  }, [releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
+
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    next.set('categoryType', categoryType);
+    if (versionSelected) next.set('versionSelected', versionSelected);
+    if (loaderType) next.set('loaderType', loaderType);
+    if (selectedCategories.size > 0) {
+      next.set('categoryIds', JSON.stringify([...selectedCategories]));
+    } else {
+      next.delete('categoryIds');
+    }
+    setSearchParams(next);
+  }, [categoryType, loaderType, searchParams, selectedCategories, setSearchParams, versionSelected]);
 
   const handleCategoryChange = (categoryId: number, checked: boolean) => {
     const newSelected = new Set(selectedCategories);
@@ -60,32 +82,6 @@ export default function BrowseFilterPage({ className, categoryId, onChange }: Br
       )}
     </li>
   );
-
-  // Fetch the initial category data
-  useEffect(() => {
-    if (categoryId) {
-      categoryMutation.mutate({ classId: categoryId });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId]);
-
-  // Set default selected version when data is loaded
-  useEffect(() => {
-    if (releaseVersionsQuery.isLoading) return;
-    if (releaseVersionsQuery.data?.length) setVersionSelected(releaseVersionsQuery.data[0].version);
-  }, [releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
-
-  // Trigger onChange when filters change
-  useEffect(() => {
-    if (onChange) {
-      onChange({
-        categoryType,
-        versionSelected,
-        loaderType,
-        selectedCategories,
-      });
-    }
-  }, [categoryType, versionSelected, loaderType, selectedCategories, onChange]);
 
   const tree = useMemo(() => {
     if (!categoryMutation.data) return [];

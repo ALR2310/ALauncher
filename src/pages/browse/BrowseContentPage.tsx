@@ -1,13 +1,10 @@
 import { abbreviateNumber } from '@shared/utils/general.utils';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
-
-import { FilterState } from './BrowseFilterPage';
 
 const categoryTypeMap = {
   'mc-mods': 6,
@@ -35,28 +32,47 @@ const loaderTypeMap = {
 
 interface BrowseContentPageProps {
   className?: string;
-  filter?: FilterState;
 }
 
-export default function BrowseContentPage({ className, filter }: BrowseContentPageProps) {
+export default function BrowseContentPage({ className }: BrowseContentPageProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { instanceId } = useParams<{ instanceId: string }>();
   const { height, isReady } = useContentHeight();
-  const [searchKey, setSearchKey] = useState('');
-  const [sortField, setSortField] = useState('2');
+
+  const searchKey = searchParams.get('searchKey') || '';
+  const sortField = searchParams.get('sortField') || '2';
+
+  const categoryType = searchParams.get('categoryType') || 'mc-mods';
+  const versionSelected = searchParams.get('versionSelected') || '';
+  const loaderType = searchParams.get('loaderType') || '0';
+  const categoryIds = searchParams.get('categoryIds') ? JSON.parse(searchParams.get('categoryIds')!) : undefined;
 
   const navigate = useNavigate();
 
   const getAdditionalQuery = useContextSelector(LauncherContext, (v) =>
     v.getAdditionalQuery({
-      classId: categoryTypeMap[filter?.categoryType || 'mc-mods'],
-      categoryIds: filter?.selectedCategories ? JSON.stringify([...filter.selectedCategories]) : undefined,
-      gameVersion: filter?.versionSelected,
+      classId: categoryTypeMap[categoryType],
+      categoryIds,
+      gameVersion: versionSelected,
       searchFilter: searchKey,
-      sortField: sortField,
-      modLoaderType: filter?.loaderType === '0' ? undefined : filter?.loaderType,
+      sortField,
+      modLoaderType: loaderType === '0' ? undefined : loaderType,
       pageSize: 20,
     }),
   );
+
+  const handleSortChange = (val: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('sortField', val);
+    setSearchParams(next);
+  };
+
+  const handleSearchChange = (val: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('searchKey', val);
+    setSearchParams(next);
+  };
 
   return (
     <div className={`${className} flex flex-col p-3 space-y-3`} style={{ height: isReady ? height : '0px' }}>
@@ -75,7 +91,7 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
               { label: 'Released Date', value: '11' },
               { label: 'Rating', value: '12' },
             ]}
-            onChange={(val) => setSortField(val)}
+            onChange={handleSortChange}
           />
           <label className="input w-64">
             <i className="fa-light fa-magnifying-glass"></i>
@@ -84,7 +100,7 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
               placeholder="Search..."
               className="grow"
               value={searchKey}
-              onChange={(e) => setSearchKey(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </label>
         </div>
@@ -92,8 +108,7 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
         <button
           className="btn btn-soft btn-circle"
           onClick={() => {
-            if (window.history.length > 1) navigate(-1);
-            else navigate(`/manager/${instanceId}`);
+            navigate(`/manager/${instanceId}`);
           }}
         >
           <i className="fa-light fa-xmark"></i>
@@ -139,7 +154,7 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
 
                 <div className="flex justify-between text-xs text-base-content/70">
                   <div className="flex items-center gap-2">
-                    <button className="btn btn-outline btn-xs">{categoryTitleMap[filter!.categoryType]}</button>
+                    <button className="btn btn-outline btn-xs">{categoryTitleMap[categoryType]}</button>
                     <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
                       {additional.categories.map((cat, idx) => (
                         <a href="#" key={idx} className=" hover:underline">
@@ -161,9 +176,9 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
                       <i className="fa-light fa-database"></i> {additional.fileSize}
                     </p>
                     <p>
-                      <i className="fa-light fa-gamepad-modern"></i> {filter?.versionSelected}
+                      <i className="fa-light fa-gamepad-modern"></i> {versionSelected}
                     </p>
-                    <p>{loaderTypeMap[filter!.loaderType]}</p>
+                    <p>{loaderTypeMap[loaderType]}</p>
                   </div>
                 </div>
               </div>

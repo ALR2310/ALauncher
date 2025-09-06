@@ -17,9 +17,9 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
 
   const { isReady, height } = useContentHeight();
   const [categoryType, setCategoryType] = useState('mc-mods');
-  const [versionSelected, setVersionSelected] = useState('');
+  const [gameVersion, setGameVersion] = useState('');
   const [loaderType, setLoaderType] = useState('0');
-  const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
+  const [categoryIds, setCategoryIds] = useState<Set<number>>(new Set());
 
   const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
@@ -35,29 +35,29 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
   // Set default selected version when data is loaded
   useEffect(() => {
     if (releaseVersionsQuery.isLoading) return;
-    if (releaseVersionsQuery.data?.length) setVersionSelected(releaseVersionsQuery.data[0].version);
+    if (releaseVersionsQuery.data?.length) setGameVersion(releaseVersionsQuery.data[0].version);
   }, [releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
     next.set('categoryType', categoryType);
-    if (versionSelected) next.set('versionSelected', versionSelected);
+    if (gameVersion) next.set('gameVersion', gameVersion);
     if (loaderType) next.set('loaderType', loaderType);
-    if (selectedCategories.size > 0) {
-      next.set('categoryIds', JSON.stringify([...selectedCategories]));
+    if (categoryIds.size > 0) {
+      next.set('categoryIds', JSON.stringify([...categoryIds]));
     } else {
       next.delete('categoryIds');
     }
     setSearchParams(next);
-  }, [categoryType, loaderType, searchParams, selectedCategories, setSearchParams, versionSelected]);
+  }, [categoryType, loaderType, searchParams, categoryIds, setSearchParams, gameVersion]);
 
   const handleCategoryChange = (categoryId: number, checked: boolean) => {
-    const newSelected = new Set(selectedCategories);
+    const newSelected = new Set(categoryIds);
 
     if (checked) newSelected.add(categoryId);
     else newSelected.delete(categoryId);
 
-    setSelectedCategories(newSelected);
+    setCategoryIds(newSelected);
   };
 
   const renderNode = (node: any) => (
@@ -73,7 +73,7 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
             <input
               type="checkbox"
               className="checkbox checkbox-sm"
-              checked={selectedCategories.has(node.id)}
+              checked={categoryIds.has(node.id)}
               onChange={(e) => handleCategoryChange(node.id, e.target.checked)}
             />
             {node.name}
@@ -125,9 +125,9 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
         <label className="label flex-1/3">Version:</label>
         <Select
           className="flex-2/3"
-          value={versionSelected}
+          value={gameVersion}
           options={releaseVersionsQuery.data?.map((v) => ({ label: v.version, value: v.version })) ?? []}
-          onChange={(val) => setVersionSelected(val)}
+          onChange={(val) => setGameVersion(val)}
         />
       </div>
 

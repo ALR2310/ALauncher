@@ -6,39 +6,34 @@ import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
+export interface FilterState {
+  categoryType: string;
+  versionSelected: string;
+  loaderType: string;
+  selectedCategories: Set<number>;
+}
+
 interface BrowseFilterPageProps {
   className?: string;
   categoryId?: number;
+  onChange?: (filters: FilterState) => void;
 }
 
-export default function BrowseFilterPage({ className, categoryId }: BrowseFilterPageProps) {
+export default function BrowseFilterPage({ className, categoryId, onChange }: BrowseFilterPageProps) {
   const { isReady, height } = useContentHeight();
   const [categoryType, setCategoryType] = useState('mc-mods');
   const [versionSelected, setVersionSelected] = useState('');
-  const [loaderType, setLoaderType] = useState('all');
+  const [loaderType, setLoaderType] = useState('0');
   const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
 
   const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
 
-  const handleCategoryChange = (categoryId: number, checked: boolean, node: any) => {
+  const handleCategoryChange = (categoryId: number, checked: boolean) => {
     const newSelected = new Set(selectedCategories);
 
-    if (checked) {
-      newSelected.add(categoryId);
-      console.log('Category selected:', {
-        id: categoryId,
-        name: node.name,
-        parentCategoryId: node.parentCategoryId,
-        gameId: node.gameId,
-      });
-    } else {
-      newSelected.delete(categoryId);
-      console.log('Category deselected:', {
-        id: categoryId,
-        name: node.name,
-      });
-    }
+    if (checked) newSelected.add(categoryId);
+    else newSelected.delete(categoryId);
 
     setSelectedCategories(newSelected);
   };
@@ -57,7 +52,7 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
               type="checkbox"
               className="checkbox checkbox-sm"
               checked={selectedCategories.has(node.id)}
-              onChange={(e) => handleCategoryChange(node.id, e.target.checked, node)}
+              onChange={(e) => handleCategoryChange(node.id, e.target.checked)}
             />
             {node.name}
           </a>
@@ -79,6 +74,18 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
     if (releaseVersionsQuery.isLoading) return;
     if (releaseVersionsQuery.data?.length) setVersionSelected(releaseVersionsQuery.data[0].version);
   }, [releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
+
+  // Trigger onChange when filters change
+  useEffect(() => {
+    if (onChange) {
+      onChange({
+        categoryType,
+        versionSelected,
+        loaderType,
+        selectedCategories,
+      });
+    }
+  }, [categoryType, versionSelected, loaderType, selectedCategories, onChange]);
 
   const tree = useMemo(() => {
     if (!categoryMutation.data) return [];
@@ -134,18 +141,18 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
           className="flex-2/3"
           value={loaderType}
           options={[
-            { label: 'All', value: 'all' },
-            { label: 'Forge', value: 'forge' },
-            { label: 'Fabric', value: 'fabric' },
-            { label: 'Quilt', value: 'quilt' },
-            { label: 'NeoForge', value: 'neoforge' },
+            { label: 'All', value: '0' },
+            { label: 'Forge', value: '1' },
+            { label: 'Fabric', value: '4' },
+            { label: 'Quilt', value: '5' },
+            { label: 'NeoForge', value: '6' },
           ]}
           onChange={(val) => setLoaderType(val)}
         />
       </div>
 
       <div className="flex-1 overflow-auto">
-        {isReady && <ul className="menu flex-nowrap">{tree.map(renderNode)}</ul>}
+        {isReady && <ul className="menu p-0 flex-nowrap">{tree.map(renderNode)}</ul>}
       </div>
     </div>
   );

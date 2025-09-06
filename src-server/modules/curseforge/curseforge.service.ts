@@ -60,6 +60,16 @@ class CurseForgeService {
       return [];
     }
   }
+
+  async searchMods(params: any) {
+    try {
+      const res = await api.get('mods/search', { params });
+      return res.data;
+    } catch (e) {
+      console.error('Error searching mods:', e);
+      return [];
+    }
+  }
 }
 
 export const curseForgeService = new CurseForgeService();

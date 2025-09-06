@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { createContext } from 'use-context-selector';
 
 import api from '~/configs/axios';
+import { useLauncherAdditional } from '~/hooks/launcher/useLauncherAdditional';
 import { useLauncherCategory } from '~/hooks/launcher/useLauncherCategory';
 import { useLauncherConfig } from '~/hooks/launcher/useLauncherConfig';
 import { useLauncherInstance } from '~/hooks/launcher/useLauncherInstance';
@@ -27,6 +28,7 @@ const LauncherContext = createContext<{
   createInstanceMutation: ReturnType<typeof useLauncherInstance>['createInstanceMutation'];
   updateInstanceMutation: ReturnType<typeof useLauncherInstance>['updateInstanceMutation'];
   deleteInstanceMutation: ReturnType<typeof useLauncherInstance>['deleteInstanceMutation'];
+  getAdditionalQuery: ReturnType<typeof useLauncherAdditional>['getAdditionalQuery'];
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
@@ -41,6 +43,7 @@ const LauncherProvider = ({ children }) => {
     updateInstanceMutation,
     deleteInstanceMutation,
   } = useLauncherInstance();
+  const { getAdditionalQuery } = useLauncherAdditional();
 
   const ctx = useMemo(
     () => ({
@@ -62,6 +65,7 @@ const LauncherProvider = ({ children }) => {
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
+      getAdditionalQuery,
     }),
     [
       getConfig,
@@ -81,6 +85,7 @@ const LauncherProvider = ({ children }) => {
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
+      getAdditionalQuery,
     ],
   );
 

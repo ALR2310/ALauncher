@@ -8,8 +8,8 @@ export default function BrowsePage() {
 
   return (
     <div className="flex h-full">
-      <BrowseFilterPage className="flex-1/4" categoryId={6} onChange={setFilter} />
-      <BrowseContentPage className="flex-3/4" filter={filter} />
+      <BrowseFilterPage className="w-[240px]" categoryId={6} onChange={setFilter} />
+      <BrowseContentPage className="flex-1" filter={filter} />
     </div>
   );
 }

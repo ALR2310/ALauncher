@@ -1,5 +1,5 @@
-import { loaderTypeToName } from '@shared/constants/launcher.constant';
-import { useEffect, useState } from 'react';
+import { abbreviateNumber } from '@shared/utils/general.utils';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -15,6 +15,22 @@ const categoryTypeMap = {
   'texture-packs': 12,
   shaders: 6552,
   worlds: 17,
+};
+
+const categoryTitleMap = {
+  'mc-mods': 'Mods',
+  'data-packs': 'Data Packs',
+  'texture-packs': 'Resource Packs',
+  shaders: 'Shaders',
+  worlds: 'Worlds',
+};
+
+const loaderTypeMap = {
+  0: '',
+  1: 'Forge',
+  4: 'Fabric',
+  5: 'Quilt',
+  6: 'NeoForge',
 };
 
 interface BrowseContentPageProps {
@@ -42,10 +58,6 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
     }),
   );
 
-  useEffect(() => {
-    console.log(getAdditionalQuery.data);
-  }, [getAdditionalQuery.data]);
-
   return (
     <div className={`${className} flex flex-col p-3 space-y-3`} style={{ height: isReady ? height : '0px' }}>
       <div className="flex items-center justify-between">
@@ -56,11 +68,11 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
             options={[
               { label: 'Featured', value: '1' },
               { label: 'Popularity', value: '2' },
-              { label: 'LastUpdated', value: '3' },
+              { label: 'Last Updated', value: '3' },
               { label: 'Name', value: '4' },
               { label: 'Author', value: '5' },
-              { label: 'TotalDownloads', value: '6' },
-              { label: 'ReleasedDate', value: '11' },
+              { label: 'Total Downloads', value: '6' },
+              { label: 'Released Date', value: '11' },
               { label: 'Rating', value: '12' },
             ]}
             onChange={(val) => setSortField(val)}
@@ -101,43 +113,59 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
         {getAdditionalQuery.isLoading && <p>Loading...</p>}
         {getAdditionalQuery.data?.pages.map((page) =>
           page.data.map((additional) => (
-            <div key={additional.id} className="h-[25%] flex bg-base-100 p-3 rounded gap-4">
+            <div key={additional.id} className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
               <div className="flex justify-center items-center">
                 <img src={additional.logoUrl} alt="mod img" loading="lazy" className="w-full h-full object-cover" />
               </div>
 
               <div className="flex-1 flex flex-col justify-between">
-                {/* ModName and Author */}
-                <div className="flex items-center font-semibold">
-                  <h3 className="text-base-content text-ellipsis-1">{additional.name}</h3>
-                  <div className="divider divider-horizontal"></div>
-                  <p className="text-base-content/60 text-nowrap">by {additional.authors[0].name}</p>
+                <div className="flex">
+                  <div className="flex-1 ">
+                    <div className="flex items-center font-semibold">
+                      <h3 className="text-base-content text-ellipsis-1">{additional.name}</h3>
+                      <div className="divider divider-horizontal"></div>
+                      <p className="text-base-content/60 text-nowrap">by {additional.authors[0].name}</p>
+                    </div>
+
+                    <p className="text-sm text-base-content/80 text-ellipsis-1 overflow-hidden">{additional.summary}</p>
+                  </div>
+
+                  <div className="w-[15%]">
+                    <button className="btn btn-soft btn-primary w-full">Install</button>
+                  </div>
                 </div>
 
-                {/* Description */}
-                <p className="text-sm text-base-content/80 text-ellipsis-1 overflow-hidden">{additional.summary}</p>
+                <div className="divider m-0"></div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm text-base-content/70">
-                  <button className="btn btn-outline btn-xs">{filter?.categoryType}</button>
-                  <p>
-                    <i className="fa-light fa-download"></i> {additional.downloadCount}
-                  </p>
-                  <p>
-                    <i className="fa-light fa-clock-three"></i> {new Date(additional.dateModified).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <i className="fa-light fa-database"></i> 150MB
-                  </p>
-                  <p>
-                    <i className="fa-light fa-gamepad-modern"></i> {filter?.versionSelected}
-                  </p>
-                  <p>{filter?.loaderType === '0' ? 'any' : loaderTypeToName[filter!.loaderType]}</p>
+                <div className="flex justify-between text-xs text-base-content/70">
+                  <div className="flex items-center gap-2">
+                    <button className="btn btn-outline btn-xs">{categoryTitleMap[filter!.categoryType]}</button>
+                    <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
+                      {additional.categories.map((cat, idx) => (
+                        <a href="#" key={idx} className=" hover:underline">
+                          {cat.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-nowrap">
+                    <p>
+                      <i className="fa-light fa-download"></i> {abbreviateNumber(additional.downloadCount)}
+                    </p>
+                    <p>
+                      <i className="fa-light fa-clock-three"></i>{' '}
+                      {new Date(additional.dateModified).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <i className="fa-light fa-database"></i> {additional.fileSize}
+                    </p>
+                    <p>
+                      <i className="fa-light fa-gamepad-modern"></i> {filter?.versionSelected}
+                    </p>
+                    <p>{loaderTypeMap[filter!.loaderType]}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="w-[15%]">
-                <button className="btn btn-soft btn-primary w-full">Install</button>
               </div>
             </div>
           )),

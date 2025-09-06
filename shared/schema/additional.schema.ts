@@ -30,6 +30,7 @@ export interface AdditionalResponse {
     link: string;
     summary: string;
     downloadCount: number;
+    fileSize: string;
     authors: Array<{
       id: number;
       name: string;
@@ -37,6 +38,12 @@ export interface AdditionalResponse {
       avatarUrl: string;
     }>;
     logoUrl: string;
+    categories: Array<{
+      id: number;
+      name: string;
+      slug: string;
+      url: string;
+    }>;
     dateCreated: string;
     dateModified: string;
     dateReleased: string;

@@ -1,4 +1,5 @@
 import { AdditionalQuery, AdditionalResponse } from '@shared/schema/additional.schema';
+import { formatBytes } from '@shared/utils/general.utils';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 
@@ -38,8 +39,15 @@ class AdditionalService {
         link: item.links.websiteUrl,
         summary: item.summary,
         downloadCount: item.downloadCount,
+        fileSize: formatBytes(item.latestFiles[0].fileLength),
         authors: item.authors,
         logoUrl: item.logo.url,
+        categories: item.categories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          url: cat.url,
+        })),
         dateCreated: item.dateCreated,
         dateModified: item.dateModified,
         dateReleased: item.dateReleased,

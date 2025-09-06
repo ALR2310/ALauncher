@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 const tabs = [
   { key: 'mc-mods', label: 'Mods' },
@@ -11,6 +11,7 @@ const tabs = [
 
 export default function ManagerPage() {
   const { instanceId } = useParams<{ instanceId: string }>();
+  const navigate = useNavigate();
 
   const [tab, setTab] = useState('mc-mods');
   const [searchKey, setSearchKey] = useState('');
@@ -33,10 +34,15 @@ export default function ManagerPage() {
           ))}
         </div>
 
-        <Link to={`/browse/${instanceId}?type=${tab}`} className="btn btn-soft">
-          <i className="fa-light fa-plus"></i>
-          Add Contents
-        </Link>
+        <button
+          className="btn btn-soft btn-circle"
+          onClick={() => {
+            if (window.history.length > 1) navigate(-1);
+            else navigate(`/manager/${instanceId}`);
+          }}
+        >
+          <i className="fa-light fa-xmark"></i>
+        </button>
       </div>
 
       {/* Search + Update All */}
@@ -59,6 +65,11 @@ export default function ManagerPage() {
             onChange={(e) => setSearchKey(e.target.value)}
           />
         </label>
+
+        <Link to={`/browse/${instanceId}?type=${tab}`} className="btn btn-soft">
+          <i className="fa-light fa-plus"></i>
+          Add Contents
+        </Link>
       </div>
 
       {/* Table */}

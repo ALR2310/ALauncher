@@ -7,12 +7,20 @@ import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
+const categoryTypeMap = {
+  'mc-mods': 6,
+  'data-packs': 6945,
+  'texture-packs': 12,
+  shaders: 6552,
+  worlds: 17,
+};
+
 interface BrowseFilterPageProps {
   className?: string;
   categoryId?: number;
 }
 
-export default function BrowseFilterPage({ className, categoryId }: BrowseFilterPageProps) {
+export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { isReady, height } = useContentHeight();
@@ -25,16 +33,10 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
     return raw ? new Set(JSON.parse(raw)) : new Set();
   });
 
-  const categoryMutation = useContextSelector(LauncherContext, (v) => v.categoryMutation);
+  const categoryQuery = useContextSelector(LauncherContext, (v) =>
+    v.categoryQuery({ classId: categoryTypeMap[categoryType] }),
+  );
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
-
-  // Fetch the initial category data
-  useEffect(() => {
-    if (categoryId) {
-      categoryMutation.mutate({ classId: categoryId });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId]);
 
   // Set default selected version when data is loaded
   useEffect(() => {
@@ -88,9 +90,9 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
   );
 
   const tree = useMemo(() => {
-    if (!categoryMutation.data) return [];
+    if (!categoryQuery.data) return [];
 
-    const sorted = [...categoryMutation.data].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = [...categoryQuery.data].sort((a, b) => a.name.localeCompare(b.name));
 
     const map = new Map<number, any>();
     sorted.forEach((c) => map.set(c.id, { ...c, children: [] }));
@@ -105,10 +107,13 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
     });
 
     return roots;
-  }, [categoryMutation.data]);
+  }, [categoryQuery.data]);
 
   return (
-    <div className={`${className} flex flex-col p-3 bg-base-300/60 space-y-4`} style={{ height }}>
+    <div
+      className={`${className} flex flex-col p-3 bg-base-300/60 space-y-4`}
+      style={{ height: isReady ? height : '0px' }}
+    >
       <div className="flex items-center justify-between gap-4">
         <label className="label flex-1/3">Type:</label>
         <Select
@@ -152,7 +157,7 @@ export default function BrowseFilterPage({ className, categoryId }: BrowseFilter
       </div>
 
       <div className="flex-1 overflow-auto">
-        {isReady && <ul className="menu p-0 flex-nowrap">{tree.map(renderNode)}</ul>}
+        <ul className="menu p-0 flex-nowrap">{tree.map(renderNode)}</ul>
       </div>
     </div>
   );

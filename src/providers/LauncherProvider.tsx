@@ -16,7 +16,7 @@ const LauncherContext = createContext<{
   releaseVersionsQuery: ReturnType<typeof useLauncherVersion>['releaseVersionsQuery'];
   loaderVersionsQuery: ReturnType<typeof useLauncherVersion>['loaderVersionsQuery'];
   releaseNoteQuery: ReturnType<typeof useLauncherVersion>['releaseNoteQuery'];
-  categoryMutation: ReturnType<typeof useLauncherCategory>['categoryMutation'];
+  categoryQuery: ReturnType<typeof useLauncherCategory>['categoryQuery'];
   openFolder: () => void;
   event: ReturnType<typeof useLauncherLifeCycle>['event'];
   isRunning: boolean;
@@ -34,7 +34,7 @@ const LauncherContext = createContext<{
 const LauncherProvider = ({ children }) => {
   const { getConfig, setConfig } = useLauncherConfig();
   const { versionsQuery, releaseVersionsQuery, loaderVersionsQuery, releaseNoteQuery } = useLauncherVersion();
-  const { categoryMutation } = useLauncherCategory();
+  const { categoryQuery } = useLauncherCategory();
   const { event, isRunning, isDownloading, launch, cancel } = useLauncherLifeCycle();
   const {
     getAllInstanceQuery,
@@ -53,7 +53,7 @@ const LauncherProvider = ({ children }) => {
       releaseVersionsQuery,
       loaderVersionsQuery,
       releaseNoteQuery,
-      categoryMutation,
+      categoryQuery,
       openFolder: () => api.get('/launcher/folder'),
       event,
       isRunning,
@@ -74,7 +74,7 @@ const LauncherProvider = ({ children }) => {
       releaseVersionsQuery,
       loaderVersionsQuery,
       releaseNoteQuery,
-      categoryMutation,
+      categoryQuery,
       event,
       isRunning,
       isDownloading,

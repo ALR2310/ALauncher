@@ -49,7 +49,7 @@ export default function BrowseContentPage({ className, filter }: BrowseContentPa
   const getAdditionalQuery = useContextSelector(LauncherContext, (v) =>
     v.getAdditionalQuery({
       classId: categoryTypeMap[filter?.categoryType || 'mc-mods'],
-      categoryIds: filter ? Array.from(filter.selectedCategories).join(',') : undefined,
+      categoryIds: filter?.selectedCategories ? JSON.stringify([...filter.selectedCategories]) : undefined,
       gameVersion: filter?.versionSelected,
       searchFilter: searchKey,
       sortField: sortField,

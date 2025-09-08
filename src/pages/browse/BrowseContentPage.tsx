@@ -7,6 +7,7 @@ import { useDebounce } from '~/hooks/useDebounce';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 import AdditionalCard from './components/AdditionalCard';
+import AdditionalSkeleton from './components/AdditionalSkeleton';
 
 const categoryTypeMap = {
   'mc-mods': 6,
@@ -112,7 +113,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
           }
         }}
       >
-        {getAdditionalQuery.isLoading && <p>Loading...</p>}
+        {getAdditionalQuery.isLoading && Array.from({ length: 20 }).map((_, i) => <AdditionalSkeleton key={i} />)}
         {getAdditionalQuery.data?.pages.map((page) =>
           page.data.map((additional) => (
             <AdditionalCard
@@ -124,7 +125,8 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
             />
           )),
         )}
-        {getAdditionalQuery.isFetchingNextPage && <p className="text-center">Loading more...</p>}
+        {getAdditionalQuery.isFetchingNextPage &&
+          Array.from({ length: 10 }).map((_, i) => <AdditionalSkeleton key={i} />)}
       </div>
     </div>
   );

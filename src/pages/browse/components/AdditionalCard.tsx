@@ -33,7 +33,7 @@ export default function AdditionalCard({ data, categoryType, versionSelected, lo
 
       <div className="flex-1 flex flex-col justify-between">
         <div className="flex">
-          <div className="flex-1 ">
+          <div className="flex-1">
             <div className="flex items-center font-semibold">
               <h3 className="text-base-content text-ellipsis-1">{data.name}</h3>
               <div className="divider divider-horizontal"></div>

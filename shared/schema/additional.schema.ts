@@ -29,6 +29,25 @@ export const downloadAdditionalSchema = z.object({
 });
 export type DownloadAdditionalPayload = z.infer<typeof downloadAdditionalSchema>;
 
+export const removeAdditionalSchema = downloadAdditionalSchema;
+export type RemoveAdditionalPayload = z.infer<typeof removeAdditionalSchema>;
+export interface RemoveAdditionalResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    id: number;
+    fileName: string;
+  };
+}
+
+export const canRemoveAdditionalSchema = downloadAdditionalSchema.omit({ type: true });
+export type CanRemoveAdditionalPayload = z.infer<typeof canRemoveAdditionalSchema>;
+export interface CanRemoveAdditionalResponse {
+  canRemove: boolean;
+  message: string;
+  dependents?: string[];
+}
+
 export const toggleAdditionalSchema = z.object({
   ids: z.array(z.number()),
   instanceId: z.string().optional(),

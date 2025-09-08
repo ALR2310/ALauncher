@@ -1,8 +1,14 @@
 import {
   AdditionalQuery,
   AdditionalResponse,
+  CanRemoveAdditionalPayload,
+  CanRemoveAdditionalResponse,
+  canRemoveAdditionalSchema,
   DownloadAdditionalPayload,
   downloadAdditionalSchema,
+  RemoveAdditionalPayload,
+  RemoveAdditionalResponse,
+  removeAdditionalSchema,
   ToggleAdditionalPayload,
   toggleAdditionalSchema,
 } from '@shared/schema/additional.schema';
@@ -134,57 +140,81 @@ class AdditionalService {
     return this.handleDownload(modsToDownload, pathDir, config.download_multiple);
   }
 
-  @Validate(downloadAdditionalSchema)
-  async removeAdditional(payload: DownloadAdditionalPayload) {
+  @Validate(removeAdditionalSchema)
+  async removeAdditional(payload: RemoveAdditionalPayload): Promise<RemoveAdditionalResponse> {
     const { id, instanceId, type = 'mods' } = payload;
 
-    const config = await launcherService.getConfig();
+    if (!instanceId) throw new Error('InstanceId is required');
 
-    if (instanceId) {
-      const instance = await instanceService.findOne(instanceId);
-      if (!instance) throw new Error('Instance not found');
+    const [instance, config] = await Promise.all([instanceService.findOne(instanceId), launcherService.getConfig()]);
+    if (!instance) throw new Error('Instance not found');
 
-      const targetMod = instance[type]?.find((a) => a.id === id);
-      if (!targetMod) throw new Error('Mod not found in instance');
+    const targetMod = instance[type]?.find((a) => a.id === id);
+    if (!targetMod) throw new Error('Mod not found in instance');
 
-      const pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, type);
+    const pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, type);
 
-      const filePath = path.resolve(pathDir, targetMod.fileName);
-      const disabledPath = filePath + '.disabled';
+    const filePath = path.resolve(pathDir, targetMod.fileName);
+    const disabledPath = filePath + '.disabled';
 
-      try {
-        if (existsSync(filePath)) {
-          await unlink(filePath);
-        } else if (existsSync(disabledPath)) {
-          await unlink(disabledPath);
-        }
-      } catch (err: any) {
-        if (err.code !== 'ENOENT') throw err;
+    try {
+      if (existsSync(filePath)) {
+        await unlink(filePath);
+      } else if (existsSync(disabledPath)) {
+        await unlink(disabledPath);
       }
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err;
+    }
 
-      instance[type] = instance[type]?.filter((a: any) => a.id !== id);
-      await instanceService.update(instanceId, instance);
+    instance[type] = instance[type]?.filter((a: any) => a.id !== id);
+    await instanceService.update(instanceId, instance);
 
+    return {
+      success: true,
+      message: 'Removed successfully',
+      data: {
+        id: id,
+        fileName: targetMod.fileName,
+      },
+    };
+  }
+
+  @Validate(canRemoveAdditionalSchema)
+  async canRemoveAdditional(payload: CanRemoveAdditionalPayload): Promise<CanRemoveAdditionalResponse> {
+    const { id, instanceId } = payload;
+    if (!instanceId) return { canRemove: false, message: 'Method not implemented' };
+
+    const instance = await instanceService.findOne(instanceId);
+    if (!instance) throw new Error('Instance not found');
+    if (!instance.mods) return { canRemove: false, message: 'Instance has no mods' };
+
+    const targetMod = instance.mods.find((m) => m.id === id);
+    if (!targetMod) {
+      return { canRemove: false, message: `Mod ${id} not found` };
+    }
+
+    const dependents = instance.mods.filter((m) => m.id !== id && m.dependencies?.includes(id)).map((m) => m.name);
+
+    if (dependents.length)
       return {
-        message: 'Removed successfully',
-        data: {
-          id: id,
-          fileName: targetMod.fileName,
-        },
+        canRemove: false,
+        message: 'This mod cannot be removed because other mods depend on it',
+        dependents,
       };
-    } else return { message: 'Method not implemented' };
+
+    return { canRemove: true, message: 'Mod can be removed' };
   }
 
   @Validate(toggleAdditionalSchema)
-  async toggleAdditional(payload: ToggleAdditionalPayload) {
+  async toggleAdditional(payload: ToggleAdditionalPayload): Promise<{ message: string }> {
     const { ids, instanceId, enabled } = payload;
 
     if (!instanceId) return { message: 'Method not implemented' };
 
-    const instance = await instanceService.findOne(instanceId);
+    const [instance, config] = await Promise.all([instanceService.findOne(instanceId), launcherService.getConfig()]);
     if (!instance) throw new Error('Instance not found');
 
-    const config = await launcherService.getConfig();
     const pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, 'mods');
 
     const toggleSet = new Set(ids);

@@ -55,6 +55,13 @@ export const additionalController = new Hono()
     const result = await additionalService.removeAdditional({ id, instanceId, type } as any);
     return c.json(result);
   })
+  .get('/:id/can-remove', async (c) => {
+    const { id } = c.req.param();
+    const { instanceId } = c.req.query();
+
+    const result = await additionalService.canRemoveAdditional({ id, instanceId } as any);
+    return c.json(result);
+  })
   .post('/toggle', async (c) => {
     const payload = await c.req.json();
     const result = await additionalService.toggleAdditional(payload);

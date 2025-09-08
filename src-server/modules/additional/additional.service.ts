@@ -1,11 +1,12 @@
 import {
-  AdditionalQuery,
-  AdditionalResponse,
   CanRemoveAdditionalPayload,
   CanRemoveAdditionalResponse,
   canRemoveAdditionalSchema,
   DownloadAdditionalPayload,
   downloadAdditionalSchema,
+  GetAdditionalPayload,
+  GetAdditionalResponse,
+  getAdditionalSchema,
   RemoveAdditionalPayload,
   RemoveAdditionalResponse,
   removeAdditionalSchema,
@@ -27,56 +28,38 @@ import { instanceService } from '../instance/instance.service';
 import { launcherService } from '../launcher/launcher.service';
 
 class AdditionalService {
-  async searchMods(params: AdditionalQuery) {
-    const {
-      classId,
-      categoryIds,
-      gameVersion,
-      searchFilter,
-      sortField,
-      modLoaderType,
-      slug,
-      index = 0,
-      pageSize = 50,
-    } = params;
+  @Validate(getAdditionalSchema)
+  async getAdditional(payload: GetAdditionalPayload) {
+    const response = await curseForgeService.searchMods({ ...payload, gameId: 432 });
 
-    const response = await curseForgeService.searchMods({
-      gameId: 432,
-      classId,
-      categoryIds,
-      gameVersion,
-      searchFilter,
-      sortField,
-      modLoaderType,
-      slug,
-      index: index * pageSize,
-      pageSize,
-      sortOrder: 'desc',
-    });
-
-    return {
-      data: response.data.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        slug: item.slug,
-        link: item.links.websiteUrl,
-        summary: item.summary,
-        downloadCount: item.downloadCount,
-        fileSize: formatBytes(item.latestFiles[0].fileLength),
-        authors: item.authors,
-        logoUrl: item.logo.url,
-        categories: item.categories.map((cat: any) => ({
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          url: cat.url,
+    try {
+      return {
+        data: response.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          link: item.links.websiteUrl,
+          summary: item.summary,
+          downloadCount: item.downloadCount,
+          fileSize: formatBytes(item.latestFiles[0].fileLength),
+          authors: item.authors,
+          logoUrl: item.logo?.url,
+          categories: item.categories.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            url: cat?.url,
+          })),
+          dateCreated: item.dateCreated,
+          dateModified: item.dateModified,
+          dateReleased: item.dateReleased,
+          latestFilesIndexes: item.latestFilesIndexes,
         })),
-        dateCreated: item.dateCreated,
-        dateModified: item.dateModified,
-        dateReleased: item.dateReleased,
-      })),
-      pagination: response.pagination,
-    } as AdditionalResponse;
+        pagination: response.pagination,
+      } as GetAdditionalResponse;
+    } catch (e) {
+      throw new Error('Failed to parse mod data');
+    }
   }
 
   @Validate(downloadAdditionalSchema)
@@ -99,6 +82,7 @@ class AdditionalService {
 
       const newMod: Additional = {
         id: file.modId,
+        fileId: file.id,
         name: file.displayName,
         fileName: file.fileName,
         fileUrl: file.downloadUrl,

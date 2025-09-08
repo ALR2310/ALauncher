@@ -7,6 +7,7 @@ const loaderSchema = z.object({
 
 export const additionalSchema = z.object({
   id: z.number(),
+  fileId: z.number(),
   name: z.string(),
   fileName: z.string(),
   fileUrl: z.url(),

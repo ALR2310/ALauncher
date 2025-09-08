@@ -1,3 +1,4 @@
+import { GetAdditionalPayload } from '@shared/schema/additional.schema';
 import axios from 'axios';
 
 const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
@@ -65,9 +66,37 @@ class CurseForgeService {
     }
   }
 
-  async searchMods(params: any) {
+  async searchMods(params: GetAdditionalPayload) {
+    const {
+      gameId = 432,
+      classId,
+      categoryIds,
+      gameVersion,
+      searchFilter,
+      sortField,
+      sortOrder,
+      modLoaderType,
+      slug,
+      index = 0,
+      pageSize = 20,
+    } = params;
+
     try {
-      const res = await api.get('mods/search', { params });
+      const res = await api.get('mods/search', {
+        params: {
+          gameId,
+          classId,
+          categoryIds,
+          gameVersion,
+          searchFilter,
+          sortField,
+          sortOrder,
+          modLoaderType,
+          slug,
+          index: index * pageSize,
+          pageSize,
+        },
+      });
       return res.data;
     } catch (e) {
       console.error('Error searching mods:', e);

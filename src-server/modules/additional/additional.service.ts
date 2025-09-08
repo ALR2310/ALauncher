@@ -7,7 +7,7 @@ import {
 import { Additional } from '@shared/schema/instance.schema';
 import { formatBytes } from '@shared/utils/general.utils';
 import { existsSync } from 'fs';
-import { mkdir, stat } from 'fs/promises';
+import { mkdir, stat, unlink } from 'fs/promises';
 import path from 'path';
 
 import { Validate } from '~s/common/decorators/validate.decorator';
@@ -73,7 +73,7 @@ class AdditionalService {
 
   @Validate(downloadAdditionalSchema)
   async downloadAdditional(payload: DownloadAdditionalPayload) {
-    const { modId, instanceId, type = 'mods' } = payload;
+    const { id, instanceId, type = 'mods' } = payload;
 
     const config = await launcherService.getConfig();
     let pathDir: string;
@@ -121,15 +121,56 @@ class AdditionalService {
       const instance = await instanceService.findOne(instanceId);
       if (!instance) throw new Error('Instance not found');
       pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, type);
-      await resolveMod(modId, instance.version, instance.loader.type);
+      await resolveMod(id, instance.version, instance.loader.type);
       instance.mods = Array.from(modMap.values());
       await instanceService.update(instanceId, instance);
     } else {
       pathDir = path.join(config.minecraft.gamedir, type);
-      await resolveMod(modId, config.profile_selected.version, config.profile_selected.loader?.type ?? 'forge');
+      await resolveMod(id, config.profile_selected.version, config.profile_selected.loader?.type ?? 'forge');
     }
 
     return this.handleDownload(modsToDownload, pathDir, config.download_multiple);
+  }
+
+  @Validate(downloadAdditionalSchema)
+  async removeAdditional(payload: DownloadAdditionalPayload) {
+    const { id, instanceId, type = 'mods' } = payload;
+
+    const config = await launcherService.getConfig();
+
+    if (instanceId) {
+      const instance = await instanceService.findOne(instanceId);
+      if (!instance) throw new Error('Instance not found');
+
+      const targetMod = instance[type]?.find((a) => a.id === id);
+      if (!targetMod) throw new Error('Mod not found in instance');
+
+      const pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, type);
+
+      const filePath = path.resolve(pathDir, targetMod.fileName);
+      const disabledPath = filePath + '.disabled';
+
+      try {
+        if (existsSync(filePath)) {
+          await unlink(filePath);
+        } else if (existsSync(disabledPath)) {
+          await unlink(disabledPath);
+        }
+      } catch (err: any) {
+        if (err.code !== 'ENOENT') throw err;
+      }
+
+      instance[type] = instance[type]?.filter((a: any) => a.id !== id);
+      await instanceService.update(instanceId, instance);
+
+      return {
+        message: 'Removed successfully',
+        data: {
+          id: id,
+          fileName: targetMod.fileName,
+        },
+      };
+    } else return { message: 'Method not implemented' };
   }
 
   private async handleDownload(additional: Additional[], pathDir: string, limit = 3) {

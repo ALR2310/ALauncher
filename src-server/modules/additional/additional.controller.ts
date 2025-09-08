@@ -13,9 +13,11 @@ export const additionalController = new Hono()
     const result = await additionalService.searchMods(payload);
     return c.json(result);
   })
-  .get('/download', async (c) => {
-    const payload: any = c.req.query();
-    const downloader = await additionalService.downloadAdditional(payload);
+  .get('/:id', async (c) => {
+    const { id } = c.req.param();
+    const { instanceId, type } = c.req.query();
+
+    const downloader = await additionalService.downloadAdditional({ id, instanceId, type } as any);
     if (!downloader) return c.json({ message: 'Mod already added or not found' });
 
     return streamSSE(c, async (stream) => {
@@ -45,4 +47,11 @@ export const additionalController = new Hono()
 
       await done;
     });
+  })
+  .delete('/:id', async (c) => {
+    const { id } = c.req.param();
+    const { instanceId, type } = c.req.query();
+
+    const result = await additionalService.removeAdditional({ id, instanceId, type } as any);
+    return c.json(result);
   });

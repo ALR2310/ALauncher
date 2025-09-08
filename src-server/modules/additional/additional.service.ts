@@ -3,11 +3,13 @@ import {
   AdditionalResponse,
   DownloadAdditionalPayload,
   downloadAdditionalSchema,
+  ToggleAdditionalPayload,
+  toggleAdditionalSchema,
 } from '@shared/schema/additional.schema';
 import { Additional } from '@shared/schema/instance.schema';
 import { formatBytes } from '@shared/utils/general.utils';
 import { existsSync } from 'fs';
-import { mkdir, stat, unlink } from 'fs/promises';
+import { mkdir, rename, stat, unlink } from 'fs/promises';
 import path from 'path';
 
 import { Validate } from '~s/common/decorators/validate.decorator';
@@ -171,6 +173,49 @@ class AdditionalService {
         },
       };
     } else return { message: 'Method not implemented' };
+  }
+
+  @Validate(toggleAdditionalSchema)
+  async toggleAdditional(payload: ToggleAdditionalPayload) {
+    const { ids, instanceId, enabled } = payload;
+
+    if (!instanceId) return { message: 'Method not implemented' };
+
+    const instance = await instanceService.findOne(instanceId);
+    if (!instance) throw new Error('Instance not found');
+
+    const config = await launcherService.getConfig();
+    const pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, 'mods');
+
+    const toggleSet = new Set(ids);
+
+    const updatedMods = await Promise.all(
+      (instance.mods ?? []).map(async (mod) => {
+        if (!toggleSet.has(mod.id)) return mod;
+
+        const shouldEnable = enabled ?? !mod.enabled;
+
+        const filePath = path.resolve(pathDir, mod.fileName);
+        const disabledPath = filePath + '.disabled';
+
+        try {
+          if (shouldEnable && existsSync(disabledPath)) {
+            await rename(disabledPath, filePath);
+          } else if (!shouldEnable && existsSync(filePath)) {
+            await rename(filePath, disabledPath);
+          }
+        } catch (err) {
+          console.error(`Failed to rename mod file ${mod.fileName}:`, err);
+        }
+
+        return { ...mod, enabled: shouldEnable };
+      }),
+    );
+
+    instance.mods = updatedMods;
+    await instanceService.update(instanceId, instance);
+
+    return { message: 'Toggled successfully' };
   }
 
   private async handleDownload(additional: Additional[], pathDir: string, limit = 3) {

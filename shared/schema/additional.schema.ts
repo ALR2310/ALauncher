@@ -29,6 +29,13 @@ export const downloadAdditionalSchema = z.object({
 });
 export type DownloadAdditionalPayload = z.infer<typeof downloadAdditionalSchema>;
 
+export const toggleAdditionalSchema = z.object({
+  ids: z.array(z.number()),
+  instanceId: z.string().optional(),
+  enabled: z.boolean().optional(),
+});
+export type ToggleAdditionalPayload = z.infer<typeof toggleAdditionalSchema>;
+
 export interface AdditionalResponse {
   data: Array<{
     id: number;

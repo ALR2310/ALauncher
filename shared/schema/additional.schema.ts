@@ -20,8 +20,15 @@ export const additionalQuerySchema = z.object({
     .refine((v) => v <= 100, { message: 'pageSize must be <= 100' })
     .optional(),
 });
-
 export type AdditionalQuery = z.infer<typeof additionalQuerySchema>;
+
+export const downloadAdditionalSchema = z.object({
+  modId: z.string().transform((v) => Number(v)),
+  instanceId: z.string().optional(),
+  type: z.enum(['mods', 'resourcepacks', 'shaderpacks']).default('mods'),
+});
+export type DownloadAdditionalPayload = z.infer<typeof downloadAdditionalSchema>;
+
 export interface AdditionalResponse {
   data: Array<{
     id: number;

@@ -1,5 +1,7 @@
 import { Context } from 'hono';
 import { ContentfulStatusCode } from 'hono/utils/http-status';
+import z from 'zod';
+
 export class HttpException extends Error {
   status: number;
   constructor(message: string, status: number = 500) {
@@ -30,5 +32,20 @@ export const exceptionMiddleware = (err: Error, c: Context) => {
   if (err instanceof HttpException) {
     return c.json({ message: err.message, status: err.status }, err.status as ContentfulStatusCode);
   }
+  
+  if (err instanceof z.ZodError) {
+    return c.json(
+      {
+        status: 400,
+        errors: err.issues.map((e) => ({
+          path: e.path.join('.'),
+          message: e.message,
+          code: e.code,
+        })),
+      },
+      400,
+    );
+  }
+
   return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 };

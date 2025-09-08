@@ -11,7 +11,7 @@
     "noImplicitAny": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
+    "emitDecoratorMetadata": false,
     "experimentalDecorators": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,

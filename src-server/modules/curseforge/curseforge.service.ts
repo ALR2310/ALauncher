@@ -9,6 +9,8 @@ const api = axios.create({
   },
 });
 
+const loaderMapToId: Record<string, number> = { forge: 1, fabric: 4, quilt: 5, neoforge: 6 };
+
 class CurseForgeService {
   async getMinecraftVersions() {
     try {
@@ -35,12 +37,14 @@ class CurseForgeService {
     }
   }
 
-  async getModFiles(modId: number, gameVersion?: string, modLoaderType?: number, pageSize = 1) {
+  async getModFiles(modId: number, gameVersion?: string, modLoaderType?: string, pageSize = 1) {
+    const modLoader = modLoaderType ? loaderMapToId[modLoaderType] : undefined;
+
     try {
       const res = await api.get(`mods/${modId}/files`, {
         params: {
           gameVersion,
-          modLoaderType,
+          modLoaderType: modLoader,
           pageSize,
         },
       });

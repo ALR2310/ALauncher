@@ -1,6 +1,6 @@
 import { Category } from '@shared/types/category.type';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
@@ -22,7 +22,7 @@ interface BrowseFilterPageProps {
 
 export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const { instanceId } = useParams<{ instanceId: string }>();
   const { isReady, height } = useContentHeight();
 
   const [categoryType, setCategoryType] = useState(searchParams.get('categoryType') || 'mc-mods');
@@ -134,6 +134,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
         <label className="label flex-1/3">Version:</label>
         <Select
           className="flex-2/3"
+          disabled={!!instanceId}
           value={gameVersion}
           options={releaseVersionsQuery.data?.map((v) => ({ label: v.version, value: v.version })) ?? []}
           onChange={(val) => setGameVersion(val)}

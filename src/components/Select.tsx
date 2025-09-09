@@ -18,6 +18,7 @@ interface SelectProps {
   onChange?: (value: string, data: OptionProps) => void;
   render?: (item: OptionProps, select: (value: string) => void) => React.ReactNode;
   optionHeight?: number;
+  disabled?: boolean;
 }
 
 export default function Select(props: SelectProps) {
@@ -32,6 +33,7 @@ export default function Select(props: SelectProps) {
     onChange,
     render,
     optionHeight,
+    disabled,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +58,7 @@ export default function Select(props: SelectProps) {
 
   const toggleDropdown = (e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (disabled) return;
     setIsOpen((v) => !v);
   };
   const handleSelectOption = (v: string) => {
@@ -168,10 +171,10 @@ export default function Select(props: SelectProps) {
 
   return (
     <div
-      className={`select relative cursor-pointer ${className ?? ''}`}
+      className={`select relative cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className ?? ''}`}
       onClick={toggleDropdown}
       ref={selectRef}
-      tabIndex={0}
+      tabIndex={disabled ? -1 : 0}
       style={style}
     >
       {getSelectedLabel(selectedValue)}

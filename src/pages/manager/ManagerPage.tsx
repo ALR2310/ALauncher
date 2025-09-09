@@ -1,5 +1,9 @@
+import { loaderMap } from '@shared/constants/launcher.constant';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
+
+import { LauncherContext } from '~/providers/LauncherProvider';
 
 const tabs = [
   { key: 'mc-mods', label: 'Mods' },
@@ -11,9 +15,24 @@ const tabs = [
 
 export default function ManagerPage() {
   const { instanceId } = useParams<{ instanceId: string }>();
+  const navigate = useNavigate();
 
   const [tab, setTab] = useState('mc-mods');
   const [searchKey, setSearchKey] = useState('');
+
+  const getInstanceQuery = useContextSelector(LauncherContext, (v) => v.getInstanceQuery(instanceId || ''));
+  const instance = getInstanceQuery.data;
+
+  const goToBrowse = () => {
+    navigate({
+      pathname: instanceId ? `/browse/${instanceId}` : '/browse',
+      search: `?${createSearchParams({
+        categoryType: tab,
+        ...(instance?.version ? { gameVersion: instance.version } : {}),
+        ...(instance?.loader ? { loaderType: loaderMap.toId[instance.loader.type] } : {}),
+      })}`,
+    });
+  };
 
   return (
     <div className="h-full flex flex-col gap-2">
@@ -59,10 +78,10 @@ export default function ManagerPage() {
           />
         </label>
 
-        <Link to={`/browse/${instanceId}?categoryType=${tab}`} className="btn btn-soft">
+        <button className="btn btn-soft" onClick={goToBrowse}>
           <i className="fa-light fa-plus"></i>
           Add Contents
-        </Link>
+        </button>
       </div>
 
       {/* Table */}

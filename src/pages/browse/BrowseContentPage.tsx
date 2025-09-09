@@ -23,7 +23,6 @@ interface BrowseContentPageProps {
 
 export default function BrowseContentPage({ className }: BrowseContentPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-
   const { instanceId } = useParams<{ instanceId: string }>();
   const { height, isReady } = useContentHeight();
 

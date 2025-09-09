@@ -30,15 +30,5 @@ export const instanceSchema = z.object({
   game_options: z.string().optional(),
 });
 
-export const addModRequestSchema = z.object({
-  id: z.string(),
-  modId: z.string().regex(/^\d+$/).transform(Number),
-});
-
-export const toggleModRequestSchema = z.object({
-  modIds: z.array(z.number()),
-  enabled: z.boolean().optional(),
-});
-
 export type Instance = z.infer<typeof instanceSchema>;
 export type Additional = z.infer<typeof additionalSchema>;

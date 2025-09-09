@@ -1,4 +1,3 @@
-import { GetAdditionalPayload } from '@shared/schema/additional.schema';
 import axios from 'axios';
 
 const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
@@ -66,7 +65,7 @@ class CurseForgeService {
     }
   }
 
-  async searchMods(params: GetAdditionalPayload) {
+  async searchMods(params: any) {
     const {
       gameId = 432,
       classId,

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const getAdditionalSchema = z.object({
+  instanceId: z.string().optional(),
   gameId: z
     .string()
     .transform((v) => Number(v))
@@ -48,6 +49,7 @@ export interface GetAdditionalResponse {
       slug: string;
       url: string;
     }>;
+    status?: 'not_installed' | 'outdated' | 'latest';
     dateCreated: string;
     dateModified: string;
     dateReleased: string;

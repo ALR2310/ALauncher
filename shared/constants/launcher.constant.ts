@@ -17,3 +17,18 @@ export const relationTypeToId: Record<string, number> = {
   incompatible: 5,
   include: 6,
 };
+
+export const loaderMap = {
+  toId: {
+    forge: 1,
+    fabric: 4,
+    quilt: 5,
+    neoforge: 6,
+  },
+  toName: {
+    1: 'forge',
+    4: 'fabric',
+    5: 'quilt',
+    6: 'neoforge',
+  },
+};

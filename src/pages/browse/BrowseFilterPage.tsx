@@ -126,7 +126,12 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
             { value: 'shaders', label: 'Shader Packs' },
             { value: 'worlds', label: 'World' },
           ]}
-          onChange={(val) => setCategoryType(val)}
+          onChange={(val) => {
+            setCategoryType(val);
+            if (val !== 'mc-mods') {
+              setLoaderType('0');
+            }
+          }}
         />
       </div>
 

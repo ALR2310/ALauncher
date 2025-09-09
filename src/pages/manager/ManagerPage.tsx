@@ -29,7 +29,7 @@ export default function ManagerPage() {
       search: `?${createSearchParams({
         categoryType: tab,
         ...(instance?.version ? { gameVersion: instance.version } : {}),
-        ...(instance?.loader ? { loaderType: loaderMap.toId[instance.loader.type] } : {}),
+        ...(tab === 'mc-mods' && instance?.loader ? { loaderType: loaderMap.toId[instance.loader.type] } : {}),
       })}`,
     });
   };

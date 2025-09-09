@@ -1,5 +1,5 @@
 import { zValidator } from '@hono/zod-validator';
-import { instanceSchema } from '@shared/schema/instance.schema';
+import { instanceSchema } from '@shared/schemas/instance.schema';
 import { Hono } from 'hono';
 
 import { instanceService } from './instance.service';

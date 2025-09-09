@@ -1,3 +1,4 @@
+import { categoryMap } from '@shared/mappings/general.mapping';
 import { Category } from '@shared/types/category.type';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -6,14 +7,6 @@ import { useContextSelector } from 'use-context-selector';
 import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
-
-const categoryTypeMap = {
-  'mc-mods': 6,
-  'data-packs': 6945,
-  'texture-packs': 12,
-  shaders: 6552,
-  worlds: 17,
-};
 
 interface BrowseFilterPageProps {
   className?: string;
@@ -34,7 +27,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
   });
 
   const categoryQuery = useContextSelector(LauncherContext, (v) =>
-    v.categoryQuery({ classId: categoryTypeMap[categoryType] }),
+    v.categoryQuery({ classId: categoryMap.keyToId[categoryType] }),
   );
   const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
 

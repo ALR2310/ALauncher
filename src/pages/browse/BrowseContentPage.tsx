@@ -1,3 +1,4 @@
+import { categoryMap } from '@shared/mappings/general.mapping';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -8,14 +9,6 @@ import { LauncherContext } from '~/providers/LauncherProvider';
 
 import AdditionalCard from './components/AdditionalCard';
 import AdditionalSkeleton from './components/AdditionalSkeleton';
-
-const categoryTypeMap = {
-  'mc-mods': 6,
-  'data-packs': 6945,
-  'texture-packs': 12,
-  shaders: 6552,
-  worlds: 17,
-};
 
 interface BrowseContentPageProps {
   className?: string;
@@ -39,7 +32,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
 
   const getAdditionalQuery = useContextSelector(LauncherContext, (v) =>
     v.getAdditionalQuery({
-      classId: categoryTypeMap[categoryType],
+      classId: categoryMap.keyToId[categoryType],
       categoryIds,
       gameVersion,
       searchFilter: debouncedSearchFilter,

@@ -1,24 +1,9 @@
-import { AdditionalResponse } from '@shared/schema/additional.schema';
-import { abbreviateNumber } from '@shared/utils/general.utils';
-
-const categoryTitleMap = {
-  'mc-mods': 'Mods',
-  'data-packs': 'Data Packs',
-  'texture-packs': 'Resource Packs',
-  shaders: 'Shaders',
-  worlds: 'Worlds',
-};
-
-const loaderTypeMap = {
-  0: '',
-  1: 'Forge',
-  4: 'Fabric',
-  5: 'Quilt',
-  6: 'NeoForge',
-};
+import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
+import { GetAdditionalResponse } from '@shared/schemas/additional.schema';
+import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
 
 interface AdditionalCardProps {
-  data: AdditionalResponse['data'][number];
+  data: GetAdditionalResponse['data'][number];
   categoryType: string;
   versionSelected: string;
   loaderType: string;
@@ -52,7 +37,7 @@ export default function AdditionalCard({ data, categoryType, versionSelected, lo
 
         <div className="flex justify-between text-xs text-base-content/70">
           <div className="flex items-center gap-2">
-            <button className="btn btn-outline btn-xs">{categoryTitleMap[categoryType]}</button>
+            <button className="btn btn-outline btn-xs">{categoryMap.keyToText[categoryType]}</button>
             <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
               {data.categories.map((cat, idx) => (
                 <a href="#" key={idx} className=" hover:underline">
@@ -75,7 +60,7 @@ export default function AdditionalCard({ data, categoryType, versionSelected, lo
             <p>
               <i className="fa-light fa-gamepad-modern"></i> {versionSelected}
             </p>
-            <p>{loaderTypeMap[loaderType]}</p>
+            <p>{loaderType === '0' ? '' : capitalize(loaderMap.idToKey[loaderType])}</p>
           </div>
         </div>
       </div>

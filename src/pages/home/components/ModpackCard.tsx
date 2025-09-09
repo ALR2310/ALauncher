@@ -1,4 +1,4 @@
-import { Instance } from '@shared/schema/instance.schema';
+import { Instance } from '@shared/schemas/instance.schema';
 import { useNavigate } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 

@@ -1,4 +1,4 @@
-import { Instance } from '@shared/schema/instance.schema';
+import { Instance } from '@shared/schemas/instance.schema';
 import { formatToSlug } from '@shared/utils/general.utils';
 import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
 import pLimit from 'p-limit';

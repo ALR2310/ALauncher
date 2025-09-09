@@ -1,4 +1,4 @@
-import { loaderMap } from '@shared/constants/launcher.constant';
+import { loaderMap } from '@shared/mappings/general.mapping';
 import { useState } from 'react';
 import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -31,7 +31,7 @@ export default function ManagerPage() {
       search: `?${createSearchParams({
         categoryType: tab,
         ...(instance?.version ? { gameVersion: instance.version } : {}),
-        ...(tab === 'mc-mods' && instance?.loader ? { loaderType: loaderMap.toId[instance.loader.type] } : {}),
+        ...(tab === 'mc-mods' && instance?.loader ? { loaderType: loaderMap.keyToId[instance.loader.type] } : {}),
       })}`,
     });
   };

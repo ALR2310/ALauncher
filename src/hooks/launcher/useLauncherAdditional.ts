@@ -1,16 +1,16 @@
-import { AdditionalQuery, AdditionalResponse } from '@shared/schema/additional.schema';
+import { GetAdditionalPayload, GetAdditionalResponse } from '@shared/schemas/additional.schema';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import api from '~/configs/axios';
 
 export const useLauncherAdditional = () => {
-  const getAdditionalQuery = (query: AdditionalQuery) => {
+  const getAdditionalQuery = (query: GetAdditionalPayload) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useInfiniteQuery({
       queryKey: ['additionalQuery', query],
       queryFn: async ({ pageParam = 0 }) => {
         const res = await api.get('additional', { params: { ...query, index: pageParam } });
-        return res.data as AdditionalResponse;
+        return res.data as GetAdditionalResponse;
       },
       getNextPageParam: (lastPage, _allPages, lastPageParam) => {
         const nextPageIndex = lastPageParam + 1;

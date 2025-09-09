@@ -30,3 +30,8 @@ export function formatBytes(bytes: number, decimals = 2): string {
 
   return `${value} ${sizes[i]}`;
 }
+
+export function capitalize(str: string): string {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

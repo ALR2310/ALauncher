@@ -1,4 +1,4 @@
-import { loaderMap } from '@shared/constants/launcher.constant';
+import { loaderMap } from '@shared/mappings/general.mapping';
 import {
   Additional,
   CanRemoveAdditionalPayload,
@@ -14,7 +14,7 @@ import {
   removeAdditionalSchema,
   ToggleAdditionalPayload,
   toggleAdditionalSchema,
-} from '@shared/schema/additional.schema';
+} from '@shared/schemas/additional.schema';
 import { formatBytes } from '@shared/utils/general.utils';
 import { existsSync } from 'fs';
 import { mkdir, rename, stat, unlink } from 'fs/promises';
@@ -52,7 +52,7 @@ class AdditionalService {
             const gameVersion = instance.version;
 
             const latestMatch = (item.latestFilesIndexes ?? []).find(
-              (f: any) => f.gameVersion === gameVersion && f.modLoader === loaderMap.toId[loaderType],
+              (f: any) => f.gameVersion === gameVersion && f.modLoader === loaderMap.keyToId[loaderType],
             );
 
             const installedFileId = installedModsMap.get(item.id);

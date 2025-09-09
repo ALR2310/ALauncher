@@ -1,4 +1,4 @@
-import { Instance } from '@shared/schema/instance.schema';
+import { Instance } from '@shared/schemas/instance.schema';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import api from '~/configs/axios';

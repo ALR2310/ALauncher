@@ -1,4 +1,4 @@
-import { Additional } from '@shared/schema/additional.schema';
+import { Additional } from '@shared/schemas/additional.schema';
 
 interface ManagerTablePageProps {
   data: Additional[];

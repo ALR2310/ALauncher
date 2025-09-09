@@ -73,7 +73,7 @@ class CurseForgeService {
       gameVersion,
       searchFilter,
       sortField,
-      sortOrder,
+      sortOrder = 'desc',
       modLoaderType,
       slug,
       index = 0,

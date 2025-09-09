@@ -112,6 +112,8 @@ class AdditionalService {
       if (!modFiles.data.length) return null;
 
       const file = modFiles.data[0];
+      const fileUrl =
+        file.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${file.modId}/files/${file.id}/download`;
 
       const newMod: Additional = {
         id: file.modId,
@@ -120,7 +122,7 @@ class AdditionalService {
         iconUrl,
         fileId: file.id,
         fileName: file.fileName,
-        fileUrl: file.downloadUrl,
+        fileUrl,
         fileSize: file.fileLength,
         enabled: true,
         dependencies: [],
@@ -147,9 +149,14 @@ class AdditionalService {
     if (instanceId) {
       const instance = await instanceService.findOne(instanceId);
       if (!instance) throw new Error('Instance not found');
+
       pathDir = path.join(config.minecraft.gamedir, 'versions', instance.id!, type);
       await resolveMod(id, instance.version, instance.loader.type);
-      instance.mods = Array.from(modMap.values());
+
+      const existingMods = instance.mods ?? [];
+      const newMods = Array.from(modMap.values());
+
+      instance.mods = [...existingMods.filter((m) => !newMods.some((n) => n.id === m.id)), ...newMods];
       await instanceService.update(instanceId, instance);
     } else {
       pathDir = path.join(config.minecraft.gamedir, type);

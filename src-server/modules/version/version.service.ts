@@ -1,5 +1,6 @@
-import { loaderTypeToName } from '@shared/constants/launcher.constant';
+import { loaderMap } from '@shared/mappings/general.mapping';
 import { ReleaseNote, Version } from '@shared/types/version.type';
+import { capitalize } from '@shared/utils/general.utils';
 import axios from 'axios';
 import { readdir } from 'fs/promises';
 import path from 'path';
@@ -8,8 +9,6 @@ import { curseForgeService } from '~s/modules/curseforge/curseforge.service';
 
 import { instanceService } from '../instance/instance.service';
 import { launcherService } from '../launcher/launcher.service';
-
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
 class VersionService {
   private listNote: any[] = [];
@@ -68,7 +67,7 @@ class VersionService {
     const raw = await curseForgeService.getLoaderVersions(version);
 
     const mapped = (raw.data ?? []).map((item: any) => {
-      const loaderType = loaderTypeToName[item.type];
+      const loaderType = loaderMap.idToKey[item.type];
       if (!loaderType) return null;
 
       let loaderVersion = item.name.replace(`${loaderType}-`, '');
@@ -127,7 +126,7 @@ class VersionService {
 
     for (const [gameVersion, typeGroups] of Object.entries(grouped)) {
       for (const [typeId] of Object.entries(typeGroups)) {
-        const loaderType = loaderTypeToName[Number(typeId)];
+        const loaderType = loaderMap.idToKey[Number(typeId)];
         if (!loaderType) continue;
 
         result.push({

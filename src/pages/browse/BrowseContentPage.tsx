@@ -32,13 +32,14 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
 
   const getAdditionalQuery = useContextSelector(LauncherContext, (v) =>
     v.getAdditionalQuery({
+      instanceId: instanceId || undefined,
       classId: categoryMap.keyToId[categoryType],
       categoryIds,
       gameVersion,
       searchFilter: debouncedSearchFilter,
       sortField,
       modLoaderType: loaderType === '0' ? undefined : loaderType,
-      pageSize: 20,
+      pageSize: 50,
     }),
   );
 
@@ -99,7 +100,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
         className="flex-1 overflow-auto space-y-4"
         onScroll={(e) => {
           const target = e.currentTarget;
-          const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 200;
+          const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 300;
           if (bottom && getAdditionalQuery.hasNextPage && !getAdditionalQuery.isFetchingNextPage) {
             getAdditionalQuery.fetchNextPage();
           }

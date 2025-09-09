@@ -12,11 +12,16 @@ export const additionalController = new Hono()
     return c.json(result);
   })
   .get('/:id', async (c) => {
-    const { id } = c.req.param();
-    const { instanceId, type } = c.req.query();
+    const payload = { ...c.req.query(), ...c.req.param() } as any;
 
-    const downloader = await additionalService.downloadAdditional({ id, instanceId, type } as any);
-    if (!downloader) return c.json({ message: 'Mod already added or not found' });
+    const downloader = await additionalService.downloadAdditional(payload);
+
+    if (!downloader) {
+      return streamSSE(c, async (stream) => {
+        await stream.writeSSE({ event: 'done', data: 'Already installed' });
+        await stream.close();
+      });
+    }
 
     return streamSSE(c, async (stream) => {
       const DELAY = 500;

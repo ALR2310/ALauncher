@@ -1,6 +1,10 @@
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { GetAdditionalResponse } from '@shared/schemas/additional.schema';
 import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+
+import { toast } from '~/hooks/useToast';
 
 interface AdditionalCardProps {
   data: GetAdditionalResponse['data'][number];
@@ -10,6 +14,55 @@ interface AdditionalCardProps {
 }
 
 export default function AdditionalCard({ data, categoryType, versionSelected, loaderType }: AdditionalCardProps) {
+  const { instanceId } = useParams<{ instanceId: string }>();
+  const evtRef = useRef<EventSource | null>(null);
+
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<'Install' | 'Installing' | 'Installed'>('Install');
+
+  useEffect(() => {
+    if (data.status === 'latest') {
+      setStatus('Installed');
+    }
+  }, [data.status]);
+
+  const handleInstall = () => {
+    const query = new URLSearchParams({
+      instanceId: instanceId!,
+      name: data.name,
+      author: data.authors[0].name ?? 'Unknown',
+      iconUrl: data.logoUrl,
+    });
+    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/additional/${data.id}?${query.toString()}`;
+
+    evtRef.current = new EventSource(url);
+    setStatus('Installing');
+    setIsDownloading(true);
+
+    evtRef.current.addEventListener('progress', (e) => {
+      setProgress(parseFloat(e.data));
+    });
+    evtRef.current.addEventListener('done', () => {
+      setIsDownloading(false);
+      setStatus('Installed');
+      setProgress(100);
+      evtRef?.current?.close();
+    });
+    evtRef.current.addEventListener('error', () => {
+      setIsDownloading(false);
+      toast.error('Failed to install. Please try again.');
+      setStatus('Install');
+      evtRef?.current?.close();
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      evtRef.current?.close();
+    };
+  }, []);
+
   return (
     <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
       <div className="flex justify-center items-center">
@@ -29,40 +82,46 @@ export default function AdditionalCard({ data, categoryType, versionSelected, lo
           </div>
 
           <div className="w-[15%]">
-            <button className="btn btn-soft btn-primary w-full">Install</button>
+            <button className="btn btn-soft btn-primary w-full" disabled={status != 'Install'} onClick={handleInstall}>
+              {status}
+            </button>
           </div>
         </div>
 
         <div className="divider m-0"></div>
 
-        <div className="flex justify-between text-xs text-base-content/70">
-          <div className="flex items-center gap-2">
-            <button className="btn btn-outline btn-xs">{categoryMap.keyToText[categoryType]}</button>
-            <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
-              {data.categories.map((cat, idx) => (
-                <a href="#" key={idx} className=" hover:underline">
-                  {cat.name}
-                </a>
-              ))}
+        {isDownloading ? (
+          <progress className="progress w-full mb-2 h-3 progress-no-rounded" value={progress} max="100"></progress>
+        ) : (
+          <div className="flex justify-between text-xs text-base-content/70">
+            <div className="flex items-center gap-2">
+              <button className="btn btn-outline btn-xs">{categoryMap.keyToText[categoryType]}</button>
+              <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
+                {data.categories.map((cat, idx) => (
+                  <a href="#" key={idx} className=" hover:underline">
+                    {cat.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-nowrap">
+              <p>
+                <i className="fa-light fa-download"></i> {abbreviateNumber(data.downloadCount)}
+              </p>
+              <p>
+                <i className="fa-light fa-clock-three"></i> {new Date(data.dateModified).toLocaleDateString()}
+              </p>
+              <p>
+                <i className="fa-light fa-database"></i> {data.fileSize}
+              </p>
+              <p>
+                <i className="fa-light fa-gamepad-modern"></i> {versionSelected}
+              </p>
+              <p>{loaderType === '0' ? '' : capitalize(loaderMap.idToKey[loaderType])}</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-4 text-nowrap">
-            <p>
-              <i className="fa-light fa-download"></i> {abbreviateNumber(data.downloadCount)}
-            </p>
-            <p>
-              <i className="fa-light fa-clock-three"></i> {new Date(data.dateModified).toLocaleDateString()}
-            </p>
-            <p>
-              <i className="fa-light fa-database"></i> {data.fileSize}
-            </p>
-            <p>
-              <i className="fa-light fa-gamepad-modern"></i> {versionSelected}
-            </p>
-            <p>{loaderType === '0' ? '' : capitalize(loaderMap.idToKey[loaderType])}</p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

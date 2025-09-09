@@ -5,6 +5,8 @@ import { useContextSelector } from 'use-context-selector';
 
 import { LauncherContext } from '~/providers/LauncherProvider';
 
+import ManagerTablePage from './components/ManagerTablePage';
+
 const tabs = [
   { key: 'mc-mods', label: 'Mods' },
   { key: 'data-packs', label: 'Data Packs' },
@@ -39,6 +41,9 @@ export default function ManagerPage() {
       {/* Tabs header */}
       <div className="flex flex-nowrap justify-between p-2 bg-base-300">
         <div className="flex">
+          <button className="btn btn-soft btn-primary mr-4">
+            <i className="fa-light fa-pen-to-square"></i>
+          </button>
           {tabs.map((t, idx) => (
             <div key={t.key} className="flex items-center">
               <button
@@ -84,25 +89,7 @@ export default function ManagerPage() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-auto flex flex-col h-full justify-between p-2">
-        <table className="table table-pin-rows bg-base-100">
-          <thead>
-            <tr>
-              <th>
-                <label>
-                  <input type="checkbox" className="checkbox" />
-                </label>
-              </th>
-              <th>Additional utilities</th>
-              <th>Author</th>
-              <th>Activity</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-        </table>
-      </div>
+      <ManagerTablePage data={[]} />
     </div>
   );
 }

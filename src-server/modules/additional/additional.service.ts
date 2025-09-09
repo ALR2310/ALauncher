@@ -1,5 +1,6 @@
 import { loaderMap } from '@shared/constants/launcher.constant';
 import {
+  Additional,
   CanRemoveAdditionalPayload,
   CanRemoveAdditionalResponse,
   canRemoveAdditionalSchema,
@@ -14,7 +15,6 @@ import {
   ToggleAdditionalPayload,
   toggleAdditionalSchema,
 } from '@shared/schema/additional.schema';
-import { Additional } from '@shared/schema/instance.schema';
 import { formatBytes } from '@shared/utils/general.utils';
 import { existsSync } from 'fs';
 import { mkdir, rename, stat, unlink } from 'fs/promises';
@@ -97,7 +97,7 @@ class AdditionalService {
 
   @Validate(downloadAdditionalSchema)
   async downloadAdditional(payload: DownloadAdditionalPayload) {
-    const { id, instanceId, type = 'mods' } = payload;
+    const { id, name, type = 'mods', author, iconUrl, instanceId } = payload;
 
     const config = await launcherService.getConfig();
     let pathDir: string;
@@ -115,8 +115,10 @@ class AdditionalService {
 
       const newMod: Additional = {
         id: file.modId,
+        name,
+        author,
+        iconUrl,
         fileId: file.id,
-        name: file.displayName,
         fileName: file.fileName,
         fileUrl: file.downloadUrl,
         fileSize: file.fileLength,

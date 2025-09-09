@@ -1,19 +1,10 @@
 import z from 'zod';
 
+import { additionalSchema } from './additional.schema';
+
 const loaderSchema = z.object({
   type: z.string(),
   version: z.string().or(z.literal('latest')).or(z.literal('recommended')),
-});
-
-export const additionalSchema = z.object({
-  id: z.number(),
-  fileId: z.number(),
-  name: z.string(),
-  fileName: z.string(),
-  fileUrl: z.url(),
-  fileSize: z.number(),
-  enabled: z.boolean(),
-  dependencies: z.array(z.number()).optional(),
 });
 
 export const instanceSchema = z.object({
@@ -31,4 +22,3 @@ export const instanceSchema = z.object({
 });
 
 export type Instance = z.infer<typeof instanceSchema>;
-export type Additional = z.infer<typeof additionalSchema>;

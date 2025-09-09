@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+export const additionalSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  author: z.string(),
+  iconUrl: z.url(),
+  fileId: z.number(),
+  fileName: z.string(),
+  fileUrl: z.url(),
+  fileSize: z.number(),
+  enabled: z.boolean(),
+  dependencies: z.array(z.number()).optional(),
+});
+export type Additional = z.infer<typeof additionalSchema>;
+
 export const getAdditionalSchema = z.object({
   instanceId: z.string().optional(),
   gameId: z
@@ -70,14 +84,11 @@ export interface GetAdditionalResponse {
   };
 }
 
-export const downloadAdditionalSchema = z.object({
+export const removeAdditionalSchema = z.object({
   id: z.string().transform((v) => Number(v)),
   instanceId: z.string().optional(),
   type: z.enum(['mods', 'resourcepacks', 'shaderpacks']).default('mods'),
 });
-export type DownloadAdditionalPayload = z.infer<typeof downloadAdditionalSchema>;
-
-export const removeAdditionalSchema = downloadAdditionalSchema;
 export type RemoveAdditionalPayload = z.infer<typeof removeAdditionalSchema>;
 export interface RemoveAdditionalResponse {
   success: boolean;
@@ -88,7 +99,14 @@ export interface RemoveAdditionalResponse {
   };
 }
 
-export const canRemoveAdditionalSchema = downloadAdditionalSchema.omit({ type: true });
+export const downloadAdditionalSchema = removeAdditionalSchema.extend({
+  name: z.string(),
+  author: z.string(),
+  iconUrl: z.url(),
+});
+export type DownloadAdditionalPayload = z.infer<typeof downloadAdditionalSchema>;
+
+export const canRemoveAdditionalSchema = removeAdditionalSchema.omit({ type: true });
 export type CanRemoveAdditionalPayload = z.infer<typeof canRemoveAdditionalSchema>;
 export interface CanRemoveAdditionalResponse {
   canRemove: boolean;

@@ -1,11 +1,28 @@
-import { Instance } from '@shared/schemas/instance.schema';
+import { Content as Content } from '@shared/schemas/additional.schema';
+import {
+  Instance,
+  InstanceAddContentQuery,
+  instanceAddContentQuerySchema,
+  InstanceRemoveContentQuery,
+  instanceRemoveContentQuerySchema,
+  instanceSchema,
+  InstanceToggleContentPayload,
+  instanceToggleContentPayloadSchema,
+  UpdateInstancePayload,
+  updateInstanceSchema,
+} from '@shared/schemas/instance.schema';
 import { formatToSlug } from '@shared/utils/general.utils';
-import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import { mkdir, readdir, readFile, rename, rm, stat, unlink, writeFile } from 'fs/promises';
 import pLimit from 'p-limit';
 import path from 'path';
 
+import { Validate } from '~s/common/decorators/validate.decorator';
+import { Downloader } from '~s/libraries/minecraft-java-core/build/Index';
+import { DownloadOptions } from '~s/libraries/minecraft-java-core/build/utils/Downloader';
 import { BadRequestException, NotFoundException } from '~s/middlewares/exception';
 
+import { curseForgeService } from '../curseforge/curseforge.service';
 import { launcherService } from '../launcher/launcher.service';
 
 class InstanceService {
@@ -27,7 +44,6 @@ class InstanceService {
             const data = await readFile(instancePath, 'utf-8');
             return JSON.parse(data) as Instance;
           } catch (err) {
-            console.warn(`An error occurred while reading instance ${dir.name}:`, err);
             return null;
           }
         }),
@@ -51,6 +67,7 @@ class InstanceService {
     }
   }
 
+  @Validate(instanceSchema)
   async create(instance: Instance) {
     await this.ensureInstanceDir();
 
@@ -64,7 +81,9 @@ class InstanceService {
     return instance;
   }
 
-  async update(id: string, instance: Partial<Instance>) {
+  @Validate(updateInstanceSchema)
+  async update(payload: UpdateInstancePayload) {
+    const { id, instance } = payload;
     await this.ensureInstanceDir();
 
     const existing = await this.findOne(id);
@@ -87,12 +106,234 @@ class InstanceService {
     return existing;
   }
 
+  @Validate(instanceAddContentQuerySchema)
+  async addContent(payload: InstanceAddContentQuery) {
+    const { id: instanceId, type, contentId, worldName, name, author, logoUrl } = payload;
+
+    const config = await launcherService.getConfig();
+    const pathDir = await this.getInstanceContentDir(instanceId, type, worldName);
+
+    const contentsMap = new Map<number, Content>();
+    const contentsToDownload: Content[] = [];
+
+    const resolveContent = async (id: number, gameVersion: string, loaderType?: string) => {
+      if (contentsMap.has(id)) return contentsMap.get(id)!;
+
+      const contentFile = await curseForgeService.getModFiles(id, gameVersion, loaderType);
+      if (!contentFile.data.length) return null;
+
+      const file = contentFile.data[0];
+      const fileUrl =
+        file.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${file.modId}/files/${file.id}/download`;
+
+      const content: Content = {
+        id: file.modId,
+        name,
+        author,
+        logoUrl,
+        fileId: file.id,
+        fileName: file.fileName,
+        fileUrl,
+        fileSize: file.fileLength,
+        enabled: true,
+        dependencies: [],
+      };
+
+      contentsMap.set(content.id, content);
+      contentsToDownload.push(content);
+
+      if (file.dependencies?.length) {
+        const deps = await Promise.all(
+          file.dependencies
+            .filter((dep: { relationType: number }) => dep.relationType === 3)
+            .map(async (dep: { modId: number }) => {
+              const depAdd = await resolveContent(dep.modId, gameVersion, loaderType);
+              return depAdd?.id ?? null;
+            }),
+        );
+        content.dependencies = deps.filter((id): id is number => id !== null);
+      }
+
+      return content;
+    };
+
+    const instance = await this.findOne(instanceId);
+
+    await resolveContent(contentId, instance.version, instance.loader.type);
+
+    const existingContents = instance[type] ?? [];
+    const newContents = Array.from(contentsMap.values());
+
+    instance[type] = [...existingContents.filter((a) => !newContents.some((n) => n.id === a.id)), ...newContents];
+    await this.update({ id: instanceId, instance });
+
+    return this.handleDownloadContent(contentsToDownload, pathDir, config.download_multiple);
+  }
+
+  @Validate(instanceRemoveContentQuerySchema)
+  async removeContent(payload: InstanceRemoveContentQuery) {
+    const { id: instanceId, type, contentId } = payload;
+
+    const [instance, pathDir] = await Promise.all([
+      this.findOne(instanceId),
+      this.getInstanceContentDir(instanceId, type),
+    ]);
+
+    const content = instance[type]?.find((c) => c.id === contentId);
+    if (!content) throw new NotFoundException('Content not found in instance');
+
+    const filePath = path.join(pathDir, content.fileName);
+    const disabledPath = filePath + '.disabled';
+
+    try {
+      if (existsSync(filePath)) {
+        await unlink(filePath);
+      } else if (existsSync(disabledPath)) {
+        await unlink(disabledPath);
+      }
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err;
+    }
+
+    instance[type] = instance[type]?.filter((c) => c.id !== contentId);
+    await this.update({ id: instanceId, instance });
+
+    return {
+      message: 'Removed successfully',
+      data: {
+        id: contentId,
+        fileName: content.fileName,
+      },
+    };
+  }
+
+  @Validate(instanceRemoveContentQuerySchema)
+  async canRemoveContent(payload: InstanceRemoveContentQuery) {
+    const { id: instanceId, type, contentId } = payload;
+
+    const instance = await this.findOne(instanceId);
+
+    const content = instance[type]?.find((c) => c.id === contentId);
+    if (!content) return { canRemove: false, message: `Content ${contentId} not found in instance`, dependents: [] };
+
+    const dependents = (instance[type] ?? [])
+      .filter((c) => c.id !== contentId && c.dependencies?.includes(contentId))
+      .map((c) => c.name);
+
+    if (dependents.length)
+      return {
+        canRemove: false,
+        message: 'This mod cannot be removed because other mods depend on it',
+        dependents,
+      };
+
+    return { canRemove: true, message: 'Mod can be removed', dependents: [] };
+  }
+
+  @Validate(instanceToggleContentPayloadSchema)
+  async toggleContent(payload: InstanceToggleContentPayload) {
+    const { id: instanceId, type, contentIds, enabled } = payload;
+
+    const [instance, pathDir] = await Promise.all([
+      this.findOne(instanceId),
+      this.getInstanceContentDir(instanceId, type),
+    ]);
+
+    const toggleSet = new Set(contentIds);
+
+    const updateContents = await Promise.all(
+      (instance[type] ?? []).map(async (content) => {
+        if (!toggleSet.has(content.id)) return content;
+
+        const shouldEnable = enabled ?? !content.enabled;
+
+        const filePath = path.resolve(pathDir, content.fileName);
+        const disabledPath = filePath + '.disabled';
+
+        try {
+          if (shouldEnable && existsSync(disabledPath)) {
+            await rename(disabledPath, filePath);
+          } else if (!shouldEnable && existsSync(filePath)) {
+            await rename(filePath, disabledPath);
+          }
+        } catch (err) {
+          console.error(`Failed to rename mod file ${content.fileName}:`, err);
+        }
+        return { ...content, enabled: shouldEnable };
+      }),
+    );
+
+    instance[type] = updateContents;
+    await this.update({ id: instanceId, instance });
+    return { message: 'Toggled successfully' };
+  }
+
+  private async handleDownloadContent(contents: Content[], pathDir: string, limit = 3) {
+    if (!contents.length) throw new Error('No additional to download');
+
+    await mkdir(pathDir, { recursive: true });
+
+    const results = await Promise.all(
+      contents.map(async (a) => {
+        const filePath = path.join(pathDir, a.fileName);
+
+        let needDownload = true;
+        if (existsSync(filePath)) {
+          try {
+            const fileStat = await stat(filePath);
+            if (fileStat.size === a.fileSize) needDownload = false;
+          } catch (err) {
+            needDownload = true;
+          }
+        }
+
+        if (needDownload)
+          return {
+            url: a.fileUrl,
+            path: filePath,
+            folder: pathDir,
+            length: a.fileSize,
+            type: 'additional',
+          } as DownloadOptions;
+        return null;
+      }),
+    );
+
+    const filesToDownload = results.filter((r): r is DownloadOptions => r !== null);
+    if (!filesToDownload.length) return null;
+
+    const downloader = new Downloader();
+    const totalSize = filesToDownload.reduce((acc, f) => acc + (f.length ?? 0), 0);
+
+    downloader.downloadFileMultiple(filesToDownload, totalSize, limit);
+    return downloader;
+  }
+
   private async ensureInstanceDir() {
     if (!this.instanceDir) {
       const config = await launcherService.getConfig();
       this.instanceDir = path.resolve(config.minecraft.gamedir, 'versions');
     }
     await mkdir(this.instanceDir, { recursive: true });
+  }
+
+  private async getInstanceContentDir(instanceId: string, type: string, worldName?: string) {
+    await this.ensureInstanceDir();
+    const basePath = path.join(this.instanceDir!, instanceId);
+
+    let pathDir: string;
+
+    if (type === 'mods' || type === 'resourcepacks' || type === 'shaderpacks') {
+      pathDir = path.join(basePath, type);
+    } else if (type === 'datapacks') {
+      if (!worldName) throw new BadRequestException('World name is required for datapacks');
+      pathDir = path.join(basePath, 'saves', worldName, 'datapacks');
+    } else if (type === 'worlds') {
+      pathDir = path.join(basePath, 'worlds');
+    } else {
+      throw new BadRequestException('Invalid additional type');
+    }
+    return pathDir;
   }
 }
 

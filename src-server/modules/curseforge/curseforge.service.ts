@@ -1,3 +1,4 @@
+import { loaderMap } from '@shared/mappings/general.mapping';
 import axios from 'axios';
 
 const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
@@ -8,8 +9,6 @@ const api = axios.create({
     'x-api-key': API_KEY,
   },
 });
-
-const loaderMapToId: Record<string, number> = { forge: 1, fabric: 4, quilt: 5, neoforge: 6 };
 
 class CurseForgeService {
   async getMinecraftVersions() {
@@ -38,7 +37,7 @@ class CurseForgeService {
   }
 
   async getModFiles(modId: number, gameVersion?: string, modLoaderType?: string, pageSize = 1) {
-    const modLoader = modLoaderType ? loaderMapToId[modLoaderType] : undefined;
+    const modLoader = modLoaderType ? loaderMap.keyToId[modLoaderType] : undefined;
 
     try {
       const res = await api.get(`mods/${modId}/files`, {

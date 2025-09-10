@@ -1,4 +1,4 @@
-import { LauncherConfig } from '@shared/types/launcher';
+import { LauncherConfig, SetConfigPayload, setConfigSchema } from '@shared/schemas/launcher.schema';
 import { spawn } from 'child_process';
 import EventEmitter from 'events';
 import { readFile, writeFile } from 'fs/promises';
@@ -6,6 +6,7 @@ import set from 'lodash/set';
 import throttle from 'lodash/throttle';
 import path from 'path';
 
+import { Validate } from '~s/common/decorators/validate.decorator';
 import { Launch, Mojang } from '~s/libraries/minecraft-java-core/build/Index';
 
 const LAUNCHER_CONFIG_PATH = path.join('launcher.json');
@@ -53,7 +54,9 @@ class LauncherService {
     }
   }
 
-  async setConfig(key: keyof LauncherConfig, value: any) {
+  @Validate(setConfigSchema)
+  async setConfig(payload: SetConfigPayload) {
+    const { key, value } = payload;
     const config = await this.getConfig();
     set(config, key, value);
     await writeFile(LAUNCHER_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');

@@ -1,9 +1,13 @@
-import { Category } from '@shared/types/category.type';
+import { Category, CategoryQuery, categoryQuerySchema } from '@shared/schemas/category.schema';
+
+import { Validate } from '~s/common/decorators/validate.decorator';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 
 class CategoriesService {
-  async findAll(classId?: number, classesOnly = false): Promise<Category[]> {
+  @Validate(categoryQuerySchema)
+  async findAll(payload: CategoryQuery): Promise<Category[]> {
+    const { classId, classesOnly } = payload;
     const result = await curseForgeService.getCategories(432, classId, classesOnly);
     let categories = result.data;
 

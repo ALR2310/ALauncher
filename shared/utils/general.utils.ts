@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export function formatToSlug(str: string): string {
   return str
     .trim()
@@ -34,4 +36,15 @@ export function formatBytes(bytes: number, decimals = 2): string {
 export function capitalize(str: string): string {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function extractPaths(schema: z.ZodTypeAny, prefix: string[] = []): string[] {
+  if (schema instanceof z.ZodObject) {
+    const shape = schema.shape;
+    return Object.keys(shape).flatMap((key) => {
+      return extractPaths(shape[key], [...prefix, key]);
+    });
+  }
+
+  return [prefix.join('.')];
 }

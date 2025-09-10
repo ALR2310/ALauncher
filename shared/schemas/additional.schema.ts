@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-export const additionalSchema = z.object({
+export const contentSchema = z.object({
   id: z.number(),
   name: z.string(),
   author: z.string(),
-  iconUrl: z.url(),
+  logoUrl: z.url(),
   fileId: z.number(),
   fileName: z.string(),
   fileUrl: z.url(),
@@ -12,36 +12,24 @@ export const additionalSchema = z.object({
   enabled: z.boolean(),
   dependencies: z.array(z.number()).optional(),
 });
-export type Additional = z.infer<typeof additionalSchema>;
+export type Content = z.infer<typeof contentSchema>;
 
-export const getAdditionalSchema = z.object({
+export const contentQuerySchema = z.object({
   instanceId: z.string().optional(),
-  gameId: z
-    .string()
-    .transform((v) => Number(v))
-    .optional(),
-  classId: z.string().optional(),
+  gameId: z.coerce.number().optional(),
+  classId: z.coerce.number().optional(),
   categoryIds: z.string().optional(),
   gameVersion: z.string().optional(),
   searchFilter: z.string().optional(),
-  sortField: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
-  modLoaderType: z.string().optional(),
-  slug: z.string().min(2).max(100).optional(),
-  index: z
-    .string()
-    .transform((v) => Number(v))
-    .refine((v) => v >= 0, { message: 'index must be >= 0' })
-    .optional(),
-
-  pageSize: z
-    .string()
-    .transform((v) => Number(v))
-    .refine((v) => v <= 100, { message: 'pageSize must be <= 100' })
-    .optional(),
+  sortField: z.coerce.number().optional(),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  modLoaderType: z.coerce.number().optional(),
+  slug: z.string().optional(),
+  index: z.coerce.number().min(0).optional(),
+  pageSize: z.coerce.number().max(100).optional(),
 });
-export type GetAdditionalPayload = z.infer<typeof getAdditionalSchema>;
-export interface GetAdditionalResponse {
+export type ContentQuery = z.infer<typeof contentQuerySchema>;
+export interface ContentResponse {
   data: Array<{
     id: number;
     name: string;
@@ -83,40 +71,3 @@ export interface GetAdditionalResponse {
     totalCount: number;
   };
 }
-
-export const removeAdditionalSchema = z.object({
-  id: z.string().transform((v) => Number(v)),
-  instanceId: z.string().optional(),
-  type: z.enum(['mods', 'resourcepacks', 'shaderpacks']).default('mods'),
-});
-export type RemoveAdditionalPayload = z.infer<typeof removeAdditionalSchema>;
-export interface RemoveAdditionalResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    id: number;
-    fileName: string;
-  };
-}
-
-export const downloadAdditionalSchema = removeAdditionalSchema.extend({
-  name: z.string(),
-  author: z.string(),
-  iconUrl: z.url(),
-});
-export type DownloadAdditionalPayload = z.infer<typeof downloadAdditionalSchema>;
-
-export const canRemoveAdditionalSchema = removeAdditionalSchema.omit({ type: true });
-export type CanRemoveAdditionalPayload = z.infer<typeof canRemoveAdditionalSchema>;
-export interface CanRemoveAdditionalResponse {
-  canRemove: boolean;
-  message: string;
-  dependents?: string[];
-}
-
-export const toggleAdditionalSchema = z.object({
-  ids: z.array(z.number()),
-  instanceId: z.string().optional(),
-  enabled: z.boolean().optional(),
-});
-export type ToggleAdditionalPayload = z.infer<typeof toggleAdditionalSchema>;

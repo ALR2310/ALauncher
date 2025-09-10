@@ -28,4 +28,11 @@ export const categoryMap = {
     shaders: 6552,
     worlds: 17,
   },
+  idToText: {
+    6: 'Mods',
+    6945: 'Data Packs',
+    12: 'Resource Packs',
+    6552: 'Shaders',
+    17: 'Worlds',
+  },
 };

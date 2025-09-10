@@ -13,11 +13,12 @@ export const versionController = new Hono()
     return c.json(result);
   })
   .get('/loader', async (c) => {
-    const { version, type } = c.req.query();
-    const result = await versionService.getLoaderVersions(version, type);
-    return c.json(result);
-  }).get('/note', async(c)=> {
-    const { pageIndex = '0', pageSize = '1' } = c.req.query();
-    const result = await versionService.getReleaseNote(Number(pageIndex), Number(pageSize));
+    const payload: any = c.req.query();
+    const result = await versionService.getLoaderVersions(payload);
     return c.json(result);
   })
+  .get('/note', async (c) => {
+    const payload: any = c.req.query();
+    const result = await versionService.getReleaseNote(payload);
+    return c.json(result);
+  });

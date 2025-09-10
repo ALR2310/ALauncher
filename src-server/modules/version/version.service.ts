@@ -1,12 +1,20 @@
 import { loaderMap } from '@shared/mappings/general.mapping';
-import { ReleaseNote, Version } from '@shared/types/version.type';
+import {
+  Loader,
+  loaderSchema,
+  ReleaseNote,
+  ReleaseNoteQuery,
+  releaseNoteQuerySchema,
+  Version,
+} from '@shared/schemas/version.schema';
 import { capitalize } from '@shared/utils/general.utils';
 import axios from 'axios';
 import { readdir } from 'fs/promises';
 import path from 'path';
 
-import { curseForgeService } from '~s/modules/curseforge/curseforge.service';
+import { Validate } from '~s/common/decorators/validate.decorator';
 
+import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
 import { launcherService } from '../launcher/launcher.service';
 
@@ -63,7 +71,9 @@ class VersionService {
       }));
   }
 
-  async getLoaderVersions(version?: string, type?: string): Promise<Version[]> {
+  @Validate(loaderSchema)
+  async getLoaderVersions(payload: Loader): Promise<Version[]> {
+    const { version, type } = payload;
     const raw = await curseForgeService.getLoaderVersions(version);
 
     const mapped = (raw.data ?? []).map((item: any) => {
@@ -92,7 +102,9 @@ class VersionService {
     return mapped.filter((m) => m && (!type || m.loader?.type === type));
   }
 
-  async getReleaseNote(pageIndex: number, pageSize: number) {
+  @Validate(releaseNoteQuerySchema)
+  async getReleaseNote(payload: ReleaseNoteQuery) {
+    const { pageIndex, pageSize } = payload;
     if (!this.listNote.length) {
       const listNoteRes = await axios.get(`${this.NOTE_API}javaPatchNotes.json`);
       this.listNote = listNoteRes.data.entries.filter((entry: any) => entry.type === 'release');

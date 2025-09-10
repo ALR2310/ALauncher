@@ -10,8 +10,8 @@ export const launcherController = new Hono()
     return c.json(result);
   })
   .post('/config', async (c) => {
-    const { key, value } = await c.req.json();
-    const result = await launcherService.setConfig(key, value);
+    const payload = await c.req.json();
+    const result = await launcherService.setConfig(payload);
     return c.json(result);
   })
   .get('/folder', async (c) => {
@@ -22,7 +22,10 @@ export const launcherController = new Hono()
     const launch = await launcherService.launch();
 
     if (!launch) {
-      return c.json({ success: false, message: 'Cannot launch another instance' }, 500);
+      return streamSSE(c, async (stream) => {
+        await stream.writeSSE({ event: 'error', data: 'Cannot launch' });
+        await stream.close();
+      });
     }
 
     return streamSSE(c, async (stream) => {

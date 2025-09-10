@@ -1,4 +1,4 @@
-import { ContentQuery } from '@shared/schemas/additional.schema';
+import { ContentQuery } from '@shared/schemas/content.schema';
 import { Hono } from 'hono';
 
 import { contentService } from './content.service';

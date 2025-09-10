@@ -1,16 +1,16 @@
-import { GetAdditionalPayload, GetAdditionalResponse } from '@shared/schemas/additional.schema';
+import { ContentQuery, ContentResponse } from '@shared/schemas/content.schema';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import api from '~/configs/axios';
 
-export const useLauncherAdditional = () => {
-  const getAdditionalQuery = (query: GetAdditionalPayload) => {
+export const useLauncherContent = () => {
+  const getContentQuery = (query: ContentQuery) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useInfiniteQuery({
-      queryKey: ['additionalQuery', query],
+      queryKey: ['contentsQuery', query],
       queryFn: async ({ pageParam = 0 }) => {
-        const res = await api.get('additional', { params: { ...query, index: pageParam } });
-        return res.data as GetAdditionalResponse;
+        const res = await api.get('content', { params: { ...query, index: pageParam } });
+        return res.data as ContentResponse;
       },
       getNextPageParam: (lastPage, _allPages, lastPageParam) => {
         const nextPageIndex = lastPageParam + 1;
@@ -25,5 +25,5 @@ export const useLauncherAdditional = () => {
     });
   };
 
-  return { getAdditionalQuery };
+  return { getContentQuery };
 };

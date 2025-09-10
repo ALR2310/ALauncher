@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { contentSchema } from './additional.schema';
+import { contentSchema } from './content.schema';
 import { loaderSchema } from './version.schema';
 
 export const instanceSchema = z.object({

@@ -1,5 +1,5 @@
 import { loaderMap } from '@shared/mappings/general.mapping';
-import { ContentQuery, contentQuerySchema, ContentResponse } from '@shared/schemas/additional.schema';
+import { ContentQuery, contentQuerySchema, ContentResponse } from '@shared/schemas/content.schema';
 import { formatBytes } from '@shared/utils/general.utils';
 
 import { Validate } from '~s/common/decorators/validate.decorator';

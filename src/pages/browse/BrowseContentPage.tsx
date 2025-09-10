@@ -7,8 +7,8 @@ import { useContentHeight } from '~/hooks/useContentHeight';
 import { useDebounce } from '~/hooks/useDebounce';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
-import AdditionalCard from './components/AdditionalCard';
-import AdditionalSkeleton from './components/AdditionalSkeleton';
+import ContentCard from './components/ContentCard';
+import ContentCardSkeleton from './components/ContentCardSkeleton';
 
 interface BrowseContentPageProps {
   className?: string;
@@ -30,16 +30,17 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
 
   const navigate = useNavigate();
 
-  const getAdditionalQuery = useContextSelector(LauncherContext, (v) =>
-    v.getAdditionalQuery({
+  const getContentQuery = useContextSelector(LauncherContext, (v) =>
+    v.getContentQuery({
       instanceId: instanceId || undefined,
       classId: categoryMap.keyToId[categoryType],
       categoryIds,
       gameVersion,
       searchFilter: debouncedSearchFilter,
-      sortField,
-      modLoaderType: loaderType === '0' ? undefined : loaderType,
+      sortField: Number(sortField),
+      modLoaderType: loaderType === '0' ? undefined : Number(loaderType),
       pageSize: 50,
+      sortOrder: 'desc',
     }),
   );
 
@@ -101,25 +102,25 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
         onScroll={(e) => {
           const target = e.currentTarget;
           const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 300;
-          if (bottom && getAdditionalQuery.hasNextPage && !getAdditionalQuery.isFetchingNextPage) {
-            getAdditionalQuery.fetchNextPage();
+          if (bottom && getContentQuery.hasNextPage && !getContentQuery.isFetchingNextPage) {
+            getContentQuery.fetchNextPage();
           }
         }}
       >
-        {getAdditionalQuery.isLoading && Array.from({ length: 20 }).map((_, i) => <AdditionalSkeleton key={i} />)}
-        {getAdditionalQuery.data?.pages.map((page) =>
-          page.data.map((additional) => (
-            <AdditionalCard
-              key={additional.id}
-              data={additional}
+        {getContentQuery.isLoading && Array.from({ length: 20 }).map((_, i) => <ContentCardSkeleton key={i} />)}
+        {getContentQuery.data?.pages.map((page) =>
+          page.data.map((content) => (
+            <ContentCard
+              key={content.id}
+              data={content}
               categoryType={categoryType}
               versionSelected={gameVersion}
               loaderType={loaderType}
             />
           )),
         )}
-        {getAdditionalQuery.isFetchingNextPage &&
-          Array.from({ length: 10 }).map((_, i) => <AdditionalSkeleton key={i} />)}
+        {getContentQuery.isFetchingNextPage &&
+          Array.from({ length: 10 }).map((_, i) => <ContentCardSkeleton key={i} />)}
       </div>
     </div>
   );

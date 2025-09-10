@@ -1,7 +1,7 @@
-import { Additional } from '@shared/schemas/additional.schema';
+import { Content } from '@shared/schemas/content.schema';
 
 interface ManagerTablePageProps {
-  data: Additional[];
+  data: Content[];
 }
 
 export default function ManagerTablePage({ data }: ManagerTablePageProps) {
@@ -44,7 +44,7 @@ export default function ManagerTablePage({ data }: ManagerTablePageProps) {
               <td>
                 <div className="flex items-center gap-3">
                   <div className="avatar">
-                    <img src={item.iconUrl} alt={item.name} loading="lazy" className="w-10 h-10 rounded-full" />
+                    <img src={item.logoUrl} alt={item.name} loading="lazy" className="w-10 h-10 rounded-full" />
                   </div>
                   <div className="flex flex-col">
                     <span className="font-semibold">{item.name}</span>

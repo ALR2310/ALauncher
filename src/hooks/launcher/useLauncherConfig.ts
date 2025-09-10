@@ -1,4 +1,4 @@
-import { LauncherConfig } from '@shared/types/launcher';
+import { LauncherConfig } from '@shared/schemas/launcher.schema';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import api from '~/configs/axios';

@@ -1,4 +1,4 @@
-export default function AdditionalSkeleton() {
+export default function ContentCardSkeleton() {
   return (
     <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
       <div className="skeleton w-24"></div>

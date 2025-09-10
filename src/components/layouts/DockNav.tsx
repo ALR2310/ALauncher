@@ -1,4 +1,4 @@
-import { Version } from '@shared/types/version.type';
+import { Version } from '@shared/schemas/version.schema';
 import { useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 

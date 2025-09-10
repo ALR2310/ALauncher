@@ -1,4 +1,4 @@
-import { Category } from '@shared/types/category.type';
+import { Category } from '@shared/schemas/category.schema';
 import { useQuery } from '@tanstack/react-query';
 
 import api from '~/configs/axios';

@@ -1,4 +1,4 @@
-import { loaderMap } from '@shared/mappings/general.mapping';
+import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { useState } from 'react';
 import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -7,13 +7,10 @@ import { LauncherContext } from '~/providers/LauncherProvider';
 
 import ManagerTablePage from './components/ManagerTablePage';
 
-const tabs = [
-  { key: 'mc-mods', label: 'Mods' },
-  { key: 'data-packs', label: 'Data Packs' },
-  { key: 'texture-packs', label: 'Resource Packs' },
-  { key: 'shaders', label: 'Shader Packs' },
-  { key: 'worlds', label: 'World' },
-];
+const tabs = Object.entries(categoryMap.keyToText).map(([key, label]) => ({
+  key,
+  label,
+}));
 
 export default function ManagerPage() {
   const { instanceId } = useParams<{ instanceId: string }>();
@@ -28,11 +25,13 @@ export default function ManagerPage() {
   const goToBrowse = () => {
     navigate({
       pathname: instanceId ? `/browse/${instanceId}` : '/browse',
-      search: `?${createSearchParams({
-        categoryType: tab,
-        ...(instance?.version ? { gameVersion: instance.version } : {}),
-        ...(tab === 'mc-mods' && instance?.loader ? { loaderType: loaderMap.keyToId[instance.loader.type] } : {}),
-      })}`,
+      search: `?${createSearchParams(
+        Object.entries({
+          categoryType: tab,
+          ...(instance?.version ? { gameVersion: instance.version } : {}),
+          ...(tab === 'mc-mods' && instance?.loader ? { loaderType: loaderMap.keyToId[instance.loader.type]?.toString() } : {}),
+        }).filter(([_, v]) => v !== undefined && v !== null) as [string, string][]
+      )}`,
     });
   };
 

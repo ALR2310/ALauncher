@@ -1,4 +1,4 @@
-import { Content as Content } from '@shared/schemas/additional.schema';
+import { Content } from '@shared/schemas/content.schema';
 import {
   Instance,
   InstanceAddContentQuery,

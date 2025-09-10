@@ -22,7 +22,7 @@ export const contentQuerySchema = z.object({
   gameVersion: z.string().optional(),
   searchFilter: z.string().optional(),
   sortField: z.coerce.number().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc').optional(),
   modLoaderType: z.coerce.number().optional(),
   slug: z.string().optional(),
   index: z.coerce.number().min(0).optional(),

@@ -1,4 +1,4 @@
-import { ReleaseNote, Version } from '@shared/types/version.type';
+import { ReleaseNote, Version } from '@shared/schemas/version.schema';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 

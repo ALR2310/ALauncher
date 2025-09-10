@@ -435,11 +435,6 @@
   resolved "https://registry.yarnpkg.com/@hono/node-server/-/node-server-1.19.1.tgz#a76833f2c1be627344cc42f6a215aa3e9f8aaab3"
   integrity sha512-h44e5s+ByUriaRIbeS/C74O8v90m0A95luyYQGMF7KEn96KkYMXO7bZAwombzTpjQTU4e0TkU8U1WBIXlwuwtA==
 
-"@hono/zod-validator@^0.7.2":
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/@hono/zod-validator/-/zod-validator-0.7.2.tgz#1ab23efb89c777d718f4e14db3d5592f606fae42"
-  integrity sha512-ub5eL/NeZ4eLZawu78JpW/J+dugDAYhwqUIdp9KYScI6PZECij4Hx4UsrthlEUutqDDhPwRI0MscUfNkvn/mqQ==
-
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"

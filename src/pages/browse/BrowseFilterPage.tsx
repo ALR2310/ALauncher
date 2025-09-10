@@ -1,5 +1,5 @@
 import { categoryMap } from '@shared/mappings/general.mapping';
-import { Category } from '@shared/types/category.type';
+import { Category } from '@shared/schemas/category.schema';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -112,13 +112,10 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
         <Select
           className="flex-2/3"
           value={categoryType}
-          options={[
-            { value: 'mc-mods', label: 'Mods' },
-            { value: 'data-packs', label: 'Data Packs' },
-            { value: 'texture-packs', label: 'Resource Packs' },
-            { value: 'shaders', label: 'Shader Packs' },
-            { value: 'worlds', label: 'World' },
-          ]}
+          options={Object.entries(categoryMap.keyToText).map(([key, label]) => ({
+            value: key,
+            label,
+          }))}
           onChange={(val) => {
             setCategoryType(val);
             if (val !== 'mc-mods') {

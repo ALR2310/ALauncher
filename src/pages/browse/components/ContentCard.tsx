@@ -1,19 +1,19 @@
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
-import { GetAdditionalResponse } from '@shared/schemas/additional.schema';
+import { ContentResponse } from '@shared/schemas/content.schema';
 import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { toast } from '~/hooks/useToast';
 
-interface AdditionalCardProps {
-  data: GetAdditionalResponse['data'][number];
+interface ContentCardProps {
+  data: ContentResponse['data'][0];
   categoryType: string;
   versionSelected: string;
   loaderType: string;
 }
 
-export default function AdditionalCard({ data, categoryType, versionSelected, loaderType }: AdditionalCardProps) {
+export default function ContentCard({ data, categoryType, versionSelected, loaderType }: ContentCardProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
   const evtRef = useRef<EventSource | null>(null);
 
@@ -29,12 +29,12 @@ export default function AdditionalCard({ data, categoryType, versionSelected, lo
 
   const handleInstall = () => {
     const query = new URLSearchParams({
-      instanceId: instanceId!,
       name: data.name,
       author: data.authors[0].name ?? 'Unknown',
-      iconUrl: data.logoUrl,
+      logoUrl: data.logoUrl,
     });
-    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/additional/${data.id}?${query.toString()}`;
+    const type = categoryMap.keyToText[categoryType].toLowerCase().replace(' ', '-');
+    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instance/${instanceId}/${type}/${data.id}?${query.toString()}`;
 
     evtRef.current = new EventSource(url);
     setStatus('Installing');

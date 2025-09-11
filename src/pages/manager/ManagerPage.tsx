@@ -29,8 +29,10 @@ export default function ManagerPage() {
         Object.entries({
           categoryType: tab,
           ...(instance?.version ? { gameVersion: instance.version } : {}),
-          ...(tab === 'mc-mods' && instance?.loader ? { loaderType: loaderMap.keyToId[instance.loader.type]?.toString() } : {}),
-        }).filter(([_, v]) => v !== undefined && v !== null) as [string, string][]
+          ...(tab === 'mc-mods' && instance?.loader
+            ? { loaderType: loaderMap.keyToId[instance.loader.type]?.toString() }
+            : {}),
+        }).filter(([_, v]) => v !== undefined && v !== null) as [string, string][],
       )}`,
     });
   };
@@ -88,7 +90,7 @@ export default function ManagerPage() {
         </button>
       </div>
 
-      <ManagerTablePage data={[]} />
+      <ManagerTablePage data={instance?.[categoryMap.keyToText[tab].toLowerCase().replaceAll(' ', '')] ?? []} />
     </div>
   );
 }

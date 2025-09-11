@@ -1,4 +1,5 @@
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
+import { Content } from '@shared/schemas/content.schema';
 import { useState } from 'react';
 import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -19,8 +20,12 @@ export default function ManagerPage() {
   const [tab, setTab] = useState('mc-mods');
   const [searchKey, setSearchKey] = useState('');
 
-  const getInstanceQuery = useContextSelector(LauncherContext, (v) => v.getInstanceQuery(instanceId || ''));
-  const instance = getInstanceQuery.data;
+  const { data: instance } = useContextSelector(LauncherContext, (v) => v.getInstanceQuery(instanceId || ''));
+  const getContentByIdsQuery = useContextSelector(LauncherContext, (v) =>
+    v.getContentByIdsQuery(
+      instance?.[categoryMap.keyToText[tab].toLowerCase().replace(' ', '')].map((c: Content) => c.id) || [],
+    ),
+  );
 
   const goToBrowse = () => {
     navigate({
@@ -90,7 +95,7 @@ export default function ManagerPage() {
         </button>
       </div>
 
-      <ManagerTablePage data={instance?.[categoryMap.keyToText[tab].toLowerCase().replaceAll(' ', '')] ?? []} />
+      <ManagerTablePage data={getContentByIdsQuery.data?.data ?? []} />
     </div>
   );
 }

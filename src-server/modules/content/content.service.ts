@@ -10,8 +10,10 @@ import { instanceService } from '../instance/instance.service';
 class ContentService {
   @Validate(contentQuerySchema)
   async findAll(payload: ContentQuery) {
-    const { instanceId, ...rest } = payload;
-    const response = await curseForgeService.searchMods({ ...rest, gameId: 432 });
+    const { instanceId, ids, ...rest } = payload;
+    const response = ids
+      ? await curseForgeService.getMods({ modIds: ids.split(',').map((id) => parseInt(id, 10)) })
+      : await curseForgeService.searchMods({ ...rest, gameId: 432 });
     const instance = instanceId ? await instanceService.findOne(instanceId) : null;
 
     try {

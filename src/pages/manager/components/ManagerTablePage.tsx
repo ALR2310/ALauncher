@@ -1,8 +1,8 @@
-import { Content } from '@shared/schemas/content.schema';
+import { ContentResponse } from '@shared/schemas/content.schema';
 import { useEffect, useRef, useState } from 'react';
 
 interface ManagerTablePageProps {
-  data: Content[];
+  data: ContentResponse['data'];
 }
 
 export default function ManagerTablePage({ data }: ManagerTablePageProps) {
@@ -78,10 +78,10 @@ export default function ManagerTablePage({ data }: ManagerTablePageProps) {
                 </div>
               </td>
               <td className="text-center">
-                <span className="italic">{item.author}</span>
+                <span className="italic">{item.authors[0]?.name ?? 'Unknown'}</span>
               </td>
               <td className="text-center">
-                <button className="btn btn-soft btn-outline btn-sm">Update</button>
+                {item.status === 'outdated' ? <button className="btn btn-outline btn-sm">Update</button> : 'Latest'}
               </td>
               <td className="text-center">
                 <input type="checkbox" className="toggle toggle-sm toggle-primary" />

@@ -28,7 +28,8 @@ const LauncherContext = createContext<{
   createInstanceMutation: ReturnType<typeof useLauncherInstance>['createInstanceMutation'];
   updateInstanceMutation: ReturnType<typeof useLauncherInstance>['updateInstanceMutation'];
   deleteInstanceMutation: ReturnType<typeof useLauncherInstance>['deleteInstanceMutation'];
-  getContentQuery: ReturnType<typeof useLauncherContent>['getContentQuery'];
+  getContentsQuery: ReturnType<typeof useLauncherContent>['getContentsQuery'];
+  getContentByIdsQuery: ReturnType<typeof useLauncherContent>['getContentByIdsQuery'];
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
@@ -43,7 +44,7 @@ const LauncherProvider = ({ children }) => {
     updateInstanceMutation,
     deleteInstanceMutation,
   } = useLauncherInstance();
-  const { getContentQuery } = useLauncherContent();
+  const { getContentsQuery, getContentByIdsQuery } = useLauncherContent();
 
   const ctx = useMemo(
     () => ({
@@ -65,7 +66,8 @@ const LauncherProvider = ({ children }) => {
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
-      getContentQuery,
+      getContentsQuery,
+      getContentByIdsQuery,
     }),
     [
       getConfig,
@@ -85,7 +87,8 @@ const LauncherProvider = ({ children }) => {
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
-      getContentQuery,
+      getContentsQuery,
+      getContentByIdsQuery,
     ],
   );
 

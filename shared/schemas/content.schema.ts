@@ -15,6 +15,7 @@ export const contentSchema = z.object({
 export type Content = z.infer<typeof contentSchema>;
 
 export const contentQuerySchema = z.object({
+  ids: z.string().optional(),
   instanceId: z.string().optional(),
   gameId: z.coerce.number().optional(),
   classId: z.coerce.number().optional(),

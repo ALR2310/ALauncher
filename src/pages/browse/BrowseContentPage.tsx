@@ -31,7 +31,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
   const navigate = useNavigate();
 
   const getContentQuery = useContextSelector(LauncherContext, (v) =>
-    v.getContentQuery({
+    v.getContentsQuery({
       instanceId: instanceId || undefined,
       classId: categoryMap.keyToId[categoryType],
       categoryIds,

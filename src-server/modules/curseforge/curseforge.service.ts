@@ -101,6 +101,17 @@ class CurseForgeService {
       return [];
     }
   }
+
+  async getMods(payload: { modIds: number[]; filterPcOnly?: boolean }) {
+    const { modIds, filterPcOnly = true } = payload;
+    try {
+      const res = await api.post('mods', { modIds, filterPcOnly });
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching mods:', e);
+      return [];
+    }
+  }
 }
 
 export const curseForgeService = new CurseForgeService();

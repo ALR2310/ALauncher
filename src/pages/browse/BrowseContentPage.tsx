@@ -30,8 +30,8 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
 
   const navigate = useNavigate();
 
-  const getContentQuery = useContextSelector(LauncherContext, (v) =>
-    v.getContentsQuery({
+  const findAllContentQuery = useContextSelector(LauncherContext, (v) =>
+    v.findAllContentQuery({
       instanceId: instanceId || undefined,
       classId: categoryMap.keyToId[categoryType],
       categoryIds,
@@ -102,13 +102,13 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
         onScroll={(e) => {
           const target = e.currentTarget;
           const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 300;
-          if (bottom && getContentQuery.hasNextPage && !getContentQuery.isFetchingNextPage) {
-            getContentQuery.fetchNextPage();
+          if (bottom && findAllContentQuery.hasNextPage && !findAllContentQuery.isFetchingNextPage) {
+            findAllContentQuery.fetchNextPage();
           }
         }}
       >
-        {getContentQuery.isLoading && Array.from({ length: 20 }).map((_, i) => <ContentCardSkeleton key={i} />)}
-        {getContentQuery.data?.pages.map((page) =>
+        {findAllContentQuery.isLoading && Array.from({ length: 20 }).map((_, i) => <ContentCardSkeleton key={i} />)}
+        {findAllContentQuery.data?.pages.map((page) =>
           page.data.map((content) => (
             <ContentCard
               key={content.id}
@@ -119,7 +119,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
             />
           )),
         )}
-        {getContentQuery.isFetchingNextPage &&
+        {findAllContentQuery.isFetchingNextPage &&
           Array.from({ length: 10 }).map((_, i) => <ContentCardSkeleton key={i} />)}
       </div>
     </div>

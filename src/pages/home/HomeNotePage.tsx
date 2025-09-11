@@ -19,9 +19,9 @@ function prepareBody(html: string): string {
 export default function HomeNotePage({ className }: { className?: string }) {
   const divRef = useRef<HTMLDivElement>(null);
   const { height, isReady } = useContentHeight();
-  const releaseNoteQuery = useContextSelector(LauncherContext, (v) => v.releaseNoteQuery);
+  const findReleaseNotesQuery = useContextSelector(LauncherContext, (v) => v.findReleaseNotesQuery);
 
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } = releaseNoteQuery;
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } = findReleaseNotesQuery;
 
   useEffect(() => {
     const el = divRef.current;

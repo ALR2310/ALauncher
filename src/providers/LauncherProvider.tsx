@@ -12,83 +12,84 @@ import { useLauncherVersion } from '~/hooks/launcher/useLauncherVersion';
 const LauncherContext = createContext<{
   getConfig: ReturnType<typeof useLauncherConfig>['getConfig'];
   setConfig: ReturnType<typeof useLauncherConfig>['setConfig'];
-  versionsQuery: ReturnType<typeof useLauncherVersion>['versionsQuery'];
-  releaseVersionsQuery: ReturnType<typeof useLauncherVersion>['releaseVersionsQuery'];
-  loaderVersionsQuery: ReturnType<typeof useLauncherVersion>['loaderVersionsQuery'];
-  releaseNoteQuery: ReturnType<typeof useLauncherVersion>['releaseNoteQuery'];
-  categoryQuery: ReturnType<typeof useLauncherCategory>['categoryQuery'];
+  findAllVersionQuery: ReturnType<typeof useLauncherVersion>['findAllVersionQuery'];
+  findReleasesVersionQuery: ReturnType<typeof useLauncherVersion>['findReleasesVersionQuery'];
+  findLoadersVersionQuery: ReturnType<typeof useLauncherVersion>['findLoadersVersionQuery'];
+  findReleaseNotesQuery: ReturnType<typeof useLauncherVersion>['findReleaseNotesQuery'];
+  findAllCategoryQuery: ReturnType<typeof useLauncherCategory>['findAllCategoryQuery'];
   openFolder: () => void;
   event: ReturnType<typeof useLauncherLifeCycle>['event'];
-  isRunning: boolean;
-  isDownloading: boolean;
-  launch: () => void;
-  cancel: () => void;
-  getAllInstanceQuery: ReturnType<typeof useLauncherInstance>['getAllInstanceQuery'];
-  getInstanceQuery: ReturnType<typeof useLauncherInstance>['getInstanceQuery'];
+  isRunning: ReturnType<typeof useLauncherLifeCycle>['isRunning'];
+  isDownloading: ReturnType<typeof useLauncherLifeCycle>['isDownloading'];
+  launch: ReturnType<typeof useLauncherLifeCycle>['launch'];
+  cancel: ReturnType<typeof useLauncherLifeCycle>['cancel'];
+  findAllInstanceQuery: ReturnType<typeof useLauncherInstance>['findAllInstanceQuery'];
+  findOneInstanceQuery: ReturnType<typeof useLauncherInstance>['findOneInstanceQuery'];
   createInstanceMutation: ReturnType<typeof useLauncherInstance>['createInstanceMutation'];
   updateInstanceMutation: ReturnType<typeof useLauncherInstance>['updateInstanceMutation'];
   deleteInstanceMutation: ReturnType<typeof useLauncherInstance>['deleteInstanceMutation'];
-  getContentsQuery: ReturnType<typeof useLauncherContent>['getContentsQuery'];
-  getContentByIdsQuery: ReturnType<typeof useLauncherContent>['getContentByIdsQuery'];
+  findAllContentQuery: ReturnType<typeof useLauncherContent>['findAllContentQuery'];
+  findContentsByIdsQuery: ReturnType<typeof useLauncherContent>['findContentsByIdsQuery'];
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
   const { getConfig, setConfig } = useLauncherConfig();
-  const { versionsQuery, releaseVersionsQuery, loaderVersionsQuery, releaseNoteQuery } = useLauncherVersion();
-  const { categoryQuery } = useLauncherCategory();
+  const { findAllVersionQuery, findReleasesVersionQuery, findLoadersVersionQuery, findReleaseNotesQuery } =
+    useLauncherVersion();
+  const { findAllCategoryQuery } = useLauncherCategory();
   const { event, isRunning, isDownloading, launch, cancel } = useLauncherLifeCycle();
   const {
-    getAllInstanceQuery,
-    getInstanceQuery,
+    findAllInstanceQuery,
+    findOneInstanceQuery,
     createInstanceMutation,
     updateInstanceMutation,
     deleteInstanceMutation,
   } = useLauncherInstance();
-  const { getContentsQuery, getContentByIdsQuery } = useLauncherContent();
+  const { findAllContentQuery, findContentsByIdsQuery } = useLauncherContent();
 
   const ctx = useMemo(
     () => ({
       getConfig,
       setConfig,
-      versionsQuery,
-      releaseVersionsQuery,
-      loaderVersionsQuery,
-      releaseNoteQuery,
-      categoryQuery,
-      openFolder: () => api.get('/launcher/folder'),
+      findAllVersionQuery,
+      findReleasesVersionQuery,
+      findLoadersVersionQuery,
+      findReleaseNotesQuery,
+      findAllCategoryQuery,
+      openFolder: () => api.get('/launchers/folder'),
       event,
       isRunning,
       isDownloading,
       launch,
       cancel,
-      getAllInstanceQuery,
-      getInstanceQuery,
+      findAllInstanceQuery,
+      findOneInstanceQuery,
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
-      getContentsQuery,
-      getContentByIdsQuery,
+      findAllContentQuery,
+      findContentsByIdsQuery,
     }),
     [
-      getConfig,
-      setConfig,
-      versionsQuery,
-      releaseVersionsQuery,
-      loaderVersionsQuery,
-      releaseNoteQuery,
-      categoryQuery,
-      event,
-      isRunning,
-      isDownloading,
-      launch,
       cancel,
-      getAllInstanceQuery,
-      getInstanceQuery,
       createInstanceMutation,
-      updateInstanceMutation,
       deleteInstanceMutation,
-      getContentsQuery,
-      getContentByIdsQuery,
+      event,
+      findAllCategoryQuery,
+      findAllContentQuery,
+      findAllInstanceQuery,
+      findAllVersionQuery,
+      findContentsByIdsQuery,
+      findLoadersVersionQuery,
+      findOneInstanceQuery,
+      findReleaseNotesQuery,
+      findReleasesVersionQuery,
+      getConfig,
+      isDownloading,
+      isRunning,
+      launch,
+      setConfig,
+      updateInstanceMutation,
     ],
   );
 

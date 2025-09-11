@@ -1,4 +1,4 @@
-import { Instance } from '@shared/schemas/instance.schema';
+import { InstanceDto } from '@shared/dtos/instance.dto';
 import { formatToSlug } from '@shared/utils/general.utils';
 import { useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
@@ -25,35 +25,37 @@ export default function ModalModpack({ ref, instanceId }: ModalModpackProps) {
   const [version, setVersion] = useState('');
 
   // Launcher context
-  const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
-  const loaderVersionsQuery = useContextSelector(LauncherContext, (v) => v.loaderVersionsQuery(version, loaderType));
+  const findReleasesVersionQuery = useContextSelector(LauncherContext, (v) => v.findReleasesVersionQuery);
+  const findLoadersVersionQuery = useContextSelector(LauncherContext, (v) =>
+    v.findLoadersVersionQuery(version, loaderType),
+  );
   const createInstanceMutation = useContextSelector(LauncherContext, (v) => v.createInstanceMutation);
   const updateInstanceMutation = useContextSelector(LauncherContext, (v) => v.updateInstanceMutation);
-  const getInstanceQuery = useContextSelector(LauncherContext, (v) => v.getInstanceQuery(instanceId ?? ''));
-  const getAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.getAllInstanceQuery);
+  const findOneInstanceQuery = useContextSelector(LauncherContext, (v) => v.findOneInstanceQuery(instanceId ?? ''));
+  const findAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.findAllInstanceQuery);
 
   useEffect(() => {
-    if (releaseVersionsQuery.isLoading) return;
-    if (releaseVersionsQuery.data?.length) {
-      setVersion(releaseVersionsQuery.data[0].version);
+    if (findReleasesVersionQuery.isLoading) return;
+    if (findReleasesVersionQuery.data?.length) {
+      setVersion(findReleasesVersionQuery.data[0].version);
     }
-  }, [releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
+  }, [findReleasesVersionQuery.data, findReleasesVersionQuery.isLoading]);
 
   useEffect(() => {
-    if (getInstanceQuery.isLoading) return;
-    if (getInstanceQuery.data) {
-      const instance = getInstanceQuery.data;
+    if (findOneInstanceQuery.isLoading) return;
+    if (findOneInstanceQuery.data) {
+      const instance = findOneInstanceQuery.data;
       setModpackName(instance.name);
       setVersion(instance.version);
       setLoaderType(instance.loader.type as any);
       setLoaderVersion(instance.loader.version);
     }
-  }, [getInstanceQuery.data, getInstanceQuery.isLoading]);
+  }, [findOneInstanceQuery.data, findOneInstanceQuery.isLoading]);
 
   const updateOrCreateInstance = async () => {
     if (!modpackName) return toast.error('Modpack name is required');
 
-    const data: Instance = {
+    const data: InstanceDto = {
       id: instanceId ?? formatToSlug(modpackName),
       name: modpackName,
       version: version,
@@ -71,9 +73,9 @@ export default function ModalModpack({ ref, instanceId }: ModalModpackProps) {
     setModpackName('');
     setLoaderType('forge');
     setLoaderVersion('latest');
-    setVersion(releaseVersionsQuery.data?.[0].version ?? '');
+    setVersion(findReleasesVersionQuery.data?.[0].version ?? '');
     toast.success(`Modpack ${instanceId ? 'updated' : 'created'} successfully`);
-    getAllInstanceQuery.refetch();
+    findAllInstanceQuery.refetch();
   };
 
   return (
@@ -175,7 +177,7 @@ export default function ModalModpack({ ref, instanceId }: ModalModpackProps) {
               className="w-full"
               value={version}
               optionHeight={200}
-              options={releaseVersionsQuery.data?.map((v) => ({ label: v.version, value: v.version })) ?? []}
+              options={findReleasesVersionQuery.data?.map((v) => ({ label: v.version, value: v.version })) ?? []}
               onChange={setVersion}
             />
           </div>
@@ -189,7 +191,7 @@ export default function ModalModpack({ ref, instanceId }: ModalModpackProps) {
               options={[
                 { label: 'Latest', value: 'latest' },
                 { label: 'Recommended', value: 'recommended' },
-                ...(loaderVersionsQuery.data?.map((v) => ({
+                ...(findLoadersVersionQuery.data?.map((v) => ({
                   label: v.name,
                   value: v.loader!.version,
                 })) ?? []),

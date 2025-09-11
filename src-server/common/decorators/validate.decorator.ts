@@ -1,11 +1,17 @@
+import 'reflect-metadata';
+
 import { ZodType } from 'zod';
 
-export function Validate<T extends ZodType>(schema: T) {
-  return function (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
-    const original = descriptor.value;
-    descriptor.value = function (input: unknown, ...args: any[]) {
-      const data = schema.parse(input);
-      return original.apply(this, [data, ...args]);
-    };
+export const VALIDATE_KEY = Symbol('validate');
+
+type ZodDtoClass = {
+  isZodDto: true;
+  schema: ZodType;
+  create(input: unknown): any;
+};
+
+export function Validate(schemaOrDto: ZodType | ZodDtoClass) {
+  return function (target: any, propertyKey: string) {
+    Reflect.defineMetadata(VALIDATE_KEY, schemaOrDto, target, propertyKey);
   };
 }

@@ -1,15 +1,12 @@
+import { ContentQueryDto, ContentResponseDto } from '@shared/dtos/content.dto';
 import { loaderMap } from '@shared/mappings/general.mapping';
-import { ContentQuery, contentQuerySchema, ContentResponse } from '@shared/schemas/content.schema';
 import { formatBytes } from '@shared/utils/general.utils';
-
-import { Validate } from '~s/common/decorators/validate.decorator';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
 
 class ContentService {
-  @Validate(contentQuerySchema)
-  async findAll(payload: ContentQuery) {
+  async findAll(payload: ContentQueryDto) {
     const { instanceId, ids, ...rest } = payload;
     const response = ids
       ? await curseForgeService.getMods({ modIds: ids.split(',').map((id) => parseInt(id, 10)) })
@@ -76,7 +73,7 @@ class ContentService {
           };
         }),
         pagination: response.pagination,
-      } as ContentResponse;
+      } as ContentResponseDto;
     } catch (e) {
       throw new Error('Failed to parse mod data');
     }

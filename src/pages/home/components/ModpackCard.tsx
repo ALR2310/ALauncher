@@ -1,4 +1,4 @@
-import { Instance } from '@shared/schemas/instance.schema';
+import { InstanceDto } from '@shared/dtos/instance.dto';
 import { useNavigate } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -10,18 +10,18 @@ import { LauncherContext } from '~/providers/LauncherProvider';
 const modpackLogo = 'https://i.imgur.com/4b1k0aH.png';
 
 interface ModpackCardProps {
-  data: Instance;
+  data: InstanceDto;
 }
 
 export default function ModpackCard({ data }: ModpackCardProps) {
   const navigate = useNavigate();
 
   const deleteInstanceMutation = useContextSelector(LauncherContext, (v) => v.deleteInstanceMutation);
-  const getAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.getAllInstanceQuery);
+  const findAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.findAllInstanceQuery);
 
   const handleDeleteInstance = () => {
     deleteInstanceMutation.mutateAsync(data.id!).then(() => {
-      getAllInstanceQuery.refetch();
+      findAllInstanceQuery.refetch();
       toast.success('Instance deleted successfully');
     });
   };

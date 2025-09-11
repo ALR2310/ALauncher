@@ -1,8 +1,8 @@
-import { ContentResponse } from '@shared/schemas/content.schema';
+import { ContentResponseDto } from '@shared/dtos/content.dto';
 import { useEffect, useRef, useState } from 'react';
 
 interface ManagerTablePageProps {
-  data: ContentResponse['data'];
+  data: ContentResponseDto['data'];
 }
 
 export default function ManagerTablePage({ data }: ManagerTablePageProps) {

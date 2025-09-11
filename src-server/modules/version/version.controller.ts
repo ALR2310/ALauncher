@@ -1,24 +1,30 @@
-import { Hono } from 'hono';
+import { LoaderDto, ReleaseNoteQueryDto } from '@shared/dtos/version.dto';
+
+import { Controller, Get, Query, Validate } from '~s/common/decorators';
 
 import { versionService } from './version.service';
 
-export const versionController = new Hono()
-  .basePath('version')
-  .get('/', async (c) => {
-    const result = await versionService.findAll();
-    return c.json(result);
-  })
-  .get('/release', async (c) => {
-    const result = await versionService.getReleaseVersions();
-    return c.json(result);
-  })
-  .get('/loader', async (c) => {
-    const payload: any = c.req.query();
-    const result = await versionService.getLoaderVersions(payload);
-    return c.json(result);
-  })
-  .get('/note', async (c) => {
-    const payload: any = c.req.query();
-    const result = await versionService.getReleaseNote(payload);
-    return c.json(result);
-  });
+@Controller('/versions')
+export class VersionController {
+  @Get()
+  async findAll() {
+    return versionService.findAll();
+  }
+
+  @Get('/releases')
+  async findReleases() {
+    return versionService.findReleases();
+  }
+
+  @Get('/releases/notes')
+  @Validate(ReleaseNoteQueryDto)
+  async findReleaseNotes(@Query() query: ReleaseNoteQueryDto) {
+    return versionService.findReleaseNotes(query);
+  }
+
+  @Get('/loaders')
+  @Validate(LoaderDto)
+  async findLoaders(@Query() query: LoaderDto) {
+    return versionService.findLoaders(query);
+  }
+}

@@ -1,5 +1,5 @@
+import { ContentResponseDto } from '@shared/dtos/content.dto';
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
-import { ContentResponse } from '@shared/schemas/content.schema';
 import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import { toast } from '~/hooks/useToast';
 
 interface ContentCardProps {
-  data: ContentResponse['data'][0];
+  data: ContentResponseDto['data'][0];
   categoryType: string;
   versionSelected: string;
   loaderType: string;
@@ -34,7 +34,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
       logoUrl: data.logoUrl,
     });
     const type = categoryMap.keyToText[categoryType].toLowerCase().replace(' ', '-');
-    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instance/${instanceId}/${type}/${data.id}?${query.toString()}`;
+    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instances/${instanceId}/${type}/${data.id}?${query.toString()}`;
 
     evtRef.current = new EventSource(url);
     setStatus('Installing');

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const categorySchema = z.object({
+import { createZodDto } from '../../src-server/common/zod-dto';
+
+const categorySchema = z.object({
   id: z.number(),
   gameId: z.number(),
   name: z.string(),
@@ -13,10 +15,11 @@ export const categorySchema = z.object({
   isClass: z.boolean().optional(),
   displayIndex: z.number().optional(),
 });
-export type Category = z.infer<typeof categorySchema>;
 
-export const categoryQuerySchema = z.object({
+const categoryQuerySchema = z.object({
   classId: z.coerce.number().optional(),
   classesOnly: z.coerce.boolean().optional().default(false),
 });
-export type CategoryQuery = z.infer<typeof categoryQuerySchema>;
+
+export class CategoryDto extends createZodDto(categorySchema) {}
+export class CategoryQueryDto extends createZodDto(categoryQuerySchema) {}

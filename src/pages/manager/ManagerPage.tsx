@@ -1,5 +1,5 @@
+import { ContentDto } from '@shared/dtos/content.dto';
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
-import { Content } from '@shared/schemas/content.schema';
 import { useState } from 'react';
 import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -20,10 +20,10 @@ export default function ManagerPage() {
   const [tab, setTab] = useState('mc-mods');
   const [searchKey, setSearchKey] = useState('');
 
-  const { data: instance } = useContextSelector(LauncherContext, (v) => v.getInstanceQuery(instanceId || ''));
-  const getContentByIdsQuery = useContextSelector(LauncherContext, (v) =>
-    v.getContentByIdsQuery(
-      instance?.[categoryMap.keyToText[tab].toLowerCase().replace(' ', '')].map((c: Content) => c.id) || [],
+  const { data: instance } = useContextSelector(LauncherContext, (v) => v.findOneInstanceQuery(instanceId || ''));
+  const findContentsByIdsQuery = useContextSelector(LauncherContext, (v) =>
+    v.findContentsByIdsQuery(
+      instance?.[categoryMap.keyToText[tab].toLowerCase().replace(' ', '')].map((c: ContentDto) => c.id) || [],
     ),
   );
 
@@ -95,7 +95,7 @@ export default function ManagerPage() {
         </button>
       </div>
 
-      <ManagerTablePage data={getContentByIdsQuery.data?.data ?? []} />
+      <ManagerTablePage data={findContentsByIdsQuery.data?.data ?? []} />
     </div>
   );
 }

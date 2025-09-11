@@ -1,12 +1,9 @@
-import { Category, CategoryQuery, categoryQuerySchema } from '@shared/schemas/category.schema';
-
-import { Validate } from '~s/common/decorators/validate.decorator';
+import { CategoryDto, CategoryQueryDto } from '@shared/dtos/category.dto';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 
 class CategoriesService {
-  @Validate(categoryQuerySchema)
-  async findAll(payload: CategoryQuery): Promise<Category[]> {
+  async findAll(payload: CategoryQueryDto): Promise<CategoryDto[]> {
     const { classId, classesOnly } = payload;
     const result = await curseForgeService.getCategories(432, classId, classesOnly);
     let categories = result.data;

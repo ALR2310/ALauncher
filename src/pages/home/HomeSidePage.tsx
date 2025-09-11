@@ -12,7 +12,7 @@ export default function HomeSidePage({ className }: { className?: string }) {
   const modalRef = useRef<HTMLDialogElement>(null!);
 
   // Launcher context
-  const getAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.getAllInstanceQuery);
+  const findAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.findAllInstanceQuery);
 
   return (
     <React.Fragment>
@@ -41,9 +41,9 @@ export default function HomeSidePage({ className }: { className?: string }) {
 
         {/* Modpack List */}
         <div className="flex-1 space-y-3 overflow-auto no-scrollbar">
-          {getAllInstanceQuery.isLoading && <div>Loading...</div>}
-          {getAllInstanceQuery.data?.length ? (
-            getAllInstanceQuery.data
+          {findAllInstanceQuery.isLoading && <div>Loading...</div>}
+          {findAllInstanceQuery.data?.length ? (
+            findAllInstanceQuery.data
               .filter((i) => i.name.toLocaleLowerCase().includes(searchKey.toLocaleLowerCase()))
               .map((instance) => <ModpackCard key={instance.id} data={instance} />)
           ) : (

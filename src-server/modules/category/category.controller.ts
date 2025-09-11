@@ -1,9 +1,14 @@
-import { Hono } from 'hono';
+import { CategoryQueryDto } from '@shared/dtos/category.dto';
+
+import { Controller, Get, Payload, Validate } from '~s/common/decorators';
 
 import { categoriesService } from './category.service';
 
-export const categoriesController = new Hono().basePath('/category').get('/', async (c) => {
-  const payload: any = c.req.query();
-  const result = await categoriesService.findAll(payload);
-  return c.json(result);
-});
+@Controller('/categories')
+export class CategoryController {
+  @Get()
+  @Validate(CategoryQueryDto)
+  findAll(@Payload() payload: CategoryQueryDto) {
+    return categoriesService.findAll(payload);
+  }
+}

@@ -1,26 +1,20 @@
-import { Content } from '@shared/schemas/content.schema';
+import { ContentDto } from '@shared/dtos/content.dto';
 import {
-  Instance,
-  InstanceAddContentQuery,
-  instanceAddContentQuerySchema,
-  InstanceRemoveContentQuery,
-  instanceRemoveContentQuerySchema,
-  instanceSchema,
-  InstanceToggleContentPayload,
-  instanceToggleContentPayloadSchema,
-  UpdateInstancePayload,
-  updateInstanceSchema,
-} from '@shared/schemas/instance.schema';
+  AddContentInstanceDto,
+  InstanceDto,
+  RemoveContentInstanceDto,
+  ToggleContentInstanceDto,
+  UpdateInstanceDto,
+} from '@shared/dtos/instance.dto';
 import { formatToSlug } from '@shared/utils/general.utils';
 import { existsSync } from 'fs';
 import { mkdir, readdir, readFile, rename, rm, stat, unlink, writeFile } from 'fs/promises';
 import pLimit from 'p-limit';
 import path from 'path';
 
-import { Validate } from '~s/common/decorators/validate.decorator';
+import { BadRequestException, NotFoundException } from '~s/common/filters/exception.filter';
 import { Downloader } from '~s/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~s/libraries/minecraft-java-core/build/utils/Downloader';
-import { BadRequestException, NotFoundException } from '~s/middlewares/exception';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { launcherService } from '../launcher/launcher.service';
@@ -42,7 +36,7 @@ class InstanceService {
           const instancePath = path.join(this.instanceDir!, dir.name, 'instance.json');
           try {
             const data = await readFile(instancePath, 'utf-8');
-            return JSON.parse(data) as Instance;
+            return JSON.parse(data) as InstanceDto;
           } catch (err) {
             return null;
           }
@@ -50,7 +44,7 @@ class InstanceService {
       ),
     );
 
-    return instances.filter((i): i is Instance => i !== null);
+    return instances.filter((i): i is InstanceDto => i !== null);
   }
 
   async findOne(id: string) {
@@ -61,14 +55,13 @@ class InstanceService {
     const filePath = path.join(this.instanceDir!, id, 'instance.json');
     try {
       const data = await readFile(filePath, 'utf-8');
-      return JSON.parse(data) as Instance;
+      return JSON.parse(data) as InstanceDto;
     } catch (err) {
       throw new BadRequestException(`An error occurred while reading instance ${id}`);
     }
   }
 
-  @Validate(instanceSchema)
-  async create(instance: Instance) {
+  async create(instance: InstanceDto) {
     await this.ensureInstanceDir();
 
     if (!instance.id) instance.id = formatToSlug(instance.name);
@@ -81,15 +74,14 @@ class InstanceService {
     return instance;
   }
 
-  @Validate(updateInstanceSchema)
-  async update(payload: UpdateInstancePayload) {
+  async update(payload: UpdateInstanceDto) {
     const { id, instance } = payload;
     await this.ensureInstanceDir();
 
     const existing = await this.findOne(id);
     if (!existing) throw new NotFoundException('Instance not found');
 
-    const updated: Instance = { ...existing, ...instance };
+    const updated: InstanceDto = { ...existing, ...instance };
     const filePath = path.join(this.instanceDir!, id, 'instance.json');
     await writeFile(filePath, JSON.stringify(updated, null, 2), 'utf-8');
     return updated;
@@ -106,15 +98,14 @@ class InstanceService {
     return existing;
   }
 
-  @Validate(instanceAddContentQuerySchema)
-  async addContent(payload: InstanceAddContentQuery) {
+  async addContent(payload: AddContentInstanceDto) {
     const { id: instanceId, type, contentId, worldName, name, author, logoUrl } = payload;
 
     const config = await launcherService.getConfig();
     const pathDir = await this.getInstanceContentDir(instanceId, type, worldName);
 
-    const contentsMap = new Map<number, Content>();
-    const contentsToDownload: Content[] = [];
+    const contentsMap = new Map<number, ContentDto>();
+    const contentsToDownload: ContentDto[] = [];
 
     const resolveContent = async (id: number, gameVersion: string, loaderType?: string) => {
       if (contentsMap.has(id)) return contentsMap.get(id)!;
@@ -126,7 +117,7 @@ class InstanceService {
       const fileUrl =
         file.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${file.modId}/files/${file.id}/download`;
 
-      const content: Content = {
+      const content: ContentDto = {
         id: file.modId,
         name,
         author,
@@ -170,8 +161,7 @@ class InstanceService {
     return this.handleDownloadContent(contentsToDownload, pathDir, config.download_multiple);
   }
 
-  @Validate(instanceRemoveContentQuerySchema)
-  async removeContent(payload: InstanceRemoveContentQuery) {
+  async removeContent(payload: RemoveContentInstanceDto) {
     const { id: instanceId, type, contentId } = payload;
 
     const [instance, pathDir] = await Promise.all([
@@ -207,8 +197,7 @@ class InstanceService {
     };
   }
 
-  @Validate(instanceRemoveContentQuerySchema)
-  async canRemoveContent(payload: InstanceRemoveContentQuery) {
+  async canRemoveContent(payload: RemoveContentInstanceDto) {
     const { id: instanceId, type, contentId } = payload;
 
     const instance = await this.findOne(instanceId);
@@ -230,8 +219,7 @@ class InstanceService {
     return { canRemove: true, message: 'Mod can be removed', dependents: [] };
   }
 
-  @Validate(instanceToggleContentPayloadSchema)
-  async toggleContent(payload: InstanceToggleContentPayload) {
+  async toggleContent(payload: ToggleContentInstanceDto) {
     const { id: instanceId, type, contentIds, enabled } = payload;
 
     const [instance, pathDir] = await Promise.all([
@@ -268,7 +256,7 @@ class InstanceService {
     return { message: 'Toggled successfully' };
   }
 
-  private async handleDownloadContent(contents: Content[], pathDir: string, limit = 3) {
+  private async handleDownloadContent(contents: ContentDto[], pathDir: string, limit = 3) {
     if (!contents.length) throw new Error('No additional to download');
 
     await mkdir(pathDir, { recursive: true });

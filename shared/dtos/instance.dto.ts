@@ -1,9 +1,10 @@
 import z from 'zod';
 
-import { contentSchema } from './content.schema';
-import { loaderSchema } from './version.schema';
+import { createZodDto } from '../../src-server/common/zod-dto';
+import { contentSchema } from './content.dto';
+import { loaderSchema } from './version.dto';
 
-export const instanceSchema = z.object({
+const instanceSchema = z.object({
   id: z.string().optional(),
   name: z.string(),
   description: z.string().optional(),
@@ -17,30 +18,26 @@ export const instanceSchema = z.object({
   last_updated: z.string().optional(),
   game_options: z.string().optional(),
 });
-export type Instance = z.infer<typeof instanceSchema>;
 
-export const updateInstanceSchema = z.object({
+const updateInstanceSchema = z.object({
   id: z.string(),
   instance: instanceSchema.partial(),
 });
-export type UpdateInstancePayload = z.infer<typeof updateInstanceSchema>;
 
-export const instanceRemoveContentQuerySchema = z.object({
+const removeContentInstanceSchema = z.object({
   id: z.string(),
   type: z.enum(['mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'worlds']).default('mods'),
   contentId: z.coerce.number(),
 });
-export type InstanceRemoveContentQuery = z.infer<typeof instanceRemoveContentQuerySchema>;
 
-export const instanceAddContentQuerySchema = instanceRemoveContentQuerySchema.extend({
+const addContentInstanceSchema = removeContentInstanceSchema.extend({
   worldName: z.string().optional(),
   name: z.string(),
   author: z.string(),
   logoUrl: z.url(),
 });
-export type InstanceAddContentQuery = z.infer<typeof instanceAddContentQuerySchema>;
 
-export const instanceToggleContentPayloadSchema = instanceRemoveContentQuerySchema
+const toggleContentInstanceSchema = removeContentInstanceSchema
   .pick({
     id: true,
     type: true,
@@ -49,4 +46,9 @@ export const instanceToggleContentPayloadSchema = instanceRemoveContentQuerySche
     contentIds: z.array(z.number()),
     enabled: z.boolean().optional(),
   });
-export type InstanceToggleContentPayload = z.infer<typeof instanceToggleContentPayloadSchema>;
+
+export class InstanceDto extends createZodDto(instanceSchema) {}
+export class UpdateInstanceDto extends createZodDto(updateInstanceSchema) {}
+export class RemoveContentInstanceDto extends createZodDto(removeContentInstanceSchema) {}
+export class AddContentInstanceDto extends createZodDto(addContentInstanceSchema) {}
+export class ToggleContentInstanceDto extends createZodDto(toggleContentInstanceSchema) {}

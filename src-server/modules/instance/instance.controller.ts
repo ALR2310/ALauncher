@@ -1,42 +1,51 @@
 import {
-  InstanceAddContentQuery,
-  InstanceRemoveContentQuery,
-  InstanceToggleContentPayload,
-} from '@shared/schemas/instance.schema';
-import { Hono } from 'hono';
+  AddContentInstanceDto,
+  InstanceDto,
+  RemoveContentInstanceDto,
+  ToggleContentInstanceDto,
+  UpdateInstanceDto,
+} from '@shared/dtos/instance.dto';
 import { streamSSE } from 'hono/streaming';
 import throttle from 'lodash/throttle';
 
+import { Body, Context, Controller, Delete, Get, Param, Post, Put, Query, Validate } from '~s/common/decorators';
+
 import { instanceService } from './instance.service';
 
-export const instanceController = new Hono()
-  .basePath('/instance')
-  .get('/', async (c) => {
-    const result = await instanceService.findAll();
-    return c.json(result);
-  })
-  .get('/:id', async (c) => {
-    const { id } = c.req.param();
-    const result = await instanceService.findOne(id);
-    return c.json(result);
-  })
-  .post('/', async (c) => {
-    const instance = await c.req.json();
-    const result = await instanceService.create(instance);
-    return c.json(result);
-  })
-  .put('/:id', async (c) => {
-    const payload = { ...c.req.param(), ...(await c.req.json()) };
-    const result = await instanceService.update(payload);
-    return c.json(result);
-  })
-  .delete('/:id', async (c) => {
-    const { id } = c.req.param();
-    const result = await instanceService.delete(id);
-    return c.json(result);
-  })
-  .get('/:id/:type/:contentId', async (c) => {
-    const payload = { ...c.req.param(), ...c.req.query() } as any as InstanceAddContentQuery;
+@Controller('/instances')
+export class InstanceController {
+  @Get()
+  async findAll() {
+    return await instanceService.findAll();
+  }
+
+  @Get('/:id')
+  async findOne(@Param('id') id: string) {
+    return await instanceService.findOne(id);
+  }
+
+  @Post()
+  @Validate(InstanceDto)
+  async create(@Param() payload: InstanceDto) {
+    return await instanceService.create(payload);
+  }
+
+  @Put('/:id')
+  @Validate(UpdateInstanceDto)
+  async update(@Param('id') id: string, @Body() instance: InstanceDto) {
+    const payload: UpdateInstanceDto = { id, instance };
+    return await instanceService.update(payload);
+  }
+
+  @Delete('/:id')
+  async delete(@Param('id') id: string) {
+    return await instanceService.delete(id);
+  }
+
+  @Get('/:id/:type/:contentId')
+  @Validate(AddContentInstanceDto)
+  async addContent(@Param() Param, @Query() query, @Context() c) {
+    const payload: AddContentInstanceDto = { ...Param, ...query };
     const downloader = await instanceService.addContent(payload);
 
     if (!downloader) {
@@ -73,19 +82,26 @@ export const instanceController = new Hono()
 
       await done;
     });
-  })
-  .delete('/:id/:type/:contentId', async (c) => {
-    const payload = { ...c.req.param(), ...c.req.query() } as any as InstanceRemoveContentQuery;
-    const result = await instanceService.removeContent(payload);
-    return c.json(result);
-  })
-  .get('/:id/:type/:contentId/can-remove', async (c) => {
-    const payload = { ...c.req.param() } as any as InstanceRemoveContentQuery;
-    const result = await instanceService.canRemoveContent(payload);
-    return c.json(result);
-  })
-  .post('/:id/:type/toggle', async (c) => {
-    const payload = { ...c.req.param(), ...(await c.req.json()) } as any as InstanceToggleContentPayload;
-    const result = await instanceService.toggleContent(payload);
-    return c.json(result);
-  });
+  }
+
+  @Delete('/:id/:type/:contentId')
+  @Validate(RemoveContentInstanceDto)
+  async removeContent(@Param() Param, @Query() query) {
+    const payload: RemoveContentInstanceDto = { ...Param, ...query };
+    return await instanceService.removeContent(payload);
+  }
+
+  @Get('/:id/:type/:contentId/can-remove')
+  @Validate(RemoveContentInstanceDto)
+  async canRemoveContent(@Param() Param, @Query() query) {
+    const payload: RemoveContentInstanceDto = { ...Param, ...query };
+    return await instanceService.canRemoveContent(payload);
+  }
+
+  @Post('/:id/:type/toggle')
+  @Validate(ToggleContentInstanceDto)
+  async toggleContent(@Param() Param, @Body() body) {
+    const payload: ToggleContentInstanceDto = { ...Param, ...body };
+    return await instanceService.toggleContent(payload);
+  }
+}

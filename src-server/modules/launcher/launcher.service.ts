@@ -1,4 +1,4 @@
-import { LauncherConfig, SetConfigPayload, setConfigSchema } from '@shared/schemas/launcher.schema';
+import { LauncherConfigDto, UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 import { spawn } from 'child_process';
 import EventEmitter from 'events';
 import { readFile, writeFile } from 'fs/promises';
@@ -6,12 +6,11 @@ import set from 'lodash/set';
 import throttle from 'lodash/throttle';
 import path from 'path';
 
-import { Validate } from '~s/common/decorators/validate.decorator';
 import { Launch, Mojang } from '~s/libraries/minecraft-java-core/build/Index';
 
 const LAUNCHER_CONFIG_PATH = path.join('launcher.json');
 
-const launcherConfig: LauncherConfig = {
+const launcherConfig: LauncherConfigDto = {
   profile_selected: {
     name: 'Latest Release',
     type: 'release',
@@ -47,15 +46,14 @@ class LauncherService {
   async getConfig() {
     try {
       const config = await readFile(LAUNCHER_CONFIG_PATH, 'utf-8');
-      return JSON.parse(config) as LauncherConfig;
+      return JSON.parse(config) as LauncherConfigDto;
     } catch (err: any) {
       await writeFile(LAUNCHER_CONFIG_PATH, JSON.stringify(launcherConfig, null, 2), 'utf-8');
       return launcherConfig;
     }
   }
 
-  @Validate(setConfigSchema)
-  async setConfig(payload: SetConfigPayload) {
+  async setConfig(payload: UpdateLauncherConfigDto) {
     const { key, value } = payload;
     const config = await this.getConfig();
     set(config, key, value);

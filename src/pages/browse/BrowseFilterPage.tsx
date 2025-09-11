@@ -1,5 +1,5 @@
+import { CategoryDto } from '@shared/dtos/category.dto';
 import { categoryMap } from '@shared/mappings/general.mapping';
-import { Category } from '@shared/schemas/category.schema';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -26,16 +26,16 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     return raw ? new Set(JSON.parse(raw)) : new Set();
   });
 
-  const categoryQuery = useContextSelector(LauncherContext, (v) =>
-    v.categoryQuery({ classId: categoryMap.keyToId[categoryType] }),
+  const findAllCategoryQuery = useContextSelector(LauncherContext, (v) =>
+    v.findAllCategoryQuery({ classId: categoryMap.keyToId[categoryType] }),
   );
-  const releaseVersionsQuery = useContextSelector(LauncherContext, (v) => v.releaseVersionsQuery);
+  const findReleasesVersionQuery = useContextSelector(LauncherContext, (v) => v.findReleasesVersionQuery);
 
   // Set default selected version when data is loaded
   useEffect(() => {
-    if (releaseVersionsQuery.isLoading) return;
-    if (releaseVersionsQuery.data?.length && !gameVersion) setGameVersion(releaseVersionsQuery.data[0].version);
-  }, [gameVersion, releaseVersionsQuery.data, releaseVersionsQuery.isLoading]);
+    if (findReleasesVersionQuery.isLoading) return;
+    if (findReleasesVersionQuery.data?.length && !gameVersion) setGameVersion(findReleasesVersionQuery.data[0].version);
+  }, [gameVersion, findReleasesVersionQuery.data, findReleasesVersionQuery.isLoading]);
 
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
@@ -83,14 +83,14 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
   );
 
   const tree = useMemo(() => {
-    if (!categoryQuery.data) return [];
+    if (!findAllCategoryQuery.data) return [];
 
-    const sorted = [...categoryQuery.data].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = [...findAllCategoryQuery.data].sort((a, b) => a.name.localeCompare(b.name));
 
     const map = new Map<number, any>();
     sorted.forEach((c) => map.set(c.id, { ...c, children: [] }));
 
-    const roots: Category[] = [];
+    const roots: CategoryDto[] = [];
     sorted.forEach((c) => {
       if (c.parentCategoryId && map.has(c.parentCategoryId)) {
         map.get(c.parentCategoryId).children.push(map.get(c.id));
@@ -100,7 +100,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     });
 
     return roots;
-  }, [categoryQuery.data]);
+  }, [findAllCategoryQuery.data]);
 
   return (
     <div
@@ -131,7 +131,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
           className="flex-2/3"
           disabled={!!instanceId}
           value={gameVersion}
-          options={releaseVersionsQuery.data?.map((v) => ({ label: v.version, value: v.version })) ?? []}
+          options={findReleasesVersionQuery.data?.map((v) => ({ label: v.version, value: v.version })) ?? []}
           onChange={(val) => setGameVersion(val)}
         />
       </div>

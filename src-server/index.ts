@@ -1,27 +1,33 @@
 import 'dotenv/config';
+import 'reflect-metadata';
 
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { trimTrailingSlash } from 'hono/trailing-slash';
 
-import { exceptionMiddleware } from './middlewares/exception';
-import { categoriesController } from './modules/category/category.controller';
-import { contentController } from './modules/content/content.controller';
-import { instanceController } from './modules/instance/instance.controller';
-import { launcherController } from './modules/launcher/launcher.controller';
-import { versionController } from './modules/version/version.controller';
+import { exception } from './common/filters/exception.filter';
+import { registerController } from './common/register-controller';
+import { CategoryController } from './modules/category/category.controller';
+import { ContentController } from './modules/content/content.controller';
+import { InstanceController } from './modules/instance/instance.controller';
+import { LauncherController } from './modules/launcher/launcher.controller';
+import { VersionController } from './modules/version/version.controller';
 
-const app = new Hono().basePath('/api').onError(exceptionMiddleware);
-
-app.use('*', cors({ origin: '*' }));
-app.use('*', logger());
-
-app.route('/', launcherController);
-app.route('/', versionController);
-app.route('/', instanceController);
-app.route('/', categoriesController);
-app.route('/', contentController);
+const app = new Hono()
+  .basePath('/api')
+  .onError(exception)
+  .use(cors({ origin: '*' }))
+  .use(logger())
+  .use(trimTrailingSlash());
+registerController(app, [
+  CategoryController,
+  ContentController,
+  InstanceController,
+  LauncherController,
+  VersionController,
+]);
 
 serve({ fetch: app.fetch, port: Number(process.env.VITE_SERVER_PORT ?? 1421) }, (info) => {
   console.log(`Listening on http://localhost:${info.port}`);

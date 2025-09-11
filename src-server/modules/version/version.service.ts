@@ -1,18 +1,9 @@
+import { LoaderDto, ReleaseNoteDto, ReleaseNoteQueryDto, VersionDto } from '@shared/dtos/version.dto';
 import { loaderMap } from '@shared/mappings/general.mapping';
-import {
-  Loader,
-  loaderSchema,
-  ReleaseNote,
-  ReleaseNoteQuery,
-  releaseNoteQuerySchema,
-  Version,
-} from '@shared/schemas/version.schema';
 import { capitalize } from '@shared/utils/general.utils';
 import axios from 'axios';
 import { readdir } from 'fs/promises';
 import path from 'path';
-
-import { Validate } from '~s/common/decorators/validate.decorator';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
@@ -24,13 +15,13 @@ class VersionService {
 
   async findAll() {
     const [releases, loaders, instances, downloaded] = await Promise.all([
-      this.getReleaseVersions(),
-      this.getLoaderTypeByVersions(),
-      this.getInstanceVersions(),
-      this.getVersionDownloaded(),
+      this.findReleases(),
+      this.findLoadersByVersion(),
+      this.mapInstancesToVersions(),
+      this.findDownloadedVersions(),
     ]);
 
-    const result: Version[] = [];
+    const result: VersionDto[] = [];
 
     for (const release of releases) {
       const relatedInstances = instances.filter((i) => i.version === release.version);
@@ -60,7 +51,7 @@ class VersionService {
     return result;
   }
 
-  async getReleaseVersions(): Promise<Version[]> {
+  async findReleases(): Promise<VersionDto[]> {
     const raw = await curseForgeService.getMinecraftVersions();
     return raw.data
       .filter((v: any) => !v.versionString.toLowerCase().includes('snapshot'))
@@ -71,8 +62,7 @@ class VersionService {
       }));
   }
 
-  @Validate(loaderSchema)
-  async getLoaderVersions(payload: Loader): Promise<Version[]> {
+  async findLoaders(payload: LoaderDto): Promise<VersionDto[]> {
     const { version, type } = payload;
     const raw = await curseForgeService.getLoaderVersions(version);
 
@@ -102,8 +92,7 @@ class VersionService {
     return mapped.filter((m) => m && (!type || m.loader?.type === type));
   }
 
-  @Validate(releaseNoteQuerySchema)
-  async getReleaseNote(payload: ReleaseNoteQuery) {
+  async findReleaseNotes(payload: ReleaseNoteQueryDto): Promise<ReleaseNoteDto[]> {
     const { pageIndex, pageSize } = payload;
     if (!this.listNote.length) {
       const listNoteRes = await axios.get(`${this.NOTE_API}javaPatchNotes.json`);
@@ -114,7 +103,7 @@ class VersionService {
     const end = start + pageSize;
     const sliceNotes = this.listNote.slice(start, end);
 
-    const details: ReleaseNote[] = await Promise.all(
+    const details: ReleaseNoteDto[] = await Promise.all(
       sliceNotes.map(async (note) => {
         const res = await axios.get(`${this.NOTE_API}${note.contentPath}`);
         return res.data;
@@ -124,7 +113,7 @@ class VersionService {
     return details.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
-  private async getLoaderTypeByVersions(version?: string) {
+  private async findLoadersByVersion(version?: string) {
     const raw = await curseForgeService.getLoaderVersions(version);
 
     const grouped: Record<string, Record<number, any[]>> = {};
@@ -134,7 +123,7 @@ class VersionService {
       grouped[item.gameVersion][item.type].push(item);
     }
 
-    const result: Version[] = [];
+    const result: VersionDto[] = [];
 
     for (const [gameVersion, typeGroups] of Object.entries(grouped)) {
       for (const [typeId] of Object.entries(typeGroups)) {
@@ -156,7 +145,7 @@ class VersionService {
     return result;
   }
 
-  private async getInstanceVersions(): Promise<Version[]> {
+  private async mapInstancesToVersions(): Promise<VersionDto[]> {
     const instances = await instanceService.findAll();
     return instances.map((inst) => ({
       name: inst.name,
@@ -167,7 +156,7 @@ class VersionService {
     }));
   }
 
-  private async getVersionDownloaded() {
+  private async findDownloadedVersions() {
     try {
       const gameDir = (await launcherService.getConfig()).minecraft.gamedir;
       const versionPath = path.resolve(gameDir, 'versions');

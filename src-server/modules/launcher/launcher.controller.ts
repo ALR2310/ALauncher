@@ -1,27 +1,33 @@
-import { Hono } from 'hono';
+import { UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 import { streamSSE } from 'hono/streaming';
+
+import { Body, Context, Controller, Get, Post, Validate } from '~s/common/decorators';
 
 import { launcherService } from './launcher.service';
 
-export const launcherController = new Hono()
-  .basePath('launcher')
-  .get('/config', async (c) => {
-    const result = await launcherService.getConfig();
-    return c.json(result);
-  })
-  .post('/config', async (c) => {
-    const payload = await c.req.json();
-    const result = await launcherService.setConfig(payload);
-    return c.json(result);
-  })
-  .get('/folder', async (c) => {
-    const result = await launcherService.getFolder();
-    return c.json(result);
-  })
-  .get('/launch', async (c) => {
-    const launch = await launcherService.launch();
+@Controller('/launchers')
+export class LauncherController {
+  @Get('/config')
+  async getConfig() {
+    return launcherService.getConfig();
+  }
 
-    if (!launch) {
+  @Post('/config')
+  @Validate(UpdateLauncherConfigDto)
+  async setConfig(@Body() payload: UpdateLauncherConfigDto) {
+    return launcherService.setConfig(payload);
+  }
+
+  @Get('/folder')
+  async getFolder() {
+    return launcherService.getFolder();
+  }
+
+  @Get('/launch')
+  async launch(@Context() c) {
+    const launcher = await launcherService.launch();
+
+    if (!launcher) {
       return streamSSE(c, async (stream) => {
         await stream.writeSSE({ event: 'error', data: 'Cannot launch' });
         await stream.close();
@@ -30,7 +36,7 @@ export const launcherController = new Hono()
 
     return streamSSE(c, async (stream) => {
       const done = new Promise<void>((resolve) =>
-        launch
+        launcher
           .on('progress', async (p) => await stream.writeSSE({ event: 'progress', data: p }))
           .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l }))
           .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
@@ -56,8 +62,10 @@ export const launcherController = new Hono()
 
       await done;
     });
-  })
-  .get('/cancel', async (c) => {
-    const result = launcherService.cancel();
-    return c.json({ success: result });
-  });
+  }
+
+  @Get('/cancel')
+  async cancel() {
+    return launcherService.cancel();
+  }
+}

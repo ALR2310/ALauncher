@@ -1,10 +1,14 @@
-import { ContentQuery } from '@shared/schemas/content.schema';
-import { Hono } from 'hono';
+import { ContentQueryDto } from '@shared/dtos/content.dto';
+
+import { Controller, Get, Query, Validate } from '~s/common/decorators';
 
 import { contentService } from './content.service';
 
-export const contentController = new Hono().basePath('/content').get('/', async (c) => {
-  const payload = c.req.query() as any as ContentQuery;
-  const result = await contentService.findAll(payload);
-  return c.json(result);
-});
+@Controller('/contents')
+export class ContentController {
+  @Get()
+  @Validate(ContentQueryDto)
+  async findAll(@Query() query: ContentQueryDto) {
+    return contentService.findAll(query);
+  }
+}

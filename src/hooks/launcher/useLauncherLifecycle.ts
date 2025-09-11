@@ -17,7 +17,7 @@ export function useLauncherLifeCycle() {
   const launch = useCallback(() => {
     if (evtRef.current) return;
 
-    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/launcher/launch`);
+    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/launchers/launch`);
 
     setIsRunning(true);
     setIsDownloading(true);
@@ -53,7 +53,7 @@ export function useLauncherLifeCycle() {
   }, []);
 
   const cancel = useCallback(() => {
-    api.get('launcher/cancel');
+    api.get('launchers/cancel');
 
     // Reset state
     setIsRunning(false);

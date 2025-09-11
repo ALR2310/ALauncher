@@ -28,11 +28,11 @@ export class InternalServerException extends HttpException {
   }
 }
 
-export const exceptionMiddleware = (err: Error, c: Context) => {
+export const exception = (err: Error, c: Context) => {
   if (err instanceof HttpException) {
     return c.json({ message: err.message, status: err.status }, err.status as ContentfulStatusCode);
   }
-  
+
   if (err instanceof z.ZodError) {
     return c.json(
       {

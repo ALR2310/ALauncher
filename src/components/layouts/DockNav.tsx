@@ -1,4 +1,4 @@
-import { Version } from '@shared/schemas/version.schema';
+import { VersionDto } from '@shared/dtos/version.dto';
 import { useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
@@ -8,13 +8,13 @@ import { LauncherContext } from '~/providers/LauncherProvider';
 import Select from '../Select';
 
 export default function DockNav() {
-  const [version, setVersion] = useState<Version>(null!);
+  const [version, setVersion] = useState<VersionDto>(null!);
 
   // Launcher context
   const config = useContextSelector(LauncherContext, (v) => v.getConfig());
   const setConfig = useContextSelector(LauncherContext, (v) => v.setConfig);
   const openFolder = useContextSelector(LauncherContext, (v) => v.openFolder);
-  const versionsQuery = useContextSelector(LauncherContext, (v) => v.versionsQuery);
+  const findAllVersionQuery = useContextSelector(LauncherContext, (v) => v.findAllVersionQuery);
   const launch = useContextSelector(LauncherContext, (v) => v.launch);
   const cancel = useContextSelector(LauncherContext, (v) => v.cancel);
   const isDownloading = useContextSelector(LauncherContext, (v) => v.isDownloading);
@@ -25,10 +25,10 @@ export default function DockNav() {
 
   // Sync version when config or versions change
   useEffect(() => {
-    if (versionsQuery.isLoading || !config) return;
-    if (versionsQuery.isError) return toast.error('Failed to fetch versions');
+    if (findAllVersionQuery.isLoading || !config) return;
+    if (findAllVersionQuery.isError) return toast.error('Failed to fetch versions');
 
-    const versions = versionsQuery.data!;
+    const versions = findAllVersionQuery.data!;
 
     if (config.profile_selected.version === 'latest_release') {
       const latestRelease = versions.find((v) => v.type === 'release');
@@ -36,7 +36,7 @@ export default function DockNav() {
     } else {
       setVersion(config.profile_selected);
     }
-  }, [config, versionsQuery.data, versionsQuery.isError, versionsQuery.isLoading]);
+  }, [config, findAllVersionQuery.data, findAllVersionQuery.isError, findAllVersionQuery.isLoading]);
 
   return (
     <div id="dockNav" className="relative flex gap-4 p-3 bg-base-300">
@@ -72,14 +72,14 @@ export default function DockNav() {
         position="top"
         value={version?.name || ''}
         options={
-          versionsQuery.data?.map((v) => ({
+          findAllVersionQuery.data?.map((v) => ({
             label: v.name,
             value: v.name,
             downloaded: v.downloaded,
           })) || []
         }
         onChange={(v) => {
-          const selected = versionsQuery.data?.find((ver) => ver.name === v);
+          const selected = findAllVersionQuery.data?.find((ver) => ver.name === v);
           if (selected) setConfig('profile_selected', selected);
         }}
         render={(item) => (

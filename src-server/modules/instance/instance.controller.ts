@@ -44,8 +44,8 @@ export class InstanceController {
 
   @Get('/:id/:type/:contentId')
   @Validate(AddContentInstanceDto)
-  async addContent(@Param() Param, @Query() query, @Context() c) {
-    const payload: AddContentInstanceDto = { ...Param, ...query };
+  async addContent(@Param() param, @Query() query, @Context() c) {
+    const payload: AddContentInstanceDto = { ...param, ...query };
     const downloader = await instanceService.addContent(payload);
 
     if (!downloader) {
@@ -86,22 +86,22 @@ export class InstanceController {
 
   @Delete('/:id/:type/:contentId')
   @Validate(RemoveContentInstanceDto)
-  async removeContent(@Param() Param, @Query() query) {
-    const payload: RemoveContentInstanceDto = { ...Param, ...query };
+  async removeContent(@Param() param, @Query() query) {
+    const payload: RemoveContentInstanceDto = { ...param, ...query };
     return await instanceService.removeContent(payload);
   }
 
   @Get('/:id/:type/:contentId/can-remove')
   @Validate(RemoveContentInstanceDto)
-  async canRemoveContent(@Param() Param, @Query() query) {
-    const payload: RemoveContentInstanceDto = { ...Param, ...query };
+  async canRemoveContent(@Param() param, @Query() query) {
+    const payload: RemoveContentInstanceDto = { ...param, ...query };
     return await instanceService.canRemoveContent(payload);
   }
 
   @Post('/:id/:type/toggle')
   @Validate(ToggleContentInstanceDto)
-  async toggleContent(@Param() Param, @Body() body) {
-    const payload: ToggleContentInstanceDto = { ...Param, ...body };
+  async toggleContent(@Param() param, @Body() body) {
+    const payload: ToggleContentInstanceDto = { ...param, ...body };
     return await instanceService.toggleContent(payload);
   }
 }

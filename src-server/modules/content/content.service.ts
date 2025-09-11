@@ -14,14 +14,15 @@ class ContentService {
     const instance = instanceId ? await instanceService.findOne(instanceId) : null;
 
     try {
-      const installedContentsMap = new Map<number, number>();
+      const installedContentsMap = new Map<number, { fileId: number; enabled: boolean }>();
+
       if (instance) {
         const allTypes = ['mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'worlds'] as const;
         for (const t of allTypes) {
           const contents = instance[t];
           if (contents) {
             contents.forEach((c) => {
-              installedContentsMap.set(c.id, c.fileId);
+              installedContentsMap.set(c.id, { fileId: c.fileId, enabled: c.enabled });
             });
           }
         }
@@ -30,8 +31,9 @@ class ContentService {
       return {
         data: response.data.map((item: any) => {
           let status: 'not_installed' | 'outdated' | 'latest' = 'not_installed';
+          let enabled = false;
 
-          if (instance && instance.mods) {
+          if (instance) {
             const loaderType = instance.loader.type;
             const gameVersion = instance.version;
 
@@ -39,7 +41,8 @@ class ContentService {
               (f: any) => f.gameVersion === gameVersion && f.modLoader === loaderMap.keyToId[loaderType],
             );
 
-            const installedFileId = installedContentsMap.get(item.id);
+            const installedFileId = installedContentsMap.get(item.id)?.fileId;
+            const installedContent = installedContentsMap.get(item.id);
 
             if (installedFileId && latestMatch) {
               if (installedFileId === latestMatch.fileId) status = 'latest';
@@ -47,6 +50,8 @@ class ContentService {
             } else if (installedFileId) {
               status = 'outdated';
             }
+
+            enabled = installedContent?.enabled ?? false;
           }
 
           return {
@@ -55,20 +60,21 @@ class ContentService {
             slug: item.slug,
             link: item.links.websiteUrl,
             summary: item.summary,
+            status,
+            enabled,
             downloadCount: item.downloadCount,
             fileSize: formatBytes(item.latestFiles?.[0]?.fileLength ?? 0),
             authors: item.authors,
             logoUrl: item.logo?.url,
+            dateCreated: item.dateCreated,
+            dateModified: item.dateModified,
+            dateReleased: item.dateReleased,
             categories: item.categories.map((cat: any) => ({
               id: cat.id,
               name: cat.name,
               slug: cat.slug,
               url: cat?.url,
             })),
-            status,
-            dateCreated: item.dateCreated,
-            dateModified: item.dateModified,
-            dateReleased: item.dateReleased,
             latestFilesIndexes: item.latestFilesIndexes,
           };
         }),

@@ -59,6 +59,7 @@ const contentResponseSchema = z.object({
         }),
       ),
       status: z.enum(['not_installed', 'outdated', 'latest']).optional(),
+      enabled: z.boolean().optional(),
       dateCreated: z.string(),
       dateModified: z.string(),
       dateReleased: z.string(),

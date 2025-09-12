@@ -1,6 +1,7 @@
 import { ContentDto } from '@shared/dtos/content.dto';
 import {
   AddContentInstanceDto,
+  FindContentsInstanceDto,
   InstanceDto,
   RemoveContentInstanceDto,
   ToggleContentInstanceDto,
@@ -16,6 +17,7 @@ import { BadRequestException, NotFoundException } from '~s/common/filters/except
 import { Downloader } from '~s/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~s/libraries/minecraft-java-core/build/utils/Downloader';
 
+import { contentService } from '../content/content.service';
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { launcherService } from '../launcher/launcher.service';
 
@@ -96,6 +98,18 @@ class InstanceService {
     const dirPath = path.join(this.instanceDir!, id);
     await rm(dirPath, { recursive: true, force: true });
     return existing;
+  }
+
+  async findContents(payload: FindContentsInstanceDto) {
+    const { id: instanceId, type } = payload;
+
+    const instance = await this.findOne(instanceId);
+    const contentIds = instance[type]?.map((c) => c.id) ?? [];
+
+    if (contentIds.length === 0) return { data: [] };
+
+    const response = await contentService.findAll({ instanceId, ids: contentIds.join(',') });
+    return response;
   }
 
   async addContent(payload: AddContentInstanceDto) {

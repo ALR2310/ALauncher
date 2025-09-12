@@ -1,5 +1,6 @@
 import {
   AddContentInstanceDto,
+  FindContentsInstanceDto,
   InstanceDto,
   RemoveContentInstanceDto,
   ToggleContentInstanceDto,
@@ -40,6 +41,12 @@ export class InstanceController {
   @Delete('/:id')
   async delete(@Param('id') id: string) {
     return await instanceService.delete(id);
+  }
+
+  @Get('/:id/:type')
+  @Validate(FindContentsInstanceDto)
+  async findContents(@Param() payload: FindContentsInstanceDto) {
+    return await instanceService.findContents(payload);
   }
 
   @Get('/:id/:type/:contentId')

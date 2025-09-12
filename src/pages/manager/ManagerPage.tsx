@@ -1,4 +1,3 @@
-import { ContentDto } from '@shared/dtos/content.dto';
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { useState } from 'react';
 import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
@@ -8,10 +7,7 @@ import { LauncherContext } from '~/providers/LauncherProvider';
 
 import ManagerTablePage from './components/ManagerTablePage';
 
-const tabs = Object.entries(categoryMap.keyToText).map(([key, label]) => ({
-  key,
-  label,
-}));
+const tabs = Object.entries(categoryMap.keyToText).map(([key, label]) => ({ key, label }));
 
 export default function ManagerPage() {
   const { instanceId } = useParams<{ instanceId: string }>();
@@ -20,12 +16,10 @@ export default function ManagerPage() {
   const [tab, setTab] = useState('mc-mods');
   const [searchKey, setSearchKey] = useState('');
 
-  const { data: instance, refetch: refetchInstance } = useContextSelector(LauncherContext, (v) =>
-    v.findOneInstanceQuery(instanceId || ''),
-  );
-  const contentIds = instance?.[categoryMap.keyToText[tab].toLowerCase().replace(' ', '')].map((c: ContentDto) => c.id);
-  const findContentsByIdsQuery = useContextSelector(LauncherContext, (v) =>
-    v.findContentsByIdsQuery(contentIds ?? [], instanceId),
+  const { data: instance } = useContextSelector(LauncherContext, (v) => v.findOneInstanceQuery(instanceId || ''));
+  const instanceType: string = categoryMap.keyToText[tab].toLowerCase().replace(' ', '');
+  const findContentInstanceQuery = useContextSelector(LauncherContext, (v) =>
+    v.findContentInstanceQuery(instanceId!, instanceType),
   );
 
   const goToBrowse = () => {
@@ -97,9 +91,9 @@ export default function ManagerPage() {
       </div>
 
       <ManagerTablePage
-        contentData={findContentsByIdsQuery.data?.data ?? []}
+        contentData={findContentInstanceQuery.data?.data ?? []}
         contentType={categoryMap.keyToText[tab].toLowerCase().replace(' ', '')}
-        onRefresh={() => refetchInstance()}
+        onRefresh={() => findContentInstanceQuery.refetch()}
       />
     </div>
   );

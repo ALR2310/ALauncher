@@ -24,9 +24,12 @@ const updateInstanceSchema = z.object({
   instance: instanceSchema.partial(),
 });
 
-const removeContentInstanceSchema = z.object({
+const findContentsInstanceSchema = z.object({
   id: z.string(),
   type: z.enum(['mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'worlds']).default('mods'),
+});
+
+const removeContentInstanceSchema = findContentsInstanceSchema.extend({
   contentId: z.coerce.number(),
 });
 
@@ -49,6 +52,7 @@ const toggleContentInstanceSchema = removeContentInstanceSchema
 
 export class InstanceDto extends createZodDto(instanceSchema) {}
 export class UpdateInstanceDto extends createZodDto(updateInstanceSchema) {}
+export class FindContentsInstanceDto extends createZodDto(findContentsInstanceSchema) {}
 export class RemoveContentInstanceDto extends createZodDto(removeContentInstanceSchema) {}
 export class AddContentInstanceDto extends createZodDto(addContentInstanceSchema) {}
 export class ToggleContentInstanceDto extends createZodDto(toggleContentInstanceSchema) {}

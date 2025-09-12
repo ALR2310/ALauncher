@@ -28,11 +28,11 @@ const LauncherContext = createContext<{
   createInstanceMutation: ReturnType<typeof useLauncherInstance>['createInstanceMutation'];
   updateInstanceMutation: ReturnType<typeof useLauncherInstance>['updateInstanceMutation'];
   deleteInstanceMutation: ReturnType<typeof useLauncherInstance>['deleteInstanceMutation'];
+  findContentInstanceQuery: ReturnType<typeof useLauncherInstance>['findContentInstanceQuery'];
   removeContentInstanceMutation: ReturnType<typeof useLauncherInstance>['removeContentInstanceMutation'];
   canRemoveContentInstanceMutation: ReturnType<typeof useLauncherInstance>['canRemoveContentInstanceMutation'];
   toggleContentInstanceMutation: ReturnType<typeof useLauncherInstance>['toggleContentInstanceMutation'];
   findAllContentQuery: ReturnType<typeof useLauncherContent>['findAllContentQuery'];
-  findContentsByIdsQuery: ReturnType<typeof useLauncherContent>['findContentsByIdsQuery'];
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
@@ -47,11 +47,12 @@ const LauncherProvider = ({ children }) => {
     createInstanceMutation,
     updateInstanceMutation,
     deleteInstanceMutation,
+    findContentInstanceQuery,
     removeContentInstanceMutation,
     canRemoveContentInstanceMutation,
     toggleContentInstanceMutation,
   } = useLauncherInstance();
-  const { findAllContentQuery, findContentsByIdsQuery } = useLauncherContent();
+  const { findAllContentQuery } = useLauncherContent();
 
   const ctx = useMemo(
     () => ({
@@ -73,11 +74,11 @@ const LauncherProvider = ({ children }) => {
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
+      findContentInstanceQuery,
       removeContentInstanceMutation,
       canRemoveContentInstanceMutation,
       toggleContentInstanceMutation,
       findAllContentQuery,
-      findContentsByIdsQuery,
     }),
     [
       canRemoveContentInstanceMutation,
@@ -89,7 +90,7 @@ const LauncherProvider = ({ children }) => {
       findAllContentQuery,
       findAllInstanceQuery,
       findAllVersionQuery,
-      findContentsByIdsQuery,
+      findContentInstanceQuery,
       findLoadersVersionQuery,
       findOneInstanceQuery,
       findReleaseNotesQuery,

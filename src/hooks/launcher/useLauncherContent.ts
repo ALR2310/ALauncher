@@ -1,5 +1,5 @@
 import { ContentQueryDto, ContentResponseDto } from '@shared/dtos/content.dto';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 import api from '~/configs/axios';
 
@@ -20,22 +20,10 @@ export const useLauncherContent = () => {
         }
         return undefined;
       },
-
+      staleTime: 0,
       initialPageParam: 0,
     });
   };
 
-  const findContentsByIdsQuery = (ids: number[], instanceId?: string) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    return useQuery({
-      queryKey: ['contentsByIdsQuery', ids, instanceId],
-      queryFn: async () => {
-        const res = await api.get('contents', { params: { ids: ids.join(','), instanceId } });
-        return res.data as ContentResponseDto;
-      },
-      enabled: ids.length > 0 && !!instanceId,
-    });
-  };
-
-  return { findAllContentQuery, findContentsByIdsQuery };
+  return { findAllContentQuery };
 };

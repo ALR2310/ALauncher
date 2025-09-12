@@ -1,3 +1,4 @@
+import { ContentResponseDto } from '@shared/dtos/content.dto';
 import { InstanceDto, RemoveContentInstanceDto, ToggleContentInstanceDto } from '@shared/dtos/instance.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -46,6 +47,18 @@ export const useLauncherInstance = () => {
     },
   });
 
+  const findContentInstanceQuery = (instanceId: string, type: string) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useQuery({
+      queryKey: ['instance-contents', instanceId, type],
+      queryFn: async () => {
+        const res = await api.get(`${BASE_PATH}/${instanceId}/${type}`);
+        return res.data as ContentResponseDto;
+      },
+      enabled: !!instanceId && !!type,
+    });
+  };
+
   const removeContentInstanceMutation = useMutation({
     mutationFn: async ({ id, type, contentId }: RemoveContentInstanceDto) => {
       const res = await api.delete(`${BASE_PATH}/${id}/${type}/${contentId}`);
@@ -73,6 +86,7 @@ export const useLauncherInstance = () => {
     createInstanceMutation,
     updateInstanceMutation,
     deleteInstanceMutation,
+    findContentInstanceQuery,
     removeContentInstanceMutation,
     canRemoveContentInstanceMutation,
     toggleContentInstanceMutation,

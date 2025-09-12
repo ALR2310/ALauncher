@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useContextSelector } from 'use-context-selector';
 
+import { confirm } from '~/hooks/useConfirm';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 interface ManagerTablePageProps {
@@ -115,7 +116,26 @@ export default function ManagerTablePage({ contentData, contentType, onRefresh }
                       contentId: item.id,
                     });
 
-                    if (checkRemove.canRemove) {
+                    let yes = true;
+
+                    if (!checkRemove.canRemove) {
+                      yes = await confirm({
+                        title: 'Confirm removal',
+                        content: (
+                          <div className="text-sm text-base-content/70">
+                            <p>{checkRemove.message}</p>
+                            <p>Are you sure you want to remove this content?</p>
+                            <ul className="list-disc list-inside mt-2 mb-4 max-h-24 overflow-auto">
+                              {checkRemove.dependents.map((dep, idx) => (
+                                <li key={idx}>{dep}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ),
+                      });
+                    }
+
+                    if (yes)
                       await removeContentMutation
                         .mutateAsync({
                           id: instanceId!,
@@ -123,7 +143,6 @@ export default function ManagerTablePage({ contentData, contentType, onRefresh }
                           contentId: item.id,
                         })
                         .then(() => onRefresh?.());
-                    }
                   }}
                 >
                   <i className="fa-light fa-trash"></i>

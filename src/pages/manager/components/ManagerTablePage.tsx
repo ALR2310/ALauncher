@@ -60,6 +60,7 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
             <th>Additional utilities</th>
             <th className="text-center">Author</th>
             <th className="text-center">Activity</th>
+            <th className="text-center">Size</th>
             <th className="text-center">
               {selectedIds.length === contents.length ? (
                 <input
@@ -133,6 +134,9 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
                   <div className="h-5 w-[50%] skeleton mx-auto"></div>
                 </td>
                 <td>
+                  <div className="h-5 w-[50%] skeleton mx-auto"></div>
+                </td>
+                <td>
                   <div className="h-8 w-9 skeleton ml-auto"></div>
                 </td>
               </tr>
@@ -155,11 +159,11 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
               </th>
               <td>
                 <div className="flex items-center gap-3">
-                  <div className="w-8">
+                  <div className="w-8 shrink-0">
                     <img src={item.logoUrl} alt={item.name} loading="lazy" className="w-full h-full" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold">{item.name}</span>
+                    <span className="font-semibold text-ellipsis-1 w-full">{item.name}</span>
                   </div>
                 </div>
               </td>
@@ -168,6 +172,9 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
               </td>
               <td className="text-center">
                 {item.status === 'outdated' ? <button className="btn btn-outline btn-sm">Update</button> : 'Latest'}
+              </td>
+              <td className="text-center">
+                <p className="text-nowrap">{item.fileSize}</p>
               </td>
               <td className="text-center">
                 <input

@@ -1,19 +1,31 @@
 import { ContentResponseDto } from '@shared/dtos/content.dto';
+import { RemoveContentInstanceDto } from '@shared/dtos/instance.dto';
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useContextSelector } from 'use-context-selector';
+
+import { LauncherContext } from '~/providers/LauncherProvider';
 
 interface ManagerTablePageProps {
-  data: ContentResponseDto['data'];
+  contentData: ContentResponseDto['data'];
+  contentType: RemoveContentInstanceDto['type'];
+  onRefresh?: () => void;
 }
 
-export default function ManagerTablePage({ data }: ManagerTablePageProps) {
+export default function ManagerTablePage({ contentData, contentType, onRefresh }: ManagerTablePageProps) {
+  const { instanceId } = useParams<{ instanceId: string }>();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const masterCheckboxRef = useRef<HTMLInputElement>(null);
 
+  const canRemoveContentMutation = useContextSelector(LauncherContext, (v) => v.canRemoveContentInstanceMutation);
+  const removeContentMutation = useContextSelector(LauncherContext, (v) => v.removeContentInstanceMutation);
+  // const toggleContentMutation = useContextSelector(LauncherContext, (v) => v.toggleContentInstanceMutation);
+
   useEffect(() => {
     if (masterCheckboxRef.current) {
-      masterCheckboxRef.current.indeterminate = selectedIds.length > 0 && selectedIds.length < data.length;
+      masterCheckboxRef.current.indeterminate = selectedIds.length > 0 && selectedIds.length < contentData.length;
     }
-  }, [selectedIds, data.length]);
+  }, [contentData.length, selectedIds.length]);
 
   return (
     <div className="overflow-auto flex flex-col h-full justify-between m-2 bg-base-100">
@@ -25,10 +37,10 @@ export default function ManagerTablePage({ data }: ManagerTablePageProps) {
                 ref={masterCheckboxRef}
                 type="checkbox"
                 className="checkbox"
-                checked={selectedIds.length === data.length && data.length > 0}
+                checked={selectedIds.length === contentData.length && contentData.length > 0}
                 onChange={() => {
-                  if (selectedIds.length === data.length) setSelectedIds([]);
-                  else setSelectedIds(data.map((item) => item.id));
+                  if (selectedIds.length === contentData.length) setSelectedIds([]);
+                  else setSelectedIds(contentData.map((item) => item.id));
                 }}
               />
             </th>
@@ -37,21 +49,21 @@ export default function ManagerTablePage({ data }: ManagerTablePageProps) {
             <th className="text-center">Activity</th>
             <th className="text-center">Status</th>
             <th className="text-right">
-              <button className="btn btn-soft btn-sm">
+              <button className="btn btn-soft btn-sm" onClick={onRefresh}>
                 <i className="fa-light fa-rotate"></i>
               </button>
             </th>
           </tr>
         </thead>
         <tbody>
-          {data.length === 0 && (
+          {contentData.length === 0 && (
             <tr>
               <td colSpan={6} className="text-center italic text-base-content/70">
                 No contents found
               </td>
             </tr>
           )}
-          {data.map((item) => (
+          {contentData.map((item) => (
             <tr key={item.id} className={`hover:bg-base-300 ${selectedIds.includes(item.id) ? 'bg-base-200' : ''}`}>
               <th>
                 <label>
@@ -84,10 +96,36 @@ export default function ManagerTablePage({ data }: ManagerTablePageProps) {
                 {item.status === 'outdated' ? <button className="btn btn-outline btn-sm">Update</button> : 'Latest'}
               </td>
               <td className="text-center">
-                <input type="checkbox" className="toggle toggle-sm toggle-primary" />
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm toggle-primary"
+                  defaultChecked={item.enabled}
+                  onChange={(e) => {
+                    console.log(e.target.checked);
+                  }}
+                />
               </td>
               <td className="text-right">
-                <button className="btn btn-soft btn-sm btn-error">
+                <button
+                  className="btn btn-soft btn-sm btn-error"
+                  onClick={async () => {
+                    const checkRemove = await canRemoveContentMutation.mutateAsync({
+                      id: instanceId!,
+                      type: contentType,
+                      contentId: item.id,
+                    });
+
+                    if (checkRemove.canRemove) {
+                      await removeContentMutation
+                        .mutateAsync({
+                          id: instanceId!,
+                          type: contentType,
+                          contentId: item.id,
+                        })
+                        .then(() => onRefresh?.());
+                    }
+                  }}
+                >
                   <i className="fa-light fa-trash"></i>
                 </button>
               </td>

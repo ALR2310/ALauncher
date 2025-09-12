@@ -86,15 +86,13 @@ export class InstanceController {
 
   @Delete('/:id/:type/:contentId')
   @Validate(RemoveContentInstanceDto)
-  async removeContent(@Param() param, @Query() query) {
-    const payload: RemoveContentInstanceDto = { ...param, ...query };
+  async removeContent(@Param() payload: RemoveContentInstanceDto) {
     return await instanceService.removeContent(payload);
   }
 
   @Get('/:id/:type/:contentId/can-remove')
   @Validate(RemoveContentInstanceDto)
-  async canRemoveContent(@Param() param, @Query() query) {
-    const payload: RemoveContentInstanceDto = { ...param, ...query };
+  async canRemoveContent(@Param() payload: RemoveContentInstanceDto) {
     return await instanceService.canRemoveContent(payload);
   }
 

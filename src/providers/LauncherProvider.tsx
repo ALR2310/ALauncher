@@ -28,6 +28,9 @@ const LauncherContext = createContext<{
   createInstanceMutation: ReturnType<typeof useLauncherInstance>['createInstanceMutation'];
   updateInstanceMutation: ReturnType<typeof useLauncherInstance>['updateInstanceMutation'];
   deleteInstanceMutation: ReturnType<typeof useLauncherInstance>['deleteInstanceMutation'];
+  removeContentInstanceMutation: ReturnType<typeof useLauncherInstance>['removeContentInstanceMutation'];
+  canRemoveContentInstanceMutation: ReturnType<typeof useLauncherInstance>['canRemoveContentInstanceMutation'];
+  toggleContentInstanceMutation: ReturnType<typeof useLauncherInstance>['toggleContentInstanceMutation'];
   findAllContentQuery: ReturnType<typeof useLauncherContent>['findAllContentQuery'];
   findContentsByIdsQuery: ReturnType<typeof useLauncherContent>['findContentsByIdsQuery'];
 }>(null!);
@@ -44,6 +47,9 @@ const LauncherProvider = ({ children }) => {
     createInstanceMutation,
     updateInstanceMutation,
     deleteInstanceMutation,
+    removeContentInstanceMutation,
+    canRemoveContentInstanceMutation,
+    toggleContentInstanceMutation,
   } = useLauncherInstance();
   const { findAllContentQuery, findContentsByIdsQuery } = useLauncherContent();
 
@@ -67,10 +73,14 @@ const LauncherProvider = ({ children }) => {
       createInstanceMutation,
       updateInstanceMutation,
       deleteInstanceMutation,
+      removeContentInstanceMutation,
+      canRemoveContentInstanceMutation,
+      toggleContentInstanceMutation,
       findAllContentQuery,
       findContentsByIdsQuery,
     }),
     [
+      canRemoveContentInstanceMutation,
       cancel,
       createInstanceMutation,
       deleteInstanceMutation,
@@ -88,7 +98,9 @@ const LauncherProvider = ({ children }) => {
       isDownloading,
       isRunning,
       launch,
+      removeContentInstanceMutation,
       setConfig,
+      toggleContentInstanceMutation,
       updateInstanceMutation,
     ],
   );

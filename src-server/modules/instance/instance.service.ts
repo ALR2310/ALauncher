@@ -202,7 +202,7 @@ class InstanceService {
 
     const instance = await this.findOne(instanceId);
 
-    const content = instance[type]?.find((c) => c.id === contentId);
+    const content = instance.mods!.find((c) => c.id === contentId);
     if (!content) return { canRemove: false, message: `Content ${contentId} not found in instance`, dependents: [] };
 
     const dependents = (instance[type] ?? [])

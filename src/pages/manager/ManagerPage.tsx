@@ -20,11 +20,12 @@ export default function ManagerPage() {
   const [tab, setTab] = useState('mc-mods');
   const [searchKey, setSearchKey] = useState('');
 
-  const { data: instance } = useContextSelector(LauncherContext, (v) => v.findOneInstanceQuery(instanceId || ''));
+  const { data: instance, refetch: refetchInstance } = useContextSelector(LauncherContext, (v) =>
+    v.findOneInstanceQuery(instanceId || ''),
+  );
+  const contentIds = instance?.[categoryMap.keyToText[tab].toLowerCase().replace(' ', '')].map((c: ContentDto) => c.id);
   const findContentsByIdsQuery = useContextSelector(LauncherContext, (v) =>
-    v.findContentsByIdsQuery(
-      instance?.[categoryMap.keyToText[tab].toLowerCase().replace(' ', '')].map((c: ContentDto) => c.id) || [],
-    ),
+    v.findContentsByIdsQuery(contentIds ?? [], instanceId),
   );
 
   const goToBrowse = () => {
@@ -95,7 +96,11 @@ export default function ManagerPage() {
         </button>
       </div>
 
-      <ManagerTablePage data={findContentsByIdsQuery.data?.data ?? []} />
+      <ManagerTablePage
+        contentData={findContentsByIdsQuery.data?.data ?? []}
+        contentType={categoryMap.keyToText[tab].toLowerCase().replace(' ', '')}
+        onRefresh={() => refetchInstance()}
+      />
     </div>
   );
 }

@@ -25,15 +25,15 @@ export const useLauncherContent = () => {
     });
   };
 
-  const findContentsByIdsQuery = (ids: number[]) => {
+  const findContentsByIdsQuery = (ids: number[], instanceId?: string) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useQuery({
-      queryKey: ['contentsByIdsQuery', ids],
+      queryKey: ['contentsByIdsQuery', ids, instanceId],
       queryFn: async () => {
-        const res = await api.get('contents', { params: { ids: ids.join(',') } });
+        const res = await api.get('contents', { params: { ids: ids.join(','), instanceId } });
         return res.data as ContentResponseDto;
       },
-      enabled: ids.length > 0,
+      enabled: ids.length > 0 && !!instanceId,
     });
   };
 

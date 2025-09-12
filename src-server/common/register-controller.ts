@@ -20,7 +20,6 @@ export function registerController(app: Hono, controllers: (ControllerClass | Co
   const list = Array.isArray(controllers) ? controllers : [controllers];
 
   for (const ctrl of list) {
-    // Nếu là class thì tự new
     const controller = typeof ctrl === 'function' ? new (ctrl as any)() : ctrl;
 
     const basePath: string = Reflect.getMetadata(BASE_PATH_KEY, controller.constructor) || '';
@@ -43,6 +42,12 @@ export function registerController(app: Hono, controllers: (ControllerClass | Co
             payload = (schemaOrDto as any).create(payload);
           } else {
             payload = (schemaOrDto as ZodType).parse(payload);
+          }
+
+          for (const key of Object.keys(payload)) {
+            if (key in params) params[key] = payload[key];
+            if (key in body) body[key] = payload[key];
+            if (key in query) query[key] = payload[key];
           }
         }
 

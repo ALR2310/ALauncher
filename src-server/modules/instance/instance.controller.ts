@@ -9,7 +9,19 @@ import {
 import { streamSSE } from 'hono/streaming';
 import throttle from 'lodash/throttle';
 
-import { Body, Context, Controller, Delete, Get, Param, Post, Put, Query, Validate } from '~s/common/decorators';
+import {
+  Body,
+  Context,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Payload,
+  Post,
+  Put,
+  Query,
+  Validate,
+} from '~s/common/decorators';
 
 import { instanceService } from './instance.service';
 
@@ -27,7 +39,7 @@ export class InstanceController {
 
   @Post()
   @Validate(InstanceDto)
-  async create(@Param() payload: InstanceDto) {
+  async create(@Payload() payload: InstanceDto) {
     return await instanceService.create(payload);
   }
 

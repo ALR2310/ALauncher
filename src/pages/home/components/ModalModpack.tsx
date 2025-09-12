@@ -25,6 +25,7 @@ export default function ModalModpack({ ref, instanceId }: ModalModpackProps) {
   const [version, setVersion] = useState('');
 
   // Launcher context
+  const findAllVersionQuery = useContextSelector(LauncherContext, (v) => v.findAllVersionQuery);
   const findReleasesVersionQuery = useContextSelector(LauncherContext, (v) => v.findReleasesVersionQuery);
   const findLoadersVersionQuery = useContextSelector(LauncherContext, (v) =>
     v.findLoadersVersionQuery(version, loaderType),
@@ -76,6 +77,7 @@ export default function ModalModpack({ ref, instanceId }: ModalModpackProps) {
     setVersion(findReleasesVersionQuery.data?.[0].version ?? '');
     toast.success(`Modpack ${instanceId ? 'updated' : 'created'} successfully`);
     findAllInstanceQuery.refetch();
+    findAllVersionQuery.refetch();
   };
 
   return (

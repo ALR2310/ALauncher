@@ -56,7 +56,14 @@ class InstanceService {
       ),
     );
 
-    return instances.filter((i): i is InstanceDto => i !== null);
+    const validInstances = instances.filter((i): i is InstanceDto => i !== null);
+
+    return validInstances.sort((a, b) => {
+      if (!a.last_updated && !b.last_updated) return 0;
+      if (!a.last_updated) return 1;
+      if (!b.last_updated) return -1;
+      return b.last_updated.localeCompare(a.last_updated);
+    });
   }
 
   async findOne(id: string) {

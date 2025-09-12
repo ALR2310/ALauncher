@@ -65,7 +65,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
 
   return (
     <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
-      <div className="flex justify-center items-center">
+      <div className="flex justify-center items-center ">
         <img src={data.logoUrl} alt="mod img" loading="lazy" className="w-full h-full object-cover" />
       </div>
 
@@ -82,7 +82,10 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
           </div>
 
           <div className="w-[15%]">
-            <button className="btn btn-soft btn-primary w-full" disabled={status != 'Install'} onClick={handleInstall}>
+            <button
+              className={`btn btn-soft w-full ${status === 'Installed' ? 'btn-success pointer-events-none' : 'btn-primary'}`}
+              onClick={handleInstall}
+            >
               {status}
             </button>
           </div>
@@ -98,7 +101,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
               <button className="btn btn-outline btn-xs">{categoryMap.keyToText[categoryType]}</button>
               <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
                 {data.categories.map((cat, idx) => (
-                  <a href="#" key={idx} className=" hover:underline">
+                  <a href="#" key={idx} className="block hover:underline">
                     {cat.name}
                   </a>
                 ))}

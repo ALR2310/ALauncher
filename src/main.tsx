@@ -5,7 +5,6 @@ import duration from 'dayjs/plugin/duration';
 import LocalizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import utc from 'dayjs/plugin/utc';
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
@@ -34,9 +33,5 @@ const root = createRoot(container!);
   }
 
   // Render GUI
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
+  root.render(<App />);
 })();

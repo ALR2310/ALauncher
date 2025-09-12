@@ -1,5 +1,6 @@
 import { LauncherConfigDto, LauncherConfigKey, UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import api from '~/configs/axios';
 
@@ -22,8 +23,11 @@ export const useLauncherConfig = () => {
     },
   });
 
-  return {
-    getConfig: () => getLauncherConfigQuery.data,
-    setConfig: (key: LauncherConfigKey, value: any) => setLauncherConfigMutation.mutate({ key, value }),
-  };
+  const getConfig = useCallback(() => getLauncherConfigQuery.data, [getLauncherConfigQuery.data]);
+  const setConfig = useCallback(
+    (key: LauncherConfigKey, value: any) => setLauncherConfigMutation.mutate({ key, value }),
+    [setLauncherConfigMutation],
+  );
+
+  return { getConfig, setConfig };
 };

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createSearchParams, Link, useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
+import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 import ManagerTablePage from './components/ManagerTablePage';
@@ -11,6 +12,7 @@ const tabs = Object.entries(categoryMap.keyToText).map(([key, label]) => ({ key,
 
 export default function ManagerPage() {
   const { instanceId } = useParams<{ instanceId: string }>();
+  const { height, isReady } = useContentHeight();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState('mc-mods');
@@ -22,23 +24,8 @@ export default function ManagerPage() {
     v.findContentInstanceQuery(instanceId!, instanceType),
   );
 
-  const goToBrowse = () => {
-    navigate({
-      pathname: instanceId ? `/browse/${instanceId}` : '/browse',
-      search: `?${createSearchParams(
-        Object.entries({
-          categoryType: tab,
-          ...(instance?.version ? { gameVersion: instance.version } : {}),
-          ...(tab === 'mc-mods' && instance?.loader
-            ? { loaderType: loaderMap.keyToId[instance.loader.type]?.toString() }
-            : {}),
-        }).filter(([_, v]) => v !== undefined && v !== null) as [string, string][],
-      )}`,
-    });
-  };
-
   return (
-    <div className="h-full flex flex-col gap-2">
+    <div className="h-full flex flex-col gap-2" style={{ height: isReady ? height : '0px' }}>
       {/* Tabs header */}
       <div className="flex flex-nowrap justify-between p-2 bg-base-300">
         <div className="flex">
@@ -84,14 +71,34 @@ export default function ManagerPage() {
           />
         </label>
 
-        <button className="btn btn-soft" onClick={goToBrowse}>
+        <button
+          className="btn btn-soft"
+          onClick={() => {
+            navigate({
+              pathname: instanceId ? `/browse/${instanceId}` : '/browse',
+              search: `?${createSearchParams(
+                Object.entries({
+                  categoryType: tab,
+                  ...(instance?.version ? { gameVersion: instance.version } : {}),
+                  ...(tab === 'mc-mods' && instance?.loader
+                    ? { loaderType: loaderMap.keyToId[instance.loader.type]?.toString() }
+                    : {}),
+                }).filter(([_, v]) => v !== undefined && v !== null) as [string, string][],
+              )}`,
+            });
+          }}
+        >
           <i className="fa-light fa-plus"></i>
           Add Contents
         </button>
       </div>
 
       <ManagerTablePage
-        contentData={findContentInstanceQuery.data?.data ?? []}
+        contentData={
+          findContentInstanceQuery.data?.data.filter(
+            (item) => searchKey.trim() === '' || item.name.toLowerCase().includes(searchKey.toLowerCase()),
+          ) ?? []
+        }
         contentType={categoryMap.keyToText[tab].toLowerCase().replace(' ', '')}
         onRefresh={() => findContentInstanceQuery.refetch()}
       />

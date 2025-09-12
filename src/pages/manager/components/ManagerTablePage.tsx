@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useContextSelector } from 'use-context-selector';
 
+import { toggleContentInstance } from '~/api/instance.api';
 import { confirm } from '~/hooks/useConfirm';
+import { toast } from '~/hooks/useToast';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 interface ManagerTablePageProps {
@@ -16,17 +18,26 @@ interface ManagerTablePageProps {
 export default function ManagerTablePage({ contentData, contentType, onRefresh }: ManagerTablePageProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [enabledMap, setEnabledMap] = useState<Record<number, boolean>>({});
+
   const masterCheckboxRef = useRef<HTMLInputElement>(null);
 
   const canRemoveContentMutation = useContextSelector(LauncherContext, (v) => v.canRemoveContentInstanceMutation);
   const removeContentMutation = useContextSelector(LauncherContext, (v) => v.removeContentInstanceMutation);
-  // const toggleContentMutation = useContextSelector(LauncherContext, (v) => v.toggleContentInstanceMutation);
 
   useEffect(() => {
     if (masterCheckboxRef.current) {
       masterCheckboxRef.current.indeterminate = selectedIds.length > 0 && selectedIds.length < contentData.length;
     }
   }, [contentData.length, selectedIds.length]);
+
+  useEffect(() => {
+    const init: Record<number, boolean> = {};
+    contentData.forEach((item) => {
+      init[item.id] = item.enabled!;
+    });
+    setEnabledMap(init);
+  }, [contentData]);
 
   return (
     <div className="overflow-auto flex flex-col h-full justify-between m-2 bg-base-100">
@@ -48,7 +59,44 @@ export default function ManagerTablePage({ contentData, contentType, onRefresh }
             <th>Additional utilities</th>
             <th className="text-center">Author</th>
             <th className="text-center">Activity</th>
-            <th className="text-center">Status</th>
+            <th className="text-center">
+              {selectedIds.length === contentData.length ? (
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm toggle-primary"
+                  checked={(() => {
+                    const enabledCount = selectedIds.filter((id) => enabledMap[id]).length;
+                    const disabledCount = selectedIds.length - enabledCount;
+                    return enabledCount > disabledCount;
+                  })()}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+
+                    setEnabledMap((prev) => {
+                      const updated = { ...prev };
+                      selectedIds.forEach((id) => (updated[id] = checked));
+                      return updated;
+                    });
+
+                    toggleContentInstance({
+                      id: instanceId!,
+                      type: contentType,
+                      contentIds: selectedIds,
+                      enabled: checked,
+                    }).catch(() => {
+                      toast.error(`Failed to update status for selected contents`);
+                      setEnabledMap((prev) => {
+                        const updated = { ...prev };
+                        selectedIds.forEach((id) => (updated[id] = !checked));
+                        return updated;
+                      });
+                    });
+                  }}
+                />
+              ) : (
+                'Status'
+              )}
+            </th>
             <th className="text-right">
               <button className="btn btn-soft btn-sm" onClick={onRefresh}>
                 <i className="fa-light fa-rotate"></i>
@@ -100,9 +148,20 @@ export default function ManagerTablePage({ contentData, contentType, onRefresh }
                 <input
                   type="checkbox"
                   className="toggle toggle-sm toggle-primary"
-                  defaultChecked={item.enabled}
-                  onChange={(e) => {
-                    console.log(e.target.checked);
+                  checked={enabledMap[item.id] ?? false}
+                  onChange={async (e) => {
+                    const checked = e.target.checked;
+                    setEnabledMap((prev) => ({ ...prev, [item.id]: checked }));
+
+                    toggleContentInstance({
+                      id: instanceId!,
+                      type: contentType,
+                      contentIds: [item.id],
+                      enabled: e.target.checked,
+                    }).catch(() => {
+                      toast.error(`Failed to update status for ${item.name}`);
+                      setEnabledMap((prev) => ({ ...prev, [item.id]: !checked }));
+                    });
                   }}
                 />
               </td>

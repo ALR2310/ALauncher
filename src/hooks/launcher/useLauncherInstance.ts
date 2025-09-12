@@ -1,83 +1,64 @@
-import { ContentResponseDto } from '@shared/dtos/content.dto';
-import { InstanceDto, RemoveContentInstanceDto, ToggleContentInstanceDto } from '@shared/dtos/instance.dto';
+import { InstanceDto } from '@shared/dtos/instance.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import api from '~/configs/axios';
-
-const BASE_PATH = '/instances';
+import {
+  canRemoveContentInstance,
+  createInstance,
+  deleteInstance,
+  findAllInstance,
+  findContentInstance,
+  findOneInstance,
+  removeContentInstance,
+  toggleContentInstance,
+  updateInstance,
+} from '~/api/instance.api';
 
 export const useLauncherInstance = () => {
   const findAllInstanceQuery = useQuery({
     queryKey: ['instances'],
-    queryFn: async () => {
-      const res = await api.get('/instances');
-      return res.data as InstanceDto[];
-    },
+    queryFn: findAllInstance,
   });
 
   const findOneInstanceQuery = (id: string) =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useQuery({
       queryKey: ['instance', id],
-      queryFn: async () => {
-        const res = await api.get(`${BASE_PATH}/${id}`);
-        return res.data as InstanceDto;
-      },
+      queryFn: () => findOneInstance(id),
       enabled: !!id,
     });
 
   const createInstanceMutation = useMutation({
-    mutationFn: async (instance: InstanceDto) => {
-      const res = await api.post(`${BASE_PATH}`, instance);
-      return res.data as InstanceDto;
-    },
+    mutationFn: async (instance: InstanceDto) => createInstance(instance),
   });
 
   const updateInstanceMutation = useMutation({
-    mutationFn: async (instance: InstanceDto) => {
-      const res = await api.put(`${BASE_PATH}/${instance.id}`, instance);
-      return res.data as InstanceDto;
-    },
+    mutationFn: async (instance: InstanceDto) => updateInstance(instance),
   });
 
   const deleteInstanceMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await api.delete(`${BASE_PATH}/${id}`);
-      return res.data as InstanceDto;
-    },
+    mutationFn: async (id: string) => deleteInstance(id),
   });
 
   const findContentInstanceQuery = (instanceId: string, type: string) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useQuery({
       queryKey: ['instance-contents', instanceId, type],
-      queryFn: async () => {
-        const res = await api.get(`${BASE_PATH}/${instanceId}/${type}`);
-        return res.data as ContentResponseDto;
-      },
+      queryFn: () => findContentInstance(instanceId, type),
       enabled: !!instanceId && !!type,
+      staleTime: 0,
     });
   };
 
   const removeContentInstanceMutation = useMutation({
-    mutationFn: async ({ id, type, contentId }: RemoveContentInstanceDto) => {
-      const res = await api.delete(`${BASE_PATH}/${id}/${type}/${contentId}`);
-      return res.data as InstanceDto;
-    },
+    mutationFn: removeContentInstance,
   });
 
   const canRemoveContentInstanceMutation = useMutation({
-    mutationFn: async ({ id, type, contentId }: RemoveContentInstanceDto) => {
-      const res = await api.get(`${BASE_PATH}/${id}/${type}/${contentId}/can-remove`);
-      return res.data as { canRemove: boolean; message: string; dependents: string[] };
-    },
+    mutationFn: canRemoveContentInstance,
   });
 
   const toggleContentInstanceMutation = useMutation({
-    mutationFn: async ({ id, type, contentIds, enabled }: ToggleContentInstanceDto) => {
-      const res = await api.post(`${BASE_PATH}/${id}/${type}/toggle`, { contentIds, enabled });
-      return res.data as InstanceDto;
-    },
+    mutationFn: toggleContentInstance,
   });
 
   return {

@@ -10,10 +10,11 @@ import { toast } from '~/hooks/useToast';
 interface ManagerTablePageProps {
   contentData: ContentResponseDto['data'];
   contentType: RemoveContentInstanceDto['type'];
+  isLoading?: boolean;
   onRefresh?: () => void;
 }
 
-export default function ManagerTablePage({ contentData, contentType, onRefresh }: ManagerTablePageProps) {
+export default function ManagerTablePage({ contentData, contentType, isLoading, onRefresh }: ManagerTablePageProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [enabledMap, setEnabledMap] = useState<Record<number, boolean>>({});
@@ -105,13 +106,37 @@ export default function ManagerTablePage({ contentData, contentType, onRefresh }
           </tr>
         </thead>
         <tbody>
-          {contents.length === 0 && (
+          {!isLoading && contents.length === 0 && (
             <tr>
               <td colSpan={6} className="text-center italic text-base-content/70">
                 No contents found
               </td>
             </tr>
           )}
+          {isLoading &&
+            Array.from({ length: 5 }, (_, i) => i).map((i) => (
+              <tr key={i}>
+                <td>
+                  <div className="h-6 w-6 skeleton"></div>
+                </td>
+                <td className="flex items-center gap-4">
+                  <div className="h-8 w-8 skeleton"></div>
+                  <div className="h-5 w-[80%] skeleton"></div>
+                </td>
+                <td>
+                  <div className="h-5 w-[80%] skeleton mx-auto"></div>
+                </td>
+                <td>
+                  <div className="h-5 w-[80%] skeleton mx-auto"></div>
+                </td>
+                <td>
+                  <div className="h-5 w-[50%] skeleton mx-auto"></div>
+                </td>
+                <td>
+                  <div className="h-8 w-9 skeleton ml-auto"></div>
+                </td>
+              </tr>
+            ))}
           {contents.map((item) => (
             <tr key={item.id} className={`hover:bg-base-300 ${selectedIds.includes(item.id) ? 'bg-base-200' : ''}`}>
               <th>

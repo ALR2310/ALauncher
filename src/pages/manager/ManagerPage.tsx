@@ -99,6 +99,7 @@ export default function ManagerPage() {
             (item) => searchKey.trim() === '' || item.name.toLowerCase().includes(searchKey.toLowerCase()),
           ) ?? []
         }
+        isLoading={findContentInstanceQuery.isLoading}
         contentType={categoryMap.keyToText[tab].toLowerCase().replace(' ', '')}
         onRefresh={() => findContentInstanceQuery.refetch()}
       />

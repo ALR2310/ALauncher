@@ -19,6 +19,7 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [enabledMap, setEnabledMap] = useState<Record<number, boolean>>({});
   const [contents, setContents] = useState(contentData);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const masterCheckboxRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +40,59 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
     });
     setEnabledMap(init);
   }, [contents]);
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    const confirmed = await confirm({
+      title: 'Confirm bulk removal',
+      content: (
+        <div className="text-sm text-base-content/70">
+          <p>Are you sure you want to remove {selectedIds.length} selected item(s)?</p>
+          <p className="mt-2 text-warning">This action cannot be undone.</p>
+        </div>
+      ),
+    });
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    const failedItems: string[] = [];
+    const originalContents = [...contents];
+
+    try {
+      setContents((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
+      setSelectedIds([]);
+
+      for (const contentId of selectedIds) {
+        try {
+          await removeContentInstance({
+            id: instanceId!,
+            type: contentType,
+            contentId,
+          });
+        } catch (error) {
+          const item = originalContents.find((c) => c.id === contentId);
+          failedItems.push(item?.name || `Item ${contentId}`);
+        }
+      }
+
+      if (failedItems.length > 0) {
+        toast.error(`Failed to remove: ${failedItems.join(', ')}`);
+        const failedItemIds = originalContents.filter((item) => failedItems.includes(item.name)).map((item) => item.id);
+        const restoredItems = originalContents.filter((item) => failedItemIds.includes(item.id));
+        setContents((prev) => [...prev, ...restoredItems]);
+      } else {
+        toast.success(`Successfully removed ${selectedIds.length} item(s)`);
+      }
+    } catch (error) {
+      toast.error('Failed to process bulk deletion');
+      setContents(originalContents);
+      setSelectedIds(selectedIds);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="overflow-auto flex flex-col h-full justify-between m-2 bg-base-100">
@@ -100,9 +154,19 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
               )}
             </th>
             <th className="text-right">
-              <button className="btn btn-soft btn-sm" onClick={onRefresh}>
-                <i className="fa-light fa-rotate"></i>
-              </button>
+              {selectedIds.length === contents.length && contents.length > 0 ? (
+                <button className="btn btn-soft btn-sm btn-error" onClick={handleBulkDelete} disabled={isDeleting}>
+                  {isDeleting ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    <i className="fa-light fa-trash"></i>
+                  )}
+                </button>
+              ) : (
+                <button className="btn btn-soft btn-sm" onClick={onRefresh}>
+                  <i className="fa-light fa-rotate"></i>
+                </button>
+              )}
             </th>
           </tr>
         </thead>

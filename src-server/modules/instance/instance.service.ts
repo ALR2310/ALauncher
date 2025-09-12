@@ -8,6 +8,7 @@ import {
   UpdateInstanceDto,
 } from '@shared/dtos/instance.dto';
 import { formatToSlug } from '@shared/utils/general.utils';
+import { Mutex } from 'async-mutex';
 import { existsSync } from 'fs';
 import { mkdir, readdir, readFile, rename, rm, stat, unlink, writeFile } from 'fs/promises';
 import pLimit from 'p-limit';
@@ -20,6 +21,15 @@ import { DownloadOptions } from '~s/libraries/minecraft-java-core/build/utils/Do
 import { contentService } from '../content/content.service';
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { launcherService } from '../launcher/launcher.service';
+
+const instanceLocks = new Map<string, Mutex>();
+
+function getInstanceLock(instanceId: string) {
+  if (!instanceLocks.has(instanceId)) {
+    instanceLocks.set(instanceId, new Mutex());
+  }
+  return instanceLocks.get(instanceId)!;
+}
 
 class InstanceService {
   private instanceDir: string | null = null;
@@ -81,7 +91,6 @@ class InstanceService {
     await this.ensureInstanceDir();
 
     const existing = await this.findOne(id);
-    if (!existing) throw new NotFoundException('Instance not found');
 
     const updated: InstanceDto = { ...existing, ...instance };
     const filePath = path.join(this.instanceDir!, id, 'instance.json');
@@ -93,7 +102,6 @@ class InstanceService {
     await this.ensureInstanceDir();
 
     const existing = await this.findOne(id);
-    if (!existing) throw new NotFoundException('Instance not found');
 
     const dirPath = path.join(this.instanceDir!, id);
     await rm(dirPath, { recursive: true, force: true });
@@ -115,159 +123,175 @@ class InstanceService {
   async addContent(payload: AddContentInstanceDto) {
     const { id: instanceId, type, contentId, worldName, name, author, logoUrl } = payload;
 
-    const config = await launcherService.getConfig();
-    const pathDir = await this.getInstanceContentDir(instanceId, type, worldName);
+    const lock = getInstanceLock(instanceId);
 
-    const contentsMap = new Map<number, ContentDto>();
-    const contentsToDownload: ContentDto[] = [];
+    return lock.runExclusive(async () => {
+      const config = await launcherService.getConfig();
+      const pathDir = await this.getInstanceContentDir(instanceId, type, worldName);
 
-    const resolveContent = async (id: number, gameVersion: string, loaderType?: string) => {
-      if (contentsMap.has(id)) return contentsMap.get(id)!;
+      const contentsMap = new Map<number, ContentDto>();
+      const contentsToDownload: ContentDto[] = [];
 
-      const contentFile = await curseForgeService.getModFiles(id, gameVersion, loaderType);
-      if (!contentFile.data.length) return null;
+      const resolveContent = async (id: number, gameVersion: string, loaderType?: string) => {
+        if (contentsMap.has(id)) return contentsMap.get(id)!;
 
-      const file = contentFile.data[0];
-      const fileUrl =
-        file.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${file.modId}/files/${file.id}/download`;
+        const contentFile = await curseForgeService.getModFiles(id, gameVersion, loaderType);
+        if (!contentFile.data.length) return null;
 
-      const content: ContentDto = {
-        id: file.modId,
-        name,
-        author,
-        logoUrl,
-        fileId: file.id,
-        fileName: file.fileName,
-        fileUrl,
-        fileSize: file.fileLength,
-        enabled: true,
-        dependencies: [],
+        const file = contentFile.data[0];
+        const fileUrl =
+          file.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${file.modId}/files/${file.id}/download`;
+
+        const content: ContentDto = {
+          id: file.modId,
+          name,
+          author,
+          logoUrl,
+          fileId: file.id,
+          fileName: file.fileName,
+          fileUrl,
+          fileSize: file.fileLength,
+          enabled: true,
+          dependencies: [],
+        };
+
+        contentsMap.set(content.id, content);
+        contentsToDownload.push(content);
+
+        if (file.dependencies?.length) {
+          const deps = await Promise.all(
+            file.dependencies
+              .filter((dep: { relationType: number }) => dep.relationType === 3)
+              .map(async (dep: { modId: number }) => {
+                const depAdd = await resolveContent(dep.modId, gameVersion, loaderType);
+                return depAdd?.id ?? null;
+              }),
+          );
+          content.dependencies = deps.filter((id): id is number => id !== null);
+        }
+
+        return content;
       };
 
-      contentsMap.set(content.id, content);
-      contentsToDownload.push(content);
+      const instance = await this.findOne(instanceId);
 
-      if (file.dependencies?.length) {
-        const deps = await Promise.all(
-          file.dependencies
-            .filter((dep: { relationType: number }) => dep.relationType === 3)
-            .map(async (dep: { modId: number }) => {
-              const depAdd = await resolveContent(dep.modId, gameVersion, loaderType);
-              return depAdd?.id ?? null;
-            }),
-        );
-        content.dependencies = deps.filter((id): id is number => id !== null);
-      }
+      await resolveContent(contentId, instance.version, instance.loader.type);
 
-      return content;
-    };
+      const existingContents = instance[type] ?? [];
+      const newContents = Array.from(contentsMap.values());
 
-    const instance = await this.findOne(instanceId);
+      instance[type] = [...existingContents.filter((a) => !newContents.some((n) => n.id === a.id)), ...newContents];
+      await this.update({ id: instanceId, instance });
 
-    await resolveContent(contentId, instance.version, instance.loader.type);
-
-    const existingContents = instance[type] ?? [];
-    const newContents = Array.from(contentsMap.values());
-
-    instance[type] = [...existingContents.filter((a) => !newContents.some((n) => n.id === a.id)), ...newContents];
-    await this.update({ id: instanceId, instance });
-
-    return this.handleDownloadContent(contentsToDownload, pathDir, config.download_multiple);
+      return this.handleDownloadContent(contentsToDownload, pathDir, config.download_multiple);
+    });
   }
 
   async removeContent(payload: RemoveContentInstanceDto) {
     const { id: instanceId, type, contentId } = payload;
 
-    const [instance, pathDir] = await Promise.all([
-      this.findOne(instanceId),
-      this.getInstanceContentDir(instanceId, type),
-    ]);
+    const lock = getInstanceLock(instanceId);
 
-    const content = instance[type]?.find((c) => c.id === contentId);
-    if (!content) throw new NotFoundException('Content not found in instance');
+    return lock.runExclusive(async () => {
+      const [instance, pathDir] = await Promise.all([
+        this.findOne(instanceId),
+        this.getInstanceContentDir(instanceId, type),
+      ]);
 
-    const filePath = path.join(pathDir, content.fileName);
-    const disabledPath = filePath + '.disabled';
+      const content = instance[type]?.find((c) => c.id === contentId);
+      if (!content) throw new NotFoundException('Content not found in instance');
 
-    try {
-      if (existsSync(filePath)) {
-        await unlink(filePath);
-      } else if (existsSync(disabledPath)) {
-        await unlink(disabledPath);
+      const filePath = path.join(pathDir, content.fileName);
+      const disabledPath = filePath + '.disabled';
+
+      try {
+        if (existsSync(filePath)) {
+          await unlink(filePath);
+        } else if (existsSync(disabledPath)) {
+          await unlink(disabledPath);
+        }
+      } catch (err: any) {
+        if (err.code !== 'ENOENT') throw err;
       }
-    } catch (err: any) {
-      if (err.code !== 'ENOENT') throw err;
-    }
 
-    instance[type] = instance[type]?.filter((c) => c.id !== contentId);
-    await this.update({ id: instanceId, instance });
+      instance[type] = instance[type]?.filter((c) => c.id !== contentId);
+      await this.update({ id: instanceId, instance });
 
-    return {
-      message: 'Removed successfully',
-      data: {
-        id: contentId,
-        fileName: content.fileName,
-      },
-    };
+      return {
+        message: 'Removed successfully',
+        data: {
+          id: contentId,
+          fileName: content.fileName,
+        },
+      };
+    });
   }
 
   async canRemoveContent(payload: RemoveContentInstanceDto) {
     const { id: instanceId, type, contentId } = payload;
 
-    const instance = await this.findOne(instanceId);
+    const lock = getInstanceLock(instanceId);
 
-    const content = instance.mods!.find((c) => c.id === contentId);
-    if (!content) return { canRemove: false, message: `Content ${contentId} not found in instance`, dependents: [] };
+    return lock.runExclusive(async () => {
+      const instance = await this.findOne(instanceId);
 
-    const dependents = (instance[type] ?? [])
-      .filter((c) => c.id !== contentId && c.dependencies?.includes(contentId))
-      .map((c) => c.name);
+      const content = instance.mods!.find((c) => c.id === contentId);
+      if (!content) return { canRemove: false, message: `Content ${contentId} not found in instance`, dependents: [] };
 
-    if (dependents.length)
-      return {
-        canRemove: false,
-        message: 'This mod cannot be removed because other mods depend on it',
-        dependents,
-      };
+      const dependents = (instance[type] ?? [])
+        .filter((c) => c.id !== contentId && c.dependencies?.includes(contentId))
+        .map((c) => c.name);
 
-    return { canRemove: true, message: 'Mod can be removed', dependents: [] };
+      if (dependents.length)
+        return {
+          canRemove: false,
+          message: 'This mod cannot be removed because other mods depend on it',
+          dependents,
+        };
+
+      return { canRemove: true, message: 'Mod can be removed', dependents: [] };
+    });
   }
 
   async toggleContent(payload: ToggleContentInstanceDto) {
     const { id: instanceId, type, contentIds, enabled } = payload;
 
-    const [instance, pathDir] = await Promise.all([
-      this.findOne(instanceId),
-      this.getInstanceContentDir(instanceId, type),
-    ]);
+    const lock = getInstanceLock(instanceId);
 
-    const toggleSet = new Set(contentIds);
+    return lock.runExclusive(async () => {
+      const [instance, pathDir] = await Promise.all([
+        this.findOne(instanceId),
+        this.getInstanceContentDir(instanceId, type),
+      ]);
 
-    const updateContents = await Promise.all(
-      (instance[type] ?? []).map(async (content) => {
-        if (!toggleSet.has(content.id)) return content;
+      const toggleSet = new Set(contentIds);
 
-        const shouldEnable = enabled ?? !content.enabled;
+      const updateContents = await Promise.all(
+        (instance[type] ?? []).map(async (content) => {
+          if (!toggleSet.has(content.id)) return content;
 
-        const filePath = path.resolve(pathDir, content.fileName);
-        const disabledPath = filePath + '.disabled';
+          const shouldEnable = enabled ?? !content.enabled;
 
-        try {
-          if (shouldEnable && existsSync(disabledPath)) {
-            await rename(disabledPath, filePath);
-          } else if (!shouldEnable && existsSync(filePath)) {
-            await rename(filePath, disabledPath);
+          const filePath = path.resolve(pathDir, content.fileName);
+          const disabledPath = filePath + '.disabled';
+
+          try {
+            if (shouldEnable && existsSync(disabledPath)) {
+              await rename(disabledPath, filePath);
+            } else if (!shouldEnable && existsSync(filePath)) {
+              await rename(filePath, disabledPath);
+            }
+          } catch (err) {
+            console.error(`Failed to rename mod file ${content.fileName}:`, err);
           }
-        } catch (err) {
-          console.error(`Failed to rename mod file ${content.fileName}:`, err);
-        }
-        return { ...content, enabled: shouldEnable };
-      }),
-    );
+          return { ...content, enabled: shouldEnable };
+        }),
+      );
 
-    instance[type] = updateContents;
-    await this.update({ id: instanceId, instance });
-    return { message: 'Toggled successfully' };
+      instance[type] = updateContents;
+      await this.update({ id: instanceId, instance });
+      return { message: 'Toggled successfully' };
+    });
   }
 
   private async handleDownloadContent(contents: ContentDto[], pathDir: string, limit = 3) {

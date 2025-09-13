@@ -5,10 +5,10 @@ export async function checkForAppUpdates() {
   const update = await check();
 
   if (update) {
-    // const yes = confirm('A new version of ALauncher is available. Would you like to update?');
-    // if (yes) {
-    //   await update.downloadAndInstall();
-    //   await relaunch();
-    // }
+    const yes = confirm('A new version of ALauncher is available. Would you like to update?');
+    if (yes) {
+      await update.downloadAndInstall();
+      await relaunch();
+    }
   }
 }

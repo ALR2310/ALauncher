@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "alauncher",
+  "productName": "ALauncher",
   "version": "0.1.0",
   "identifier": "com.alr.alauncher",
   "build": {
-    "beforeDevCommand": "yarn dev",
+    "beforeDevCommand": "yarn dev:client",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "yarn build",
+    "beforeBuildCommand": "yarn build:client",
     "frontendDist": "../dist"
   },
   "app": {

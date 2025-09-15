@@ -28,12 +28,8 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
   }, [data.status]);
 
   const handleInstall = () => {
-    const query = new URLSearchParams({
-      name: data.name,
-      author: data.authors[0].name ?? 'Unknown',
-      logoUrl: data.logoUrl,
-    });
-    const type = categoryMap.keyToText[categoryType].toLowerCase().replace(' ', '-');
+    const query = new URLSearchParams({});
+    const type = categoryMap.keyToText[categoryType].toLowerCase().replace(' ', '');
     const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instances/${instanceId}/${type}/${data.id}?${query.toString()}`;
 
     evtRef.current = new EventSource(url);

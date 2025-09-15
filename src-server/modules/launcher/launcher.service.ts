@@ -6,7 +6,6 @@ import throttle from 'lodash/throttle';
 import path from 'path';
 
 import { Launch, Mojang } from '~s/libraries/minecraft-java-core/build/Index';
-import { LaunchOPTS } from '~s/libraries/minecraft-java-core/build/Launch';
 import { configService } from '~s/modules/config/config.service';
 
 import { instanceService } from '../instance/instance.service';
@@ -26,6 +25,30 @@ class LauncherService {
     return { success: true };
   }
 
+  async verify() {
+    this.launchEmitter = new EventEmitter();
+
+    const config = await configService.getConfig();
+
+    const isInstance = !!config.profile_selected.instance;
+
+    if (isInstance) {
+      const instance = await instanceService.findOne(config.profile_selected.instance!);
+
+      const groupedContents: Record<string, ContentDto[]> = {};
+      const contentTypes = Object.values(categoryMap.idToText).map((t) => t.toLowerCase().replace(/\s+/g, ''));
+
+      for (const type of contentTypes) {
+        const contents: ContentDto[] = instance[type];
+        if (contents?.length) {
+          groupedContents[type] = contents;
+        }
+      }
+
+      return instanceService.handleDownloadContents(groupedContents, instance.id!, config.download_multiple);
+    }
+  }
+
   async launch() {
     const DELAY = 500;
 
@@ -40,7 +63,7 @@ class LauncherService {
 
       const isInstance = !!config.profile_selected.instance;
 
-      const otp: LaunchOPTS = {
+      this.launchInstance.Launch({
         path: config.minecraft.gamedir,
         version: config.profile_selected.version,
         bypassOffline: true,
@@ -51,7 +74,7 @@ class LauncherService {
           build: config.profile_selected.loader?.version ?? 'latest',
           enable: config.profile_selected.loader ? true : false,
         },
-        instance: config.profile_selected.instance && `../versions/${config.profile_selected.instance}`,
+        instance: isInstance ? `../versions/${config.profile_selected.instance}` : undefined,
         mcp: undefined,
         verify: false,
         ignored: [],

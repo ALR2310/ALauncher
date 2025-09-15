@@ -5,8 +5,6 @@ import { createZodDto } from '../../src-server/common/zod-dto';
 export const contentSchema = z.object({
   id: z.number(),
   name: z.string(),
-  author: z.string(),
-  logoUrl: z.url(),
   fileId: z.number(),
   fileName: z.string(),
   fileUrl: z.url(),

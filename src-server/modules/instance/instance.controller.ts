@@ -83,13 +83,15 @@ export class InstanceController {
             throttle(async (p, s) => {
               const percent = ((p / s) * 100).toFixed(2);
 
+              await stream.writeSSE({ event: 'progress', data: percent });
+
               if (percent === '100.00') {
                 await stream.writeSSE({ event: 'done', data: 'Download complete' });
-                await stream.close();
-                resolve();
+                setTimeout(async () => {
+                  await stream.close();
+                  resolve();
+                }, 100);
               }
-
-              await stream.writeSSE({ event: 'progress', data: percent });
             }, DELAY),
           )
           .on('error', async (err) => {

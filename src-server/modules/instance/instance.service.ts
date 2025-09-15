@@ -7,6 +7,7 @@ import {
   ToggleContentInstanceDto,
   UpdateInstanceDto,
 } from '@shared/dtos/instance.dto';
+import { categoryMap } from '@shared/mappings/general.mapping';
 import { formatToSlug } from '@shared/utils/general.utils';
 import { Mutex } from 'async-mutex';
 import { existsSync } from 'fs';
@@ -128,22 +129,32 @@ class InstanceService {
   }
 
   async addContent(payload: AddContentInstanceDto) {
-    const { id: instanceId, type, contentId, worldName, name, author, logoUrl } = payload;
+    const { id: instanceId, type: initialType, contentId, worldName } = payload;
 
     const lock = getInstanceLock(instanceId);
 
     return lock.runExclusive(async () => {
       const config = await configService.getConfig();
-      const pathDir = await this.getPathByContentType(instanceId, type, worldName);
 
-      const contentsMap = new Map<number, ContentDto>();
-      const contentsToDownload: ContentDto[] = [];
+      const groupedContents: Record<string, ContentDto[]> = {};
+      const visited = new Map<number, ContentDto>();
 
-      const resolveContent = async (id: number, gameVersion: string, loaderType?: string) => {
-        if (contentsMap.has(id)) return contentsMap.get(id)!;
+      const resolveContent = async (
+        id: number,
+        gameVersion: string,
+        loaderType?: string,
+        parentType?: string,
+      ): Promise<ContentDto | null> => {
+        if (visited.has(id)) return visited.get(id)!;
 
-        const contentFile = await curseForgeService.getModFiles(id, gameVersion, loaderType);
-        if (!contentFile.data.length) return null;
+        const [contentInfo, contentFile] = await Promise.all([
+          curseForgeService.getMods({ modIds: [id] }).then((res) => (res.data.length ? res.data[0] : null)),
+          curseForgeService.getModFiles(id, gameVersion, loaderType),
+        ]);
+        if (!contentInfo || !contentFile.data.length) return null;
+
+        const mappedType = categoryMap.idToText[contentInfo.classId];
+        const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? initialType);
 
         const file = contentFile.data[0];
         const fileUrl =
@@ -151,9 +162,7 @@ class InstanceService {
 
         const content: ContentDto = {
           id: file.modId,
-          name,
-          author,
-          logoUrl,
+          name: contentInfo.name,
           fileId: file.id,
           fileName: file.fileName,
           fileUrl,
@@ -162,16 +171,20 @@ class InstanceService {
           dependencies: [],
         };
 
-        contentsMap.set(content.id, content);
-        contentsToDownload.push(content);
+        visited.set(content.id, content);
 
+        if (!groupedContents[realType]) groupedContents[realType] = [];
+        groupedContents[realType].push(content);
+
+        // resolve dependencies
         if (file.dependencies?.length) {
           const deps = await Promise.all(
             file.dependencies
               .filter((dep: { relationType: number }) => dep.relationType === 3)
               .map(async (dep: { modId: number }) => {
-                const depAdd = await resolveContent(dep.modId, gameVersion, loaderType);
-                return depAdd?.id ?? null;
+                const depType = realType === 'mods' ? instance.loader?.type : undefined;
+                const depContent = await resolveContent(dep.modId, gameVersion, depType, realType);
+                return depContent?.id ?? null;
               }),
           );
           content.dependencies = deps.filter((id): id is number => id !== null);
@@ -182,15 +195,20 @@ class InstanceService {
 
       const instance = await this.findOne(instanceId);
 
-      await resolveContent(contentId, instance.version, instance.loader.type);
+      const loaderType = initialType === 'mods' ? instance.loader?.type : undefined;
+      await resolveContent(contentId, instance.version, loaderType);
 
-      const existingContents = instance[type] ?? [];
-      const newContents = Array.from(contentsMap.values());
+      for (const [type, newContents] of Object.entries(groupedContents)) {
+        const existing = instance[type] ?? [];
+        instance[type] = [
+          ...existing.filter((a: ContentDto) => !newContents.some((n) => n.id === a.id)),
+          ...newContents,
+        ];
+      }
 
-      instance[type] = [...existingContents.filter((a) => !newContents.some((n) => n.id === a.id)), ...newContents];
       await this.update({ id: instanceId, instance });
 
-      return this.handleDownloadContent(contentsToDownload, pathDir, config.download_multiple);
+      return this.handleDownloadContents(groupedContents, instanceId, config.download_multiple, worldName);
     });
   }
 
@@ -301,38 +319,42 @@ class InstanceService {
     });
   }
 
-  async handleDownloadContent(contents: ContentDto[], pathDir: string, limit = 3) {
-    if (!contents.length) throw new Error('No additional to download');
+  async handleDownloadContents(
+    groupedContents: Record<string, ContentDto[]>,
+    instanceId: string,
+    limit = 3,
+    worldName?: string,
+  ) {
+    const filesToDownload: DownloadOptions[] = [];
 
-    await mkdir(pathDir, { recursive: true });
+    for (const [type, contents] of Object.entries(groupedContents)) {
+      const pathDir = await this.getPathByContentType(instanceId, type, worldName);
 
-    const results = await Promise.all(
-      contents.map(async (a) => {
-        const filePath = path.join(pathDir, a.fileName);
+      for (const c of contents) {
+        const filePath = path.join(pathDir, c.fileName);
 
         let needDownload = true;
         if (existsSync(filePath)) {
           try {
             const fileStat = await stat(filePath);
-            if (fileStat.size === a.fileSize) needDownload = false;
-          } catch (err) {
+            if (fileStat.size === c.fileSize) needDownload = false;
+          } catch {
             needDownload = true;
           }
         }
 
-        if (needDownload)
-          return {
-            url: a.fileUrl,
+        if (needDownload) {
+          filesToDownload.push({
+            url: c.fileUrl,
             path: filePath,
             folder: pathDir,
-            length: a.fileSize,
-            type: 'additional',
-          } as DownloadOptions;
-        return null;
-      }),
-    );
+            length: c.fileSize,
+            type,
+          });
+        }
+      }
+    }
 
-    const filesToDownload = results.filter((r): r is DownloadOptions => r !== null);
     if (!filesToDownload.length) return null;
 
     const downloader = new Downloader();

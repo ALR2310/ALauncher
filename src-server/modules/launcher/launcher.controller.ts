@@ -1,5 +1,6 @@
 import { UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 import { streamSSE } from 'hono/streaming';
+import throttle from 'lodash/throttle';
 
 import { Body, Context, Controller, Get, Post, Validate } from '~s/common/decorators';
 
@@ -22,6 +23,47 @@ export class LauncherController {
   @Get('/folder')
   async getFolder() {
     return launcherService.getFolder();
+  }
+
+  @Get('/verify')
+  async verify(@Context() c) {
+    const downloader = await launcherService.verify();
+    if (!downloader) {
+      return streamSSE(c, async (stream) => {
+        await stream.writeSSE({ event: 'done', data: 'Verification complete' });
+        await stream.close();
+      });
+    }
+
+    return streamSSE(c, async (stream) => {
+      const DELAY = 500;
+      const done = new Promise<void>((resolve) => {
+        downloader
+          .on(
+            'progress',
+            throttle(async (p, s) => {
+              const percent = ((p / s) * 100).toFixed(2);
+
+              await stream.writeSSE({ event: 'progress', data: percent });
+
+              if (percent === '100.00') {
+                await stream.writeSSE({ event: 'done', data: 'Download complete' });
+                setTimeout(async () => {
+                  await stream.close();
+                  resolve();
+                }, 100);
+              }
+            }, DELAY),
+          )
+          .on('error', async (err) => {
+            await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
+            await stream.close();
+            resolve();
+          });
+      });
+
+      await done;
+    });
   }
 
   @Get('/launch')

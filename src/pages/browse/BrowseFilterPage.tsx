@@ -18,6 +18,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
   const { isReady, height } = useContentHeight();
 
+  // State management for filter parameters
   const [categoryType, setCategoryType] = useState(searchParams.get('categoryType') || 'mc-mods');
   const [gameVersion, setGameVersion] = useState(searchParams.get('gameVersion') || '');
   const [loaderType, setLoaderType] = useState(searchParams.get('loaderType') || '0');
@@ -26,6 +27,10 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     return raw ? new Set(JSON.parse(raw)) : new Set();
   });
 
+  // Cache for loaderType when switching away from mc-mods
+  const [cachedLoaderType, setCachedLoaderType] = useState<string>('0');
+
+  // API queries for categories and versions
   const findAllCategoryQuery = useContextSelector(LauncherContext, (v) =>
     v.findAllCategoryQuery({ classId: categoryMap.keyToId[categoryType] }),
   );
@@ -37,6 +42,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     if (findReleasesVersionQuery.data?.length && !gameVersion) setGameVersion(findReleasesVersionQuery.data[0].version);
   }, [gameVersion, findReleasesVersionQuery.data, findReleasesVersionQuery.isLoading]);
 
+  // Sync filter parameters with URL search params
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
     next.set('categoryType', categoryType);
@@ -50,6 +56,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     setSearchParams(next);
   }, [categoryType, loaderType, searchParams, categoryIds, setSearchParams, gameVersion]);
 
+  // Handle category change handlers
   const handleCategoryChange = (categoryId: number, checked: boolean) => {
     const newSelected = new Set(categoryIds);
 
@@ -59,6 +66,22 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     setCategoryIds(newSelected);
   };
 
+  // Handle category type change with loader cache logic
+  const handleCategoryTypeChange = (val: string) => {
+    // If switching away from mc-mods, cache current loader type
+    if (categoryType === 'mc-mods' && val !== 'mc-mods') {
+      setCachedLoaderType(loaderType);
+      setLoaderType('0');
+    }
+    // If switching back to mc-mods, restore cached loader type
+    else if (categoryType !== 'mc-mods' && val === 'mc-mods') {
+      setLoaderType(cachedLoaderType);
+    }
+
+    setCategoryType(val);
+  };
+
+  // Render tree node recursively for category hierarchy
   const renderNode = (node: any) => (
     <li key={node.id}>
       {node.children.length > 0 ? (
@@ -82,6 +105,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
     </li>
   );
 
+  // Build category tree structure from flat data
   const tree = useMemo(() => {
     if (!findAllCategoryQuery.data) return [];
 
@@ -107,6 +131,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
       className={`${className} flex flex-col p-3 bg-base-300/60 space-y-4`}
       style={{ height: isReady ? height : '0px' }}
     >
+      {/* Filter Controls Section */}
       <div className="flex items-center justify-between gap-4">
         <label className="label flex-1/3">Type:</label>
         <Select
@@ -116,12 +141,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
             value: key,
             label,
           }))}
-          onChange={(val) => {
-            setCategoryType(val);
-            if (val !== 'mc-mods') {
-              setLoaderType('0');
-            }
-          }}
+          onChange={handleCategoryTypeChange}
         />
       </div>
 
@@ -140,6 +160,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
         <label className="label flex-1/3">Loader:</label>
         <Select
           className="flex-2/3"
+          disabled={!!instanceId}
           value={loaderType}
           options={[
             { label: 'All', value: '0' },
@@ -152,6 +173,7 @@ export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
         />
       </div>
 
+      {/* Category Tree Section */}
       <div className="flex-1 overflow-auto">
         <ul className="menu p-0 flex-nowrap">{tree.map(renderNode)}</ul>
       </div>

@@ -35,9 +35,6 @@ const removeContentInstanceSchema = findContentsInstanceSchema.extend({
 
 const addContentInstanceSchema = removeContentInstanceSchema.extend({
   worldName: z.string().optional(),
-  name: z.string(),
-  author: z.string(),
-  logoUrl: z.url(),
 });
 
 const toggleContentInstanceSchema = removeContentInstanceSchema

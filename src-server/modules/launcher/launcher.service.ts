@@ -1,68 +1,22 @@
-import { LauncherConfigDto, UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
+import { ContentDto } from '@shared/dtos/content.dto';
+import { categoryMap } from '@shared/mappings/general.mapping';
 import { spawn } from 'child_process';
 import EventEmitter from 'events';
-import { readFile, writeFile } from 'fs/promises';
-import set from 'lodash/set';
 import throttle from 'lodash/throttle';
 import path from 'path';
 
 import { Launch, Mojang } from '~s/libraries/minecraft-java-core/build/Index';
+import { LaunchOPTS } from '~s/libraries/minecraft-java-core/build/Launch';
+import { configService } from '~s/modules/config/config.service';
 
-const LAUNCHER_CONFIG_PATH = path.join('launcher.json');
-
-const launcherConfig: LauncherConfigDto = {
-  profile_selected: {
-    name: 'Latest Release',
-    type: 'release',
-    version: 'latest_release',
-    loader: undefined,
-    instance: undefined,
-  },
-  auth: {
-    type: 'offline',
-    username: '',
-  },
-  theme: 'dark',
-  language: 'vi',
-  download_multiple: 5,
-  minecraft: {
-    width: 400,
-    height: 250,
-    fullscreen: false,
-    gamedir: './minecraft',
-    java: {
-      type: 'jdk',
-    },
-    language: 'vi',
-    ram: 1024,
-  },
-  auto_updates: true,
-};
+import { instanceService } from '../instance/instance.service';
 
 class LauncherService {
   private launchInstance: Launch | null = null;
   private launchEmitter: EventEmitter | null = null;
 
-  async getConfig() {
-    try {
-      const config = await readFile(LAUNCHER_CONFIG_PATH, 'utf-8');
-      return JSON.parse(config) as LauncherConfigDto;
-    } catch (err: any) {
-      await writeFile(LAUNCHER_CONFIG_PATH, JSON.stringify(launcherConfig, null, 2), 'utf-8');
-      return launcherConfig;
-    }
-  }
-
-  async setConfig(payload: UpdateLauncherConfigDto) {
-    const { key, value } = payload;
-    const config = await this.getConfig();
-    set(config, key, value);
-    await writeFile(LAUNCHER_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
-    return config;
-  }
-
   async getFolder() {
-    const config = await this.getConfig();
+    const config = await configService.getConfig();
     const folderPath = path.resolve(config.minecraft.gamedir);
     const platform = process.platform;
 
@@ -81,10 +35,12 @@ class LauncherService {
       this.launchInstance = new Launch();
       this.launchEmitter = new EventEmitter();
 
-      const config = await this.getConfig();
+      const config = await configService.getConfig();
       const auth = await Mojang.login(config.auth.username || 'Player');
 
-      this.launchInstance.Launch({
+      const isInstance = !!config.profile_selected.instance;
+
+      const otp: LaunchOPTS = {
         path: config.minecraft.gamedir,
         version: config.profile_selected.version,
         bypassOffline: true,

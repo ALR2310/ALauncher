@@ -3,19 +3,20 @@ import { streamSSE } from 'hono/streaming';
 
 import { Body, Context, Controller, Get, Post, Validate } from '~s/common/decorators';
 
+import { configService } from '../config/config.service';
 import { launcherService } from './launcher.service';
 
 @Controller('/launchers')
 export class LauncherController {
   @Get('/config')
   async getConfig() {
-    return launcherService.getConfig();
+    return configService.getConfig();
   }
 
   @Post('/config')
   @Validate(UpdateLauncherConfigDto)
   async setConfig(@Body() payload: UpdateLauncherConfigDto) {
-    return launcherService.setConfig(payload);
+    return configService.setConfig(payload);
   }
 
   @Get('/folder')

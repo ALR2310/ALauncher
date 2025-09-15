@@ -18,9 +18,9 @@ import { BadRequestException, NotFoundException } from '~s/common/filters/except
 import { Downloader } from '~s/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~s/libraries/minecraft-java-core/build/utils/Downloader';
 
+import { configService } from '../config/config.service';
 import { contentService } from '../content/content.service';
 import { curseForgeService } from '../curseforge/curseforge.service';
-import { launcherService } from '../launcher/launcher.service';
 
 const instanceLocks = new Map<string, Mutex>();
 
@@ -133,8 +133,8 @@ class InstanceService {
     const lock = getInstanceLock(instanceId);
 
     return lock.runExclusive(async () => {
-      const config = await launcherService.getConfig();
-      const pathDir = await this.getInstanceContentDir(instanceId, type, worldName);
+      const config = await configService.getConfig();
+      const pathDir = await this.getPathByContentType(instanceId, type, worldName);
 
       const contentsMap = new Map<number, ContentDto>();
       const contentsToDownload: ContentDto[] = [];
@@ -202,7 +202,7 @@ class InstanceService {
     return lock.runExclusive(async () => {
       const [instance, pathDir] = await Promise.all([
         this.findOne(instanceId),
-        this.getInstanceContentDir(instanceId, type),
+        this.getPathByContentType(instanceId, type),
       ]);
 
       const content = instance[type]?.find((c) => c.id === contentId);
@@ -268,7 +268,7 @@ class InstanceService {
     return lock.runExclusive(async () => {
       const [instance, pathDir] = await Promise.all([
         this.findOne(instanceId),
-        this.getInstanceContentDir(instanceId, type),
+        this.getPathByContentType(instanceId, type),
       ]);
 
       const toggleSet = new Set(contentIds);
@@ -301,7 +301,7 @@ class InstanceService {
     });
   }
 
-  private async handleDownloadContent(contents: ContentDto[], pathDir: string, limit = 3) {
+  async handleDownloadContent(contents: ContentDto[], pathDir: string, limit = 3) {
     if (!contents.length) throw new Error('No additional to download');
 
     await mkdir(pathDir, { recursive: true });
@@ -342,15 +342,7 @@ class InstanceService {
     return downloader;
   }
 
-  private async ensureInstanceDir() {
-    if (!this.instanceDir) {
-      const config = await launcherService.getConfig();
-      this.instanceDir = path.resolve(config.minecraft.gamedir, 'versions');
-    }
-    await mkdir(this.instanceDir, { recursive: true });
-  }
-
-  private async getInstanceContentDir(instanceId: string, type: string, worldName?: string) {
+  async getPathByContentType(instanceId: string, type: string, worldName?: string) {
     await this.ensureInstanceDir();
     const basePath = path.join(this.instanceDir!, instanceId);
 
@@ -367,6 +359,14 @@ class InstanceService {
       throw new BadRequestException('Invalid additional type');
     }
     return pathDir;
+  }
+
+  private async ensureInstanceDir() {
+    if (!this.instanceDir) {
+      const config = await configService.getConfig();
+      this.instanceDir = path.resolve(config.minecraft.gamedir, 'versions');
+    }
+    await mkdir(this.instanceDir, { recursive: true });
   }
 }
 

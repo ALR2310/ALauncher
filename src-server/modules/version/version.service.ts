@@ -5,9 +5,9 @@ import axios from 'axios';
 import { readdir } from 'fs/promises';
 import path from 'path';
 
+import { configService } from '../config/config.service';
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
-import { launcherService } from '../launcher/launcher.service';
 
 class VersionService {
   private listNote: any[] = [];
@@ -158,7 +158,7 @@ class VersionService {
 
   private async findDownloadedVersions() {
     try {
-      const gameDir = (await launcherService.getConfig()).minecraft.gamedir;
+      const gameDir = (await configService.getConfig()).minecraft.gamedir;
       const versionPath = path.resolve(gameDir, 'versions');
       return (await readdir(versionPath, { withFileTypes: true }))
         .filter((dirent) => dirent.isDirectory())

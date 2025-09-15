@@ -55,6 +55,33 @@ export class LauncherController {
               }
             }, DELAY),
           )
+          .on(
+            'speed',
+            throttle(async (s) => {
+              const speedMB = (s / 1024 / 1024).toFixed(2);
+              await stream.writeSSE({ event: 'speed', data: `${speedMB}MB/s` });
+            }, DELAY),
+          )
+          .on(
+            'estimated',
+            throttle(async (e) => {
+              // Check if the estimated time is valid
+              if (!isFinite(e) || isNaN(e) || e < 0) {
+                await stream.writeSSE({ event: 'estimated', data: '' });
+                return;
+              }
+
+              const m = Math.floor(e / 60);
+              const s = Math.floor(e % 60);
+
+              if (!isFinite(m) || !isFinite(s) || isNaN(m) || isNaN(s)) {
+                await stream.writeSSE({ event: 'estimated', data: '' });
+                return;
+              }
+
+              await stream.writeSSE({ event: 'estimated', data: `${m}m ${s}s` });
+            }, DELAY),
+          )
           .on('error', async (err) => {
             await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
             await stream.close();

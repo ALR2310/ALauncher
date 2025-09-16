@@ -22,9 +22,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
   const [status, setStatus] = useState<'Install' | 'Installing' | 'Installed'>('Install');
 
   useEffect(() => {
-    if (data.status === 'latest') {
-      setStatus('Installed');
-    }
+    if (data.status === 'latest') setStatus('Installed');
   }, [data.status]);
 
   const handleInstall = () => {

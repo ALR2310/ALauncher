@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function HomeLoadingPage() {
+export default function LoadingPage() {
   const [dots, setDots] = useState('');
 
   useEffect(() => {

@@ -1,15 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
 
 import DockNav from './components/layouts/DockNav';
 // import { checkForAppUpdates } from './hooks/useUpdater';
 import BrowsePage from './pages/browse/BrowsePage';
 import HomePage from './pages/home/HomePage';
+import LoadingPage from './pages/LoadingPage';
 import ManagerPage from './pages/manager/ManagerPage';
 import { ConfirmProvider } from './providers/ConfirmProvider';
 import { ContentHeightProvider } from './providers/ContentHeightProvider';
-import { LauncherProvider } from './providers/LauncherProvider';
+import { LauncherContext, LauncherProvider } from './providers/LauncherProvider';
 import { ToastProvider } from './providers/ToastProvider';
 
 const isTauri = window.isTauri;
@@ -26,23 +28,32 @@ const queryClient = new QueryClient({
 });
 
 function Layout() {
-  const realWidth = 1150;
-  const realHeight = 650;
+  const width = 1150 / window.devicePixelRatio;
+  const height = 650 / window.devicePixelRatio;
 
-  const cssWidth = realWidth / window.devicePixelRatio;
-  const cssHeight = realHeight / window.devicePixelRatio;
+  const findReleaseNotesQuery = useContextSelector(LauncherContext, (v) => v.findReleaseNotesQuery);
+  const findAllVersionQuery = useContextSelector(LauncherContext, (v) => v.findAllVersionQuery);
+  const findAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.findAllInstanceQuery);
+
+  const isLoading = findReleaseNotesQuery.isLoading || findAllVersionQuery.isLoading || findAllInstanceQuery.isLoading;
 
   return (
     <ContentHeightProvider>
       <div
         id="layout"
         className="flex flex-col bg-base-200"
-        style={{ width: isTauri ? '100vw' : `${cssWidth}px`, height: isTauri ? '100vh' : `${cssHeight}px` }}
+        style={{ width: isTauri ? '100vw' : `${width}px`, height: isTauri ? '100vh' : `${height}px` }}
       >
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <DockNav />
+        {isLoading ? (
+          <LoadingPage />
+        ) : (
+          <>
+            <main className="flex-1">
+              <Outlet />
+            </main>
+            <DockNav />
+          </>
+        )}
       </div>
     </ContentHeightProvider>
   );

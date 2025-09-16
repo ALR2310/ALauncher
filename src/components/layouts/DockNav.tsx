@@ -1,14 +1,16 @@
 import { VersionDto } from '@shared/dtos/version.dto';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import { toast } from '~/hooks/useToast';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
 import Select from '../Select';
+import DockProgress from './DockProgress';
 
 export default function DockNav() {
   const [version, setVersion] = useState<VersionDto>(null!);
+  const evtRef = useRef<EventSource | null>(null);
 
   // Launcher context
   const config = useContextSelector(LauncherContext, (v) => v.getConfig());
@@ -22,6 +24,11 @@ export default function DockNav() {
   const progress = useContextSelector(LauncherContext, (v) => v.event.progress);
   const speed = useContextSelector(LauncherContext, (v) => v.event.speed);
   const estimated = useContextSelector(LauncherContext, (v) => v.event.estimated);
+
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyProgress, setVerifyProgress] = useState(0);
+  const [verifySpeed, setVerifySpeed] = useState('0 B/s');
+  const [verifyEstimated, setVerifyEstimated] = useState('0s');
 
   // Sync version when config or versions change
   useEffect(() => {
@@ -38,20 +45,45 @@ export default function DockNav() {
     }
   }, [config, findAllVersionQuery.data, findAllVersionQuery.isError, findAllVersionQuery.isLoading]);
 
+  const handleVerify = () => {
+    return new Promise<void>((resolve, reject) => {
+      const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/launchers/verify`;
+      evtRef.current = new EventSource(url);
+
+      setIsVerifying(true);
+      setVerifyProgress(0);
+      setVerifySpeed('0 B/s');
+      setVerifyEstimated('0s');
+
+      evtRef.current.addEventListener('progress', (e) => {
+        setVerifyProgress(parseFloat(e.data));
+      });
+      evtRef.current.addEventListener('speed', (e) => {
+        setVerifySpeed(e.data);
+      });
+      evtRef.current.addEventListener('estimated', (e) => {
+        setVerifyEstimated(e.data);
+      });
+      evtRef.current.addEventListener('done', () => {
+        setIsVerifying(false);
+        setVerifyProgress(100);
+        evtRef?.current?.close();
+        resolve();
+      });
+      evtRef.current.addEventListener('error', () => {
+        setIsVerifying(false);
+        setVerifyProgress(0);
+        toast.error('Failed to verify. Please try again.');
+        evtRef?.current?.close();
+        reject(new Error('Verification failed'));
+      });
+    });
+  };
+
   return (
     <div id="dockNav" className="relative flex gap-4 p-3 bg-base-300">
-      {isDownloading && (
-        <div className="absolute left-0 bottom-[90%] w-full">
-          <p className="absolute left-1/2 text-primary font-semibold z-10">
-            {progress && progress < 100 ? `${progress}% - ${speed} - ${estimated}` : undefined}
-          </p>
-          <progress
-            className="progress h-3 progress-no-rounded"
-            value={progress && progress < 100 ? progress : undefined}
-            max="100"
-          ></progress>
-        </div>
-      )}
+      {isDownloading && <DockProgress progress={progress} speed={speed} estimated={estimated} />}
+      {isVerifying && <DockProgress progress={verifyProgress} speed={verifySpeed} estimated={verifyEstimated} />}
 
       <label className="input flex-1">
         <i className="fa-light fa-user"></i>
@@ -89,12 +121,19 @@ export default function DockNav() {
 
       <button
         className="btn btn-primary flex-1"
-        onClick={() => {
-          if (isRunning) cancel();
-          else {
+        onClick={async () => {
+          if (isRunning) {
+            cancel();
+          } else {
             if (!config?.auth.username) return toast.warning('Please enter your username');
             if (!version) return toast.warning('Please select a version');
-            launch();
+
+            try {
+              await handleVerify();
+              launch();
+            } catch (error) {
+              console.error('Verification failed:', error);
+            }
           }
         }}
       >

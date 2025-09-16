@@ -18,16 +18,21 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
   const evtRef = useRef<EventSource | null>(null);
 
   const [isDownloading, setIsDownloading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState<number | undefined>(undefined);
   const [status, setStatus] = useState<'Install' | 'Installing' | 'Installed'>('Install');
 
   useEffect(() => {
     if (data.status === 'latest') setStatus('Installed');
   }, [data.status]);
 
+  useEffect(() => {
+    return () => evtRef.current?.close();
+  }, []);
+
   const handleInstall = () => {
     const query = new URLSearchParams({});
     const type = categoryMap.keyToText[categoryType].toLowerCase().replace(' ', '');
+    console.log(type);
     const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instances/${instanceId}/${type}/${data.id}?${query.toString()}`;
 
     evtRef.current = new EventSource(url);
@@ -51,12 +56,6 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
     });
   };
 
-  useEffect(() => {
-    return () => {
-      evtRef.current?.close();
-    };
-  }, []);
-
   return (
     <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
       <div className="flex justify-center items-center ">
@@ -66,10 +65,24 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
       <div className="flex-1 flex flex-col justify-between">
         <div className="flex">
           <div className="flex-1">
-            <div className="flex items-center font-semibold">
-              <h3 className="text-base-content text-ellipsis-1">{data.name}</h3>
+            <div className="flex items-center font-semibold ">
+              <a
+                href={data.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-base-content text-ellipsis-1 hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
+              >
+                {data.name}
+              </a>
               <div className="divider divider-horizontal"></div>
-              <p className="text-base-content/60 text-nowrap">by {data.authors[0].name}</p>
+              <a
+                href={data.authors[0].url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-base-content/60 text-nowrap hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
+              >
+                by {data.authors[0].name}
+              </a>
             </div>
 
             <p className="text-sm text-base-content/80 text-ellipsis-1 overflow-hidden">{data.summary}</p>
@@ -77,7 +90,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
 
           <div className="w-[15%]">
             <button
-              className={`btn btn-soft w-full ${status === 'Installed' ? 'btn-success pointer-events-none' : 'btn-primary'}`}
+              className={`btn btn-soft w-full ${status !== 'Install' ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
               onClick={handleInstall}
             >
               {status}

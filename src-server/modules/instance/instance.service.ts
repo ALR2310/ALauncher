@@ -9,9 +9,12 @@ import {
 } from '@shared/dtos/instance.dto';
 import { categoryMap } from '@shared/mappings/general.mapping';
 import { formatToSlug } from '@shared/utils/general.utils';
+import AdmZip from 'adm-zip';
 import { Mutex } from 'async-mutex';
+import EventEmitter from 'events';
 import { existsSync } from 'fs';
 import { mkdir, readdir, readFile, rename, rm, stat, unlink, writeFile } from 'fs/promises';
+import throttle from 'lodash/throttle';
 import pLimit from 'p-limit';
 import path from 'path';
 
@@ -135,6 +138,7 @@ class InstanceService {
 
     return lock.runExclusive(async () => {
       const config = await configService.getConfig();
+      const instance = await this.findOne(instanceId);
 
       const groupedContents: Record<string, ContentDto[]> = {};
       const visited = new Map<number, ContentDto>();
@@ -142,31 +146,37 @@ class InstanceService {
       const resolveContent = async (
         id: number,
         gameVersion: string,
-        loaderType?: string,
         parentType?: string,
       ): Promise<ContentDto | null> => {
         if (visited.has(id)) return visited.get(id)!;
 
-        const [contentInfo, contentFile] = await Promise.all([
-          curseForgeService.getMods({ modIds: [id] }).then((res) => (res.data.length ? res.data[0] : null)),
-          curseForgeService.getModFiles(id, gameVersion, loaderType),
-        ]);
-        if (!contentInfo || !contentFile.data.length) return null;
+        const contentInfo = await curseForgeService
+          .getMods({ modIds: [id] })
+          .then((res) => (res.data.length ? res.data[0] : null));
+
+        if (!contentInfo) return null;
 
         const mappedType = categoryMap.idToText[contentInfo.classId];
         const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? initialType);
 
-        const file = contentFile.data[0];
+        const effectiveLoader = realType === 'mods' ? instance.loader?.type : undefined;
+
+        const contentFile = await curseForgeService
+          .getModFiles(id, gameVersion, effectiveLoader)
+          .then((res) => (res.data.length ? res.data[0] : null));
+        if (!contentFile) return null;
+
         const fileUrl =
-          file.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${file.modId}/files/${file.id}/download`;
+          contentFile.downloadUrl ??
+          `https://www.curseforge.com/api/v1/mods/${contentFile.modId}/files/${contentFile.id}/download`;
 
         const content: ContentDto = {
-          id: file.modId,
+          id: contentFile.modId,
           name: contentInfo.name,
-          fileId: file.id,
-          fileName: file.fileName,
+          fileId: contentFile.id,
+          fileName: contentFile.fileName,
           fileUrl,
-          fileSize: file.fileLength,
+          fileSize: contentFile.fileLength,
           enabled: true,
           dependencies: [],
         };
@@ -176,14 +186,12 @@ class InstanceService {
         if (!groupedContents[realType]) groupedContents[realType] = [];
         groupedContents[realType].push(content);
 
-        // resolve dependencies
-        if (file.dependencies?.length) {
+        if (contentFile.dependencies?.length) {
           const deps = await Promise.all(
-            file.dependencies
+            contentFile.dependencies
               .filter((dep: { relationType: number }) => dep.relationType === 3)
               .map(async (dep: { modId: number }) => {
-                const depType = realType === 'mods' ? instance.loader?.type : undefined;
-                const depContent = await resolveContent(dep.modId, gameVersion, depType, realType);
+                const depContent = await resolveContent(dep.modId, gameVersion, realType);
                 return depContent?.id ?? null;
               }),
           );
@@ -193,10 +201,7 @@ class InstanceService {
         return content;
       };
 
-      const instance = await this.findOne(instanceId);
-
-      const loaderType = initialType === 'mods' ? instance.loader?.type : undefined;
-      await resolveContent(contentId, instance.version, loaderType);
+      await resolveContent(contentId, instance.version);
 
       for (const [type, newContents] of Object.entries(groupedContents)) {
         const existing = instance[type] ?? [];
@@ -357,11 +362,56 @@ class InstanceService {
 
     if (!filesToDownload.length) return null;
 
-    const downloader = new Downloader();
+    const DELAY = 500;
     const totalSize = filesToDownload.reduce((acc, f) => acc + (f.length ?? 0), 0);
+    const event = new EventEmitter();
+    const downloader = new Downloader();
 
     downloader.downloadFileMultiple(filesToDownload, totalSize, limit);
-    return downloader;
+
+    downloader
+      .on(
+        'progress',
+        throttle(async (p, s) => {
+          const percent = ((p / s) * 100).toFixed(2);
+          event.emit('progress', percent);
+          if (p >= s) {
+            for (const file of filesToDownload) {
+              if (file.type === 'worlds' && file.path.endsWith('.zip')) {
+                try {
+                  const zip = new AdmZip(file.path);
+                  zip.extractAllTo(file.folder, true);
+                  // await unlink(file.path);
+                  event.emit('extract', `Extracting ${path.basename(file.path)}`);
+                } catch {
+                  console.log(`Failed to extract ${path.basename(file.path)}`);
+                }
+              }
+            }
+            event.emit('done', 'Download complete');
+          }
+        }, DELAY),
+      )
+      .on(
+        'speed',
+        throttle((s) => {
+          const speedMB = (s / 1024 / 1024).toFixed(2);
+          event.emit('speed', `${speedMB}MB/s`);
+        }, DELAY),
+      )
+      .on(
+        'estimated',
+        throttle((e) => {
+          const m = Math.floor(e / 60);
+          const s = Math.floor(e % 60);
+          event.emit('estimated', `${m}m ${s}s`);
+        }, DELAY),
+      )
+      .on('error', (err) => {
+        event.emit('error', err);
+      });
+
+    return event;
   }
 
   async getPathByContentType(instanceId: string, type: string, worldName?: string) {

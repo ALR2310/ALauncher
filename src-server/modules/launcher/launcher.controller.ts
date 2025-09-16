@@ -1,6 +1,5 @@
 import { UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 import { streamSSE } from 'hono/streaming';
-import throttle from 'lodash/throttle';
 
 import { Body, Context, Controller, Get, Post, Validate } from '~s/common/decorators';
 
@@ -36,52 +35,17 @@ export class LauncherController {
     }
 
     return streamSSE(c, async (stream) => {
-      const DELAY = 500;
       const done = new Promise<void>((resolve) => {
         downloader
-          .on(
-            'progress',
-            throttle(async (p, s) => {
-              const percent = ((p / s) * 100).toFixed(2);
-
-              await stream.writeSSE({ event: 'progress', data: percent });
-
-              if (percent === '100.00') {
-                await stream.writeSSE({ event: 'done', data: 'Download complete' });
-                setTimeout(async () => {
-                  await stream.close();
-                  resolve();
-                }, 100);
-              }
-            }, DELAY),
-          )
-          .on(
-            'speed',
-            throttle(async (s) => {
-              const speedMB = (s / 1024 / 1024).toFixed(2);
-              await stream.writeSSE({ event: 'speed', data: `${speedMB}MB/s` });
-            }, DELAY),
-          )
-          .on(
-            'estimated',
-            throttle(async (e) => {
-              // Check if the estimated time is valid
-              if (!isFinite(e) || isNaN(e) || e < 0) {
-                await stream.writeSSE({ event: 'estimated', data: '' });
-                return;
-              }
-
-              const m = Math.floor(e / 60);
-              const s = Math.floor(e % 60);
-
-              if (!isFinite(m) || !isFinite(s) || isNaN(m) || isNaN(s)) {
-                await stream.writeSSE({ event: 'estimated', data: '' });
-                return;
-              }
-
-              await stream.writeSSE({ event: 'estimated', data: `${m}m ${s}s` });
-            }, DELAY),
-          )
+          .on('progress', async (percent) => await stream.writeSSE({ event: 'progress', data: percent }))
+          .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
+          .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
+          .on('extract', async (f) => await stream.writeSSE({ event: 'extract', data: f }))
+          .on('done', async () => {
+            await stream.writeSSE({ event: 'done', data: 'Download complete' });
+            await stream.close();
+            resolve();
+          })
           .on('error', async (err) => {
             await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
             await stream.close();

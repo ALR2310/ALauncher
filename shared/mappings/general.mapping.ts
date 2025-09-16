@@ -18,7 +18,7 @@ export const categoryMap = {
     'mc-mods': 'Mods',
     'data-packs': 'Data Packs',
     'texture-packs': 'Resource Packs',
-    shaders: 'Shaders',
+    shaders: 'Shader Packs',
     worlds: 'Worlds',
   },
   keyToId: {
@@ -32,7 +32,7 @@ export const categoryMap = {
     6: 'Mods',
     6945: 'Data Packs',
     12: 'Resource Packs',
-    6552: 'Shaders',
+    6552: 'Shader Packs',
     17: 'Worlds',
   },
 };

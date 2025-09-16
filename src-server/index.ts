@@ -14,6 +14,7 @@ import { ContentController } from './modules/content/content.controller';
 import { InstanceController } from './modules/instance/instance.controller';
 import { LauncherController } from './modules/launcher/launcher.controller';
 import { VersionController } from './modules/version/version.controller';
+import { WorldController } from './modules/world/world.controller';
 
 const app = new Hono()
   .basePath('/api')
@@ -27,6 +28,7 @@ registerController(app, [
   InstanceController,
   LauncherController,
   VersionController,
+  WorldController,
 ]);
 
 serve({ fetch: app.fetch, port: Number(process.env.VITE_SERVER_PORT ?? 1421) }, (info) => {

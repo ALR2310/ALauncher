@@ -3,15 +3,14 @@
   "version": "1.0.0",
   "main": "index.ts",
   "license": "MIT",
-  "type": "module",
   "scripts": {
     "dev": "concurrently \"yarn dev:client\" \"yarn dev:server\"",
-    "dev:client": "vite --host",
-    "dev:server": "tsx watch --clear-screen=false src-server/index.ts",
+    "dev:client": "cd src-client && vite --host",
+    "dev:server": "cd src-server && tsx watch --clear-screen=false src/index.ts",
     "tauri": "tauri",
     "update": "npm-check-updates -u",
     "build": "tsx scripts/build.ts",
-    "build:client": "tsc && vite build",
+    "build:client": "cd src-client && tsc && vite build",
     "build:server": "tsx scripts/build-server.ts"
   },
   "dependencies": {
@@ -41,7 +40,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
-    "@tailwindcss/vite": "^4.1.12",
+    "@tailwindcss/vite": "^4.1.13",
     "@tauri-apps/cli": "^2.8.3",
     "@types/adm-zip": "^0.5.7",
     "@types/lodash": "^4.17.20",

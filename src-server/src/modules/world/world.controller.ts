@@ -1,6 +1,6 @@
 import { WorldsQueryDto } from '@shared/dtos/world.dto';
 
-import { Controller, Get, Query, Validate } from '~s/common/decorators';
+import { Controller, Get, Query, Validate } from '~/common/decorators';
 
 import { worldService } from './world.service';
 

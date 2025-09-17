@@ -20,7 +20,7 @@ import {
   Put,
   Query,
   Validate,
-} from '~s/common/decorators';
+} from '~/common/decorators';
 
 import { instanceService } from './instance.service';
 

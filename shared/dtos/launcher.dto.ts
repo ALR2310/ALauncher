@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { createZodDto } from '../../src-server/common/zod-dto';
+import { createZodDto } from '../utils/zod.dto';
 import { versionSchema } from './version.dto';
 
 export const launcherConfigSchema = z.object({

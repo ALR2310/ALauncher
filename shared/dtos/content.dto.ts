@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { createZodDto } from '../../src-server/common/zod-dto';
+import { createZodDto } from '../utils/zod.dto';
 
 export const contentSchema = z.object({
   id: z.number(),

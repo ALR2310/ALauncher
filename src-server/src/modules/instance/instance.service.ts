@@ -18,9 +18,9 @@ import throttle from 'lodash/throttle';
 import pLimit from 'p-limit';
 import path from 'path';
 
-import { BadRequestException, NotFoundException } from '~s/common/filters/exception.filter';
-import { Downloader } from '~s/libraries/minecraft-java-core/build/Index';
-import { DownloadOptions } from '~s/libraries/minecraft-java-core/build/utils/Downloader';
+import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
+import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
+import { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
 
 import { configService } from '../config/config.service';
 import { contentService } from '../content/content.service';

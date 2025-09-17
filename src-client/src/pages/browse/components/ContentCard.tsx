@@ -16,7 +16,7 @@ interface ContentCardProps {
   worlds: WorldDto[];
 }
 
-export default function ContentCard({ data, categoryType, versionSelected, loaderType, worlds }: ContentCardProps) {
+export default function ContentCard({ data, categoryType, versionSelected, loaderType }: ContentCardProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const evtRef = useRef<EventSource | null>(null);

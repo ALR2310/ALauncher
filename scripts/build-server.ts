@@ -18,10 +18,10 @@ const define = Object.fromEntries(
 
 (async () => {
   await build({
-    entryPoints: ['src-server/index.ts'],
+    entryPoints: ['src-server/src/index.ts'],
     bundle: true,
     platform: 'node',
-    external: ['electron'],
+    external: ['electron', 'prismarine-nbt'],
     target,
     format: 'cjs',
     outfile,
@@ -31,10 +31,10 @@ const define = Object.fromEntries(
   });
 
   const outputFile = path.resolve('src-tauri/binaries/server-x86_64-pc-windows-msvc.exe');
-  const pkgCmd = `pkg ${outfile} --targets ${target}-win-x64 --output ${outputFile}`;
+  const pkgCmd = `pkg ${outfile} --targets ${target}-win-x64 --output ${outputFile} --assets node_modules/prismarine-nbt/**/*`;
   execSync(pkgCmd, { stdio: 'inherit' });
 
-  const iconPath = path.resolve('src/assets/imgs/favicon.ico');
+  const iconPath = path.resolve('src-client/src/assets/imgs/favicon.ico');
   const iconFile = ResEdit.Data.IconFile.from(readFileSync(iconPath));
   const exeData = readFileSync(outputFile);
   const exe = ResEdit.NtExecutable.from(exeData);

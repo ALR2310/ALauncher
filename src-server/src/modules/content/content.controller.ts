@@ -1,6 +1,6 @@
 import { ContentQueryDto } from '@shared/dtos/content.dto';
 
-import { Controller, Get, Query, Validate } from '~s/common/decorators';
+import { Controller, Get, Query, Validate } from '~/common/decorators';
 
 import { contentService } from './content.service';
 

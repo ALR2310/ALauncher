@@ -1,6 +1,6 @@
 import { LoaderDto, ReleaseNoteQueryDto } from '@shared/dtos/version.dto';
 
-import { Controller, Get, Query, Validate } from '~s/common/decorators';
+import { Controller, Get, Query, Validate } from '~/common/decorators';
 
 import { versionService } from './version.service';
 

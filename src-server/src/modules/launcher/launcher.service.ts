@@ -5,9 +5,10 @@ import EventEmitter from 'events';
 import throttle from 'lodash/throttle';
 import path from 'path';
 
-import { Launch, Mojang } from '~s/libraries/minecraft-java-core/build/Index';
-import { configService } from '~s/modules/config/config.service';
+import { Mojang } from '~/libraries/minecraft-java-core/build/Index';
+import Launch from '~/libraries/minecraft-java-core/build/Launch';
 
+import { configService } from '../config/config.service';
 import { instanceService } from '../instance/instance.service';
 
 class LauncherService {

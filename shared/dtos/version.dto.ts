@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { createZodDto } from '../../src-server/common/zod-dto';
+import { createZodDto } from '../utils/zod.dto';
 
 export const loaderSchema = z.object({
   type: z.enum(['forge', 'fabric', 'quilt', 'neoforge']),

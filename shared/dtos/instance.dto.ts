@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { createZodDto } from '../../src-server/common/zod-dto';
+import { createZodDto } from '../utils/zod.dto';
 import { contentSchema } from './content.dto';
 import { loaderSchema } from './version.dto';
 

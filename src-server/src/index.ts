@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import 'reflect-metadata';
 
 import { serve } from '@hono/node-server';

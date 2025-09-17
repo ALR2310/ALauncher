@@ -1,5 +1,9 @@
 import { loaderMap } from '@shared/mappings/general.mapping';
 import axios from 'axios';
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+config({ path: resolve(__dirname, '../.env') });
 
 const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
 

@@ -1,7 +1,7 @@
 import { UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 import { streamSSE } from 'hono/streaming';
 
-import { Body, Context, Controller, Get, Post, Validate } from '~s/common/decorators';
+import { Body, Context, Controller, Get, Post, Validate } from '~/common/decorators';
 
 import { configService } from '../config/config.service';
 import { launcherService } from './launcher.service';

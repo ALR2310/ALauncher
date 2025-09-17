@@ -1,19 +1,20 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
-dotenv.config({ quiet: true });
+config({ quiet: true, path: resolve(__dirname, '../.env') });
 
 const host = process.env.TAURI_DEV_HOST;
 const clientPort = Number(process.env.VITE_CLIENT_PORT) || 1420;
 
 export default defineConfig(async () => ({
   build: {
-    minify: false,
-    cssMinify: false,
+    minify: true,
+    cssMinify: true,
     emptyOutDir: true,
+    outDir: resolve(__dirname, '../dist'),
   },
   server: {
     port: clientPort,
@@ -33,7 +34,7 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       '~': resolve(__dirname, 'src'),
-      '@shared': resolve(__dirname, 'shared'),
+      '@shared': resolve(__dirname, '../shared'),
     },
   },
   clearScreen: false,

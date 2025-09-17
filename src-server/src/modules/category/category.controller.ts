@@ -1,6 +1,6 @@
 import { CategoryQueryDto } from '@shared/dtos/category.dto';
 
-import { Controller, Get, Payload, Validate } from '~s/common/decorators';
+import { Controller, Get, Payload, Validate } from '~/common/decorators';
 
 import { categoriesService } from './category.service';
 

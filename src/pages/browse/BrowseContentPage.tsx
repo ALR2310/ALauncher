@@ -19,6 +19,8 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
   const { instanceId } = useParams<{ instanceId: string }>();
   const { height, isReady } = useContentHeight();
 
+  const navigate = useNavigate();
+
   const sortField = searchParams.get('sortField') || '2';
   const searchFilter = searchParams.get('searchFilter') || '';
   const debouncedSearchFilter = useDebounce(searchFilter, 500);
@@ -28,8 +30,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
   const loaderType = searchParams.get('loaderType') || '0';
   const categoryIds = searchParams.get('categoryIds') ? JSON.parse(searchParams.get('categoryIds')!) : undefined;
 
-  const navigate = useNavigate();
-
+  const findAllWorldQuery = useContextSelector(LauncherContext, (v) => v.findAllWorldQuery(instanceId));
   const findAllContentQuery = useContextSelector(LauncherContext, (v) =>
     v.findAllContentQuery({
       instanceId: instanceId || undefined,
@@ -116,6 +117,7 @@ export default function BrowseContentPage({ className }: BrowseContentPageProps)
               categoryType={categoryType}
               versionSelected={gameVersion}
               loaderType={loaderType}
+              worlds={findAllWorldQuery.data || []}
             />
           )),
         )}

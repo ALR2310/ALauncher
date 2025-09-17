@@ -1,5 +1,5 @@
 import { WorldDto, WorldsQueryDto } from '@shared/dtos/world.dto';
-import fs, { existsSync } from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { parse } from 'prismarine-nbt';
 
@@ -18,7 +18,7 @@ function parseNbtLong(val: unknown): string | null {
 
 class WorldService {
   async findAll(payload: WorldsQueryDto): Promise<WorldDto[]> {
-    const { instance: instanceId } = payload;
+    const { instanceId } = payload;
 
     const config = await configService.getConfig();
     const baseDir = config.minecraft.gamedir;
@@ -45,7 +45,7 @@ class WorldService {
         }
 
         const iconPath = path.join(worldPath, dir.name, 'icon.png');
-        const icon = existsSync(iconPath) ? iconPath : null;
+        const icon = fs.existsSync(iconPath) ? iconPath : null;
 
         const rawSeed = data.WorldGenSettings?.value?.seed?.value;
         const seed = parseNbtLong(rawSeed) ?? rawSeed;
@@ -56,9 +56,12 @@ class WorldService {
           seed,
           icon,
           gameType: data.GameType?.value ?? null,
+          instanceId: instanceId ?? null,
           path: path.join(worldPath, dir.name),
         });
-      } catch (err) {}
+      } catch (err) {
+        console.warn(`Failed to read or parse level.dat for world ${dir.name}:`, err);
+      }
     }
 
     return worlds;

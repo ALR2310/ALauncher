@@ -12,7 +12,7 @@ export const WorldSchema = z.object({
 });
 
 export const WorldsQuerySchema = z.object({
-  instance: z.string().optional(),
+  instanceId: z.string().optional(),
 });
 
 export class WorldDto extends createZodDto(WorldSchema) {}

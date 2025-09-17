@@ -8,6 +8,7 @@ import { useLauncherContent } from '~/hooks/launcher/useLauncherContent';
 import { useLauncherInstance } from '~/hooks/launcher/useLauncherInstance';
 import { useLauncherLifeCycle } from '~/hooks/launcher/useLauncherLifeCycle';
 import { useLauncherVersion } from '~/hooks/launcher/useLauncherVersion';
+import { useLauncherWorld } from '~/hooks/launcher/useLauncherWorld';
 
 const LauncherContext = createContext<{
   getConfig: ReturnType<typeof useLauncherConfig>['getConfig'];
@@ -33,6 +34,7 @@ const LauncherContext = createContext<{
   canRemoveContentInstanceMutation: ReturnType<typeof useLauncherInstance>['canRemoveContentInstanceMutation'];
   toggleContentInstanceMutation: ReturnType<typeof useLauncherInstance>['toggleContentInstanceMutation'];
   findAllContentQuery: ReturnType<typeof useLauncherContent>['findAllContentQuery'];
+  findAllWorldQuery: ReturnType<typeof useLauncherWorld>['findAllWorldQuery'];
 }>(null!);
 
 const LauncherProvider = ({ children }) => {
@@ -53,6 +55,7 @@ const LauncherProvider = ({ children }) => {
     toggleContentInstanceMutation,
   } = useLauncherInstance();
   const { findAllContentQuery } = useLauncherContent();
+  const { findAllWorldQuery } = useLauncherWorld();
 
   const ctx = useMemo(
     () => ({
@@ -79,6 +82,7 @@ const LauncherProvider = ({ children }) => {
       canRemoveContentInstanceMutation,
       toggleContentInstanceMutation,
       findAllContentQuery,
+      findAllWorldQuery,
     }),
     [
       canRemoveContentInstanceMutation,
@@ -90,6 +94,7 @@ const LauncherProvider = ({ children }) => {
       findAllContentQuery,
       findAllInstanceQuery,
       findAllVersionQuery,
+      findAllWorldQuery,
       findContentInstanceQuery,
       findLoadersVersionQuery,
       findOneInstanceQuery,

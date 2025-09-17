@@ -1,9 +1,11 @@
 import { ContentResponseDto } from '@shared/dtos/content.dto';
+import { WorldDto } from '@shared/dtos/world.dto';
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import Modal from '~/components/Modal';
 import { toast } from '~/hooks/useToast';
 
 interface ContentCardProps {
@@ -11,10 +13,12 @@ interface ContentCardProps {
   categoryType: string;
   versionSelected: string;
   loaderType: string;
+  worlds: WorldDto[];
 }
 
-export default function ContentCard({ data, categoryType, versionSelected, loaderType }: ContentCardProps) {
+export default function ContentCard({ data, categoryType, versionSelected, loaderType, worlds }: ContentCardProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
+  const modalRef = useRef<HTMLDialogElement | null>(null);
   const evtRef = useRef<EventSource | null>(null);
 
   const [isDownloading, setIsDownloading] = useState(false);
@@ -27,6 +31,10 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
 
   useEffect(() => {
     return () => evtRef.current?.close();
+  }, []);
+
+  useEffect(() => {
+    modalRef.current?.showModal();
   }, []);
 
   const handleInstall = () => {
@@ -57,82 +65,90 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
   };
 
   return (
-    <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
-      <div className="flex justify-center items-center ">
-        <img src={data.logoUrl} alt="mod img" loading="lazy" className="w-full h-full object-cover" />
-      </div>
-
-      <div className="flex-1 flex flex-col justify-between">
-        <div className="flex">
-          <div className="flex-1">
-            <div className="flex items-center font-semibold ">
-              <a
-                href={data.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-base-content text-ellipsis-1 hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
-              >
-                {data.name}
-              </a>
-              <div className="divider divider-horizontal"></div>
-              <a
-                href={data.authors[0].url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-base-content/60 text-nowrap hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
-              >
-                by {data.authors[0].name}
-              </a>
-            </div>
-
-            <p className="text-sm text-base-content/80 text-ellipsis-1 overflow-hidden">{data.summary}</p>
-          </div>
-
-          <div className="w-[15%]">
-            <button
-              className={`btn btn-soft w-full ${status !== 'Install' ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
-              onClick={handleInstall}
-            >
-              {status}
-            </button>
-          </div>
+    <React.Fragment>
+      <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
+        <div className="flex justify-center items-center ">
+          <img src={data.logoUrl} alt="mod img" loading="lazy" className="w-full h-full object-cover" />
         </div>
 
-        <div className="divider m-0"></div>
-
-        {isDownloading ? (
-          <progress className="progress w-full mb-2 h-3 progress-no-rounded" value={progress} max="100"></progress>
-        ) : (
-          <div className="flex justify-between text-xs text-base-content/70">
-            <div className="flex items-center gap-2">
-              <button className="btn btn-outline btn-xs">{categoryMap.keyToText[categoryType]}</button>
-              <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
-                {data.categories.map((cat, idx) => (
-                  <a href="#" key={idx} className="block hover:underline">
-                    {cat.name}
-                  </a>
-                ))}
+        <div className="flex-1 flex flex-col justify-between">
+          <div className="flex">
+            <div className="flex-1">
+              <div className="flex items-center font-semibold ">
+                <a
+                  href={data.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base-content text-ellipsis-1 hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
+                >
+                  {data.name}
+                </a>
+                <div className="divider divider-horizontal"></div>
+                <a
+                  href={data.authors[0].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base-content/60 text-nowrap hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
+                >
+                  by {data.authors[0].name}
+                </a>
               </div>
+
+              <p className="text-sm text-base-content/80 text-ellipsis-1 overflow-hidden">{data.summary}</p>
             </div>
 
-            <div className="flex items-center gap-4 text-nowrap">
-              <p>
-                <i className="fa-light fa-download"></i> {abbreviateNumber(data.downloadCount)}
-              </p>
-              <p>
-                <i className="fa-light fa-clock-three"></i> {new Date(data.dateModified).toLocaleDateString()}
-              </p>
-              <p>
-                <i className="fa-light fa-database"></i> {data.fileSize}
-              </p>
-              <p>
-                <i className="fa-light fa-gamepad-modern"></i> {versionSelected}
-              </p>
-              <p>{loaderType === '0' ? '' : capitalize(loaderMap.idToKey[loaderType])}</p>
+            <div className="w-[15%]">
+              <button
+                className={`btn btn-soft w-full ${status !== 'Install' ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
+                onClick={handleInstall}
+              >
+                {status}
+              </button>
             </div>
           </div>
-        )}
+
+          <div className="divider m-0"></div>
+
+          {isDownloading ? (
+            <progress className="progress w-full mb-2 h-3 progress-no-rounded" value={progress} max="100"></progress>
+          ) : (
+            <div className="flex justify-between text-xs text-base-content/70">
+              <div className="flex items-center gap-2">
+                <button className="btn btn-outline btn-xs">{categoryMap.keyToText[categoryType]}</button>
+                <div className="flex gap-2 overflow-hidden text-ellipsis-1 w-[50%]">
+                  {data.categories.map((cat, idx) => (
+                    <a href="#" key={idx} className="block hover:underline">
+                      {cat.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 text-nowrap">
+                <p>
+                  <i className="fa-light fa-download"></i> {abbreviateNumber(data.downloadCount)}
+                </p>
+                <p>
+                  <i className="fa-light fa-clock-three"></i> {new Date(data.dateModified).toLocaleDateString()}
+                </p>
+                <p>
+                  <i className="fa-light fa-database"></i> {data.fileSize}
+                </p>
+                <p>
+                  <i className="fa-light fa-gamepad-modern"></i> {versionSelected}
+                </p>
+                <p>{loaderType === '0' ? '' : capitalize(loaderMap.idToKey[loaderType])}</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      <Modal ref={modalRef} btnShow={false} backdropClose={true} iconClose={true} title="Select Worlds to Install">
+        <div>
+          <input type="text" className="input" />
+        </div>
+      </Modal>
+    </React.Fragment>
   );
 }

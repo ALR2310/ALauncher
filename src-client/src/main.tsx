@@ -25,13 +25,11 @@ const root = createRoot(container!);
 (window as any).dayjs = dayjs;
 (window as any).toast = toast;
 
-(async () => {
-  // Load server
-  if (window.isTauri) {
-    const command = Command.sidecar('binaries/server');
-    await command.spawn();
-  }
+// Load server
+if (window.isTauri) {
+  const command = Command.sidecar('binaries/server');
+  command.spawn();
+}
 
-  // Render GUI
-  root.render(<App />);
-})();
+// Render GUI
+root.render(<App />);

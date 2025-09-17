@@ -35,7 +35,11 @@ function Layout() {
   const findAllVersionQuery = useContextSelector(LauncherContext, (v) => v.findAllVersionQuery);
   const findAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.findAllInstanceQuery);
 
-  const isLoading = findReleaseNotesQuery.isLoading || findAllVersionQuery.isLoading || findAllInstanceQuery.isLoading;
+  const queries = [findReleaseNotesQuery, findAllVersionQuery, findAllInstanceQuery];
+
+  const isError = queries.some((q) => q.isError);
+  const isSuccess = queries.every((q) => q.isSuccess);
+  const isLoaded = isSuccess && !isError;
 
   return (
     <ContentHeightProvider>
@@ -44,7 +48,7 @@ function Layout() {
         className="flex flex-col bg-base-200"
         style={{ width: isTauri ? '100vw' : `${width}px`, height: isTauri ? '100vh' : `${height}px` }}
       >
-        {isLoading ? (
+        {!isLoaded ? (
           <LoadingPage />
         ) : (
           <>

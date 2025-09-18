@@ -69,8 +69,8 @@ async function buildRelease(version: string): Promise<BuildResult> {
     TAURI_SIGNING_PRIVATE_KEY_PASSWORD: process.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD,
   };
 
-  execSync('npm run build:server', { stdio: 'inherit' });
-  execSync('npm run tauri build', { stdio: 'inherit', env });
+  execSync('yarn build:server', { stdio: 'inherit' });
+  execSync('yarn tauri build', { stdio: 'inherit', env });
 
   // find files
   const files = fs.readdirSync(bundleDir);

@@ -42,7 +42,9 @@ if (existsSync('.env')) {
     console.log('✅ esbuild done');
 
     const outputFile = path.resolve('src-tauri/binaries/server-x86_64-pc-windows-msvc.exe');
-    const pkgCmd = `pkg ${outfile} --targets ${target}-win-x64 --output ${outputFile} --assets node_modules/prismarine-nbt/**/*`;
+    const pkgCmd = `pkg ${outfile} --targets ${target}-win-x64 --output ${outputFile} --assets "node_modules/prismarine-nbt/**/*"`;
+    console.log('⚙️ Running:', pkgCmd);
+
     console.log('⚙️ Running:', pkgCmd);
     execSync(pkgCmd, { stdio: 'inherit' });
     console.log('✅ pkg done, output at', outputFile);

@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { config, parse } from 'dotenv';
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import * as ResEdit from 'resedit';
 
@@ -11,10 +11,18 @@ const isProd = process.env.NODE_ENV === 'production';
 
 const outfile = 'dist/server.cjs';
 const target = 'node18';
-const env = parse(readFileSync('.env'));
-const define = Object.fromEntries(
-  Object.entries(env).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')]),
-);
+let define: Record<string, string> = {};
+
+if (existsSync('.env')) {
+  const envFile = parse(readFileSync('.env'));
+  define = Object.fromEntries(
+    Object.entries(envFile).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')]),
+  );
+} else {
+  define = Object.fromEntries(
+    Object.entries(process.env).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')]),
+  );
+}
 
 (async () => {
   try {

@@ -41,7 +41,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
       ...(worlds ? { worlds: worldsSelected.join(',') } : {}),
     });
     const type = categoryMap.keyToText[categoryType].toLowerCase().replace(/\s+/g, '');
-    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instances/${instanceId}/${type}/${data.id}?${query.toString()}`;
+    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT ?? 1421}/api/instances/${instanceId}/${type}/${data.id}?${query.toString()}`;
 
     evtRef.current = new EventSource(url);
     setStatus('Installing');

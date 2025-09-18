@@ -17,7 +17,7 @@ export function useLauncherLifeCycle() {
   const launch = useCallback(() => {
     if (evtRef.current) return;
 
-    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/launchers/launch`);
+    evtRef.current = new EventSource(`http://localhost:${import.meta.env.VITE_SERVER_PORT ?? 1421}/api/launchers/launch`);
 
     setIsRunning(true);
     setIsDownloading(true);

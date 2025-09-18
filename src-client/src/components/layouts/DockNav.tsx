@@ -47,7 +47,7 @@ export default function DockNav() {
 
   const handleVerify = () => {
     return new Promise<void>((resolve, reject) => {
-      const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/launchers/verify`;
+      const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT ?? 1421}/api/launchers/verify`;
       evtRef.current = new EventSource(url);
 
       setIsVerifying(true);

@@ -45,7 +45,7 @@ export default tseslint.config(
   },
   // BE (Node)
   {
-    files: ['src-server/**/*.ts', "shared/**/*.ts"],
+    files: ['src-server/**/*.ts', "shared/**/*.ts", "scripts/**/*.ts"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,

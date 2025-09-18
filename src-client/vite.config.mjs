@@ -11,8 +11,8 @@ const clientPort = Number(process.env.VITE_CLIENT_PORT) || 1420;
 
 export default defineConfig(async () => ({
   build: {
-    minify: true,
-    cssMinify: true,
+    minify: false,
+    cssMinify: false,
     emptyOutDir: true,
     outDir: resolve(__dirname, '../dist'),
   },

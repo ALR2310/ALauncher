@@ -1,5 +1,6 @@
 import { WorldDto, WorldsQueryDto } from '@shared/dtos/world.dto';
 import fs from 'fs';
+import pLimit from 'p-limit';
 import path from 'path';
 import { parse } from 'prismarine-nbt';
 
@@ -18,37 +19,50 @@ class WorldService {
 
     const dirs = fs.readdirSync(worldPath, { withFileTypes: true });
 
-    const worlds: WorldDto[] = [];
+    const limit = pLimit(5);
 
-    for (const dir of dirs) {
-      if (!dir.isDirectory()) continue;
+    const tasks = dirs
+      .filter((dir) => dir.isDirectory())
+      .map((dir) =>
+        limit(async () => {
+          const levelDatPath = path.join(worldPath, dir.name, 'level.dat');
+          try {
+            const buffer = fs.readFileSync(levelDatPath);
+            const { parsed } = await parse(buffer);
 
-      const levelDatPath = path.join(worldPath, dir.name, 'level.dat');
-      try {
-        const buffer = fs.readFileSync(levelDatPath);
-        const { parsed } = await parse(buffer);
+            const data: any = parsed.value.Data?.value;
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+              console.warn(`World ${dir.name} does not have Data property in level.dat or Data is not an object`);
+              return null;
+            }
 
-        const data: any = parsed.value.Data?.value;
-        if (!data || typeof data !== 'object' || Array.isArray(data)) {
-          console.warn(`World ${dir.name} does not have Data property in level.dat or Data is not an object`);
-          continue;
-        }
+            const iconPath = path.join(worldPath, dir.name, 'icon.png');
+            let icon: string | null = null;
 
-        const iconPath = path.join(worldPath, dir.name, 'icon.png');
-        const icon = fs.existsSync(iconPath) ? iconPath : null;
+            if (fs.existsSync(iconPath)) {
+              const buf = fs.readFileSync(iconPath);
+              icon = `data:image/png;base64,${buf.toString('base64')}`;
+            }
 
-        worlds.push({
-          name: data.LevelName?.value ?? dir.name,
-          version: data.Version?.value?.Name?.value ?? 'Unknown',
-          icon,
-          gameType: data.GameType?.value ?? null,
-          instanceId: instanceId ?? null,
-          path: path.join(worldPath, dir.name),
-        });
-      } catch (err) {
-        console.warn(`Failed to read or parse level.dat for world ${dir.name}:`, err);
-      }
-    }
+            const result: WorldDto = {
+              name: data.LevelName?.value ?? 'Unknown',
+              folderName: dir.name,
+              version: data.Version?.value?.Name?.value ?? 'Unknown',
+              icon,
+              gameType: data.GameType?.value ?? null,
+              instanceId: instanceId ?? null,
+              path: path.join(worldPath, dir.name),
+            };
+
+            return result;
+          } catch (err) {
+            console.warn(`Failed to read or parse level.dat for world ${dir.name}:`, err);
+            return null;
+          }
+        }),
+      );
+
+    const worlds = (await Promise.all(tasks)).filter((w): w is WorldDto => w !== null);
 
     return worlds;
   }

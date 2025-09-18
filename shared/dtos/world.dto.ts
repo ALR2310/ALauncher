@@ -4,6 +4,7 @@ import { createZodDto } from '../utils/zod.dto';
 
 export const WorldSchema = z.object({
   name: z.string(),
+  folderName: z.string(),
   version: z.string(),
   icon: z.string().nullish(),
   instanceId: z.string().nullish(),

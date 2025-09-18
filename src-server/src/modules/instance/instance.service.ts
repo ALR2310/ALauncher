@@ -132,7 +132,8 @@ class InstanceService {
   }
 
   async addContent(payload: AddContentInstanceDto) {
-    const { id: instanceId, type: initialType, contentId, worldName } = payload;
+    const { id: instanceId, type: initialType, contentId } = payload;
+    const worlds = payload.worlds?.split(',') ?? [];
 
     const lock = getInstanceLock(instanceId);
 
@@ -213,7 +214,7 @@ class InstanceService {
 
       await this.update({ id: instanceId, instance });
 
-      return this.handleDownloadContents(groupedContents, instanceId, config.download_multiple, worldName);
+      return this.handleDownloadContents(groupedContents, instanceId, config.download_multiple, worlds);
     });
   }
 
@@ -328,34 +329,64 @@ class InstanceService {
     groupedContents: Record<string, ContentDto[]>,
     instanceId: string,
     limit = 3,
-    worldName?: string,
+    worlds?: string[],
   ) {
     const filesToDownload: DownloadOptions[] = [];
 
     for (const [type, contents] of Object.entries(groupedContents)) {
-      const pathDir = await this.getPathByContentType(instanceId, type, worldName);
+      if (type === 'datapacks' && Array.isArray(worlds) && worlds.length) {
+        for (const worldName of worlds) {
+          const pathDir = await this.getPathByContentType(instanceId, type, worldName);
 
-      for (const c of contents) {
-        const filePath = path.join(pathDir, c.fileName);
+          for (const c of contents) {
+            const filePath = path.join(pathDir, c.fileName);
+            let needDownload = true;
 
-        let needDownload = true;
-        if (existsSync(filePath)) {
-          try {
-            const fileStat = await stat(filePath);
-            if (fileStat.size === c.fileSize) needDownload = false;
-          } catch {
-            needDownload = true;
+            if (existsSync(filePath)) {
+              try {
+                const fileStat = await stat(filePath);
+                if (fileStat.size === c.fileSize) needDownload = false;
+              } catch {
+                needDownload = true;
+              }
+            }
+
+            if (needDownload) {
+              filesToDownload.push({
+                url: c.fileUrl,
+                path: filePath,
+                folder: pathDir,
+                length: c.fileSize,
+                type,
+              });
+            }
           }
         }
+      } else {
+        const pathDir = await this.getPathByContentType(instanceId, type);
 
-        if (needDownload) {
-          filesToDownload.push({
-            url: c.fileUrl,
-            path: filePath,
-            folder: pathDir,
-            length: c.fileSize,
-            type,
-          });
+        for (const c of contents) {
+          const filePath = path.join(pathDir, c.fileName);
+          let needDownload = true;
+
+          if (existsSync(filePath)) {
+            try {
+              const fileStat = await stat(filePath);
+              if (fileStat.size === c.fileSize) needDownload = false;
+            } catch {
+              needDownload = true;
+            }
+          }
+
+          if (needDownload) {
+            filesToDownload.push({
+              url: c.fileUrl,
+              path: filePath,
+              folder: pathDir,
+              length: c.fileSize,
+              type,
+            });
+          }
         }
       }
     }
@@ -426,7 +457,7 @@ class InstanceService {
       if (!worldName) throw new BadRequestException('World name is required for datapacks');
       pathDir = path.join(basePath, 'saves', worldName, 'datapacks');
     } else if (type === 'worlds') {
-      pathDir = path.join(basePath, 'worlds');
+      pathDir = path.join(basePath, 'saves');
     } else {
       throw new BadRequestException('Invalid additional type');
     }

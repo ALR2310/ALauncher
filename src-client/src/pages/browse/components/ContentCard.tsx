@@ -5,6 +5,7 @@ import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import worldIcon from '~/assets/imgs/world_default.png';
 import Modal from '~/components/Modal';
 import { toast } from '~/hooks/useToast';
 
@@ -16,10 +17,12 @@ interface ContentCardProps {
   worlds: WorldDto[];
 }
 
-export default function ContentCard({ data, categoryType, versionSelected, loaderType }: ContentCardProps) {
+export default function ContentCard({ data, categoryType, versionSelected, loaderType, worlds }: ContentCardProps) {
   const { instanceId } = useParams<{ instanceId: string }>();
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const evtRef = useRef<EventSource | null>(null);
+
+  const [worldsSelected, setWorldsSelected] = useState<string[]>([]);
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState<number | undefined>(undefined);
@@ -33,14 +36,11 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
     return () => evtRef.current?.close();
   }, []);
 
-  useEffect(() => {
-    modalRef.current?.showModal();
-  }, []);
-
   const handleInstall = () => {
-    const query = new URLSearchParams({});
-    const type = categoryMap.keyToText[categoryType].toLowerCase().replace(' ', '');
-    console.log(type);
+    const query = new URLSearchParams({
+      ...(worlds ? { worlds: worldsSelected.join(',') } : {}),
+    });
+    const type = categoryMap.keyToText[categoryType].toLowerCase().replace(/\s+/g, '');
     const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/instances/${instanceId}/${type}/${data.id}?${query.toString()}`;
 
     evtRef.current = new EventSource(url);
@@ -100,7 +100,11 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
             <div className="w-[15%]">
               <button
                 className={`btn btn-soft w-full ${status !== 'Install' ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
-                onClick={handleInstall}
+                onClick={() => {
+                  console.log(categoryType);
+                  if (categoryType === categoryMap.idToKey['6945']) modalRef.current?.showModal();
+                  else handleInstall();
+                }}
               >
                 {status}
               </button>
@@ -145,9 +149,44 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
       </div>
 
       <Modal ref={modalRef} btnShow={false} backdropClose={true} iconClose={true} title="Select Worlds to Install">
-        <div>
-          <input type="text" className="input" />
+        <div className="space-y-2 mt-4">
+          {worlds.length ? (
+            worlds.map((w, idx) => (
+              <label key={idx} className="flex justify-between bg-base-200 rounded-box cursor-pointer p-2">
+                <div className="flex gap-2 ">
+                  <div className="w-16 h-16">
+                    <img src={w.icon ?? worldIcon} alt={w.name} loading="lazy" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">{w.name}</p>
+                    <span className="label text-sm">{w.folderName}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-center items-center">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-lg"
+                    onChange={() => {
+                      setWorldsSelected((prev) =>
+                        prev.includes(w.folderName) ? prev.filter((p) => p !== w.folderName) : [...prev, w.folderName],
+                      );
+                    }}
+                  />
+                </div>
+              </label>
+            ))
+          ) : (
+            <p>No worlds found</p>
+          )}
         </div>
+
+        <form method="dialog" className="flex justify-end mt-4 gap-3">
+          <button className="btn btn-soft w-[90px]">Cancel</button>
+          <button className="btn btn-primary w-[90px]" onClick={handleInstall}>
+            OK
+          </button>
+        </form>
       </Modal>
     </React.Fragment>
   );

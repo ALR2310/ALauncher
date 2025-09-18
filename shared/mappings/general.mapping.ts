@@ -35,4 +35,11 @@ export const categoryMap = {
     6552: 'Shader Packs',
     17: 'Worlds',
   },
+  idToKey: {
+    6: 'mc-mods',
+    6945: 'data-packs',
+    12: 'texture-packs',
+    6552: 'shaders',
+    17: 'worlds',
+  },
 };

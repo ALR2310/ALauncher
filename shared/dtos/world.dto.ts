@@ -5,14 +5,14 @@ import { createZodDto } from '../utils/zod.dto';
 export const WorldSchema = z.object({
   name: z.string(),
   version: z.string(),
-  seed: z.string(),
-  icon: z.string().optional(),
+  icon: z.string().nullish(),
+  instanceId: z.string().nullish(),
   gameType: z.number(),
   path: z.string(),
 });
 
 export const WorldsQuerySchema = z.object({
-  instanceId: z.string().optional(),
+  instanceId: z.string().nullish(),
 });
 
 export class WorldDto extends createZodDto(WorldSchema) {}

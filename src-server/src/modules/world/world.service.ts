@@ -6,16 +6,6 @@ import { parse } from 'prismarine-nbt';
 import { configService } from '../config/config.service';
 import { instanceService } from '../instance/instance.service';
 
-function parseNbtLong(val: unknown): string | null {
-  if (Array.isArray(val) && val.length === 2) {
-    const [a, b] = val as [number, number];
-    const n1 = (BigInt(b) << 32n) | BigInt(a >>> 0);
-    const n2 = (BigInt(a) << 32n) | BigInt(b >>> 0);
-    return Math.abs(Number(n1)) > Math.abs(Number(n2)) ? n1.toString() : n2.toString();
-  }
-  return null;
-}
-
 class WorldService {
   async findAll(payload: WorldsQueryDto): Promise<WorldDto[]> {
     const { instanceId } = payload;
@@ -28,7 +18,7 @@ class WorldService {
 
     const dirs = fs.readdirSync(worldPath, { withFileTypes: true });
 
-    const worlds: any[] = [];
+    const worlds: WorldDto[] = [];
 
     for (const dir of dirs) {
       if (!dir.isDirectory()) continue;
@@ -47,13 +37,9 @@ class WorldService {
         const iconPath = path.join(worldPath, dir.name, 'icon.png');
         const icon = fs.existsSync(iconPath) ? iconPath : null;
 
-        const rawSeed = data.WorldGenSettings?.value?.seed?.value;
-        const seed = parseNbtLong(rawSeed) ?? rawSeed;
-
         worlds.push({
           name: data.LevelName?.value ?? dir.name,
           version: data.Version?.value?.Name?.value ?? 'Unknown',
-          seed,
           icon,
           gameType: data.GameType?.value ?? null,
           instanceId: instanceId ?? null,

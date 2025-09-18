@@ -2,9 +2,9 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ESNext"],
-    "types": ["node"],
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "types": ["Node"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "paths": {
       "~/*": ["./src/*"],
       "@shared/*": ["../shared/*"]

@@ -1,4 +1,4 @@
-import { execSync, execFileSync } from 'child_process';
+import { execSync } from 'child_process';
 import { config, parse } from 'dotenv';
 import { build } from 'esbuild';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
@@ -41,14 +41,11 @@ if (existsSync('.env')) {
     console.log('✅ esbuild done');
 
     const outputFile = path.resolve('src-tauri/binaries/server-x86_64-pc-windows-msvc.exe');
-    const pkgArgs = [
-      outfile,
-      '--targets', `${target}-win-x64`,
-      '--output', outputFile,
-      '--assets', 'node_modules/prismarine-nbt/**/*'
-    ];
-    console.log('⚙️ Running: pkg', ...pkgArgs);
-    execFileSync('pkg', pkgArgs, { stdio: 'inherit' });
+    const pkgCmd = `pkg ${outfile} --targets ${target}-win-x64 --output ${outputFile} --assets "node_modules/prismarine-nbt/**/*"`;
+    console.log('⚙️ Running:', pkgCmd);
+
+    console.log('⚙️ Running:', pkgCmd);
+    execSync(pkgCmd, { stdio: 'inherit' });
     console.log('✅ pkg done, output at', outputFile);
 
     const iconPath = path.resolve('src-client/src/assets/imgs/favicon.ico');

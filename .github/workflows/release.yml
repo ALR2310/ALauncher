@@ -28,22 +28,53 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check version bump
+        id: check
+        shell: bash
+        run: |
+          CURRENT_VERSION=$(jq -r .version package.json)
+          echo "Current: $CURRENT_VERSION"
+
+          # Lấy release mới nhất (nếu có)
+          API="https://api.github.com/repos/${{ github.repository }}/releases/latest"
+          LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API" | jq -r .tag_name)
+
+          if [ "$LATEST_TAG" = "null" ] || [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+
+          LATEST_VERSION=${LATEST_TAG#v}
+          echo "Latest: $LATEST_VERSION"
+
+          if [ "$(npx semver "$CURRENT_VERSION" --gt "$LATEST_VERSION")" = "true" ]; then
+            echo "✅ Version bump detected"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "⏭ Skip release: $CURRENT_VERSION <= $LATEST_VERSION"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Node.js
+        if: steps.check.outputs.should_release == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'yarn'
 
       - name: Install dependencies
+        if: steps.check.outputs.should_release == 'true'
         run: yarn install --frozen-lockfile
 
       - name: Setup Rust
+        if: steps.check.outputs.should_release == 'true'
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust dependencies
+        if: steps.check.outputs.should_release == 'true'
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri'
 
       - name: Build & Release
+        if: steps.check.outputs.should_release == 'true'
         run: yarn release

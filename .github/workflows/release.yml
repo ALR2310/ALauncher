@@ -16,6 +16,7 @@ env:
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
   GITHUB_REPOSITORY: ${{ github.repository }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   VITE_CURSEFORGE_API_KEY: ${{ secrets.VITE_CURSEFORGE_API_KEY }}
 
 jobs:
@@ -35,7 +36,6 @@ jobs:
           CURRENT_VERSION=$(jq -r .version package.json)
           echo "Current: $CURRENT_VERSION"
 
-          # Lấy release mới nhất (nếu có)
           API="https://api.github.com/repos/${{ github.repository }}/releases/latest"
           LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API" | jq -r .tag_name)
 

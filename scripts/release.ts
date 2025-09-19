@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 import { Octokit } from '@octokit/rest';
+import axios from 'axios';
 import { execSync } from 'child_process';
 import fs from 'fs-extra';
 import path from 'path';
@@ -9,7 +10,8 @@ import semver from 'semver';
 const repo = process.env.GITHUB_REPOSITORY!;
 const token = process.env.GITHUB_TOKEN!;
 const [owner, repoName] = repo.split('/');
-
+const githubSha = process.env.GITHUB_SHA ?? 'main';
+const gemini_api_key = process.env.GEMINI_API_KEY!;
 const octokit = new Octokit({ auth: token });
 
 interface BuildResult {
@@ -17,6 +19,25 @@ interface BuildResult {
   exeFile: string;
   sigFile: string;
   latestJson: string;
+}
+
+//================= Helper method =================//
+
+async function gemini(prompt: string) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
+
+  const res = await axios.post(
+    url,
+    { contents: [{ role: 'user', parts: [{ text: prompt }] }] },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-goog-api-key': gemini_api_key,
+      },
+    },
+  );
+
+  return res.data.candidates[0].content.parts[0].text;
 }
 
 async function retry<T>(fn: () => Promise<T>, retries = 3, delayMs = 2000): Promise<T> {
@@ -50,6 +71,79 @@ async function getLatestRelease() {
     const res = await retry(() => octokit.rest.repos.listReleases({ owner, repo: repoName, per_page: 1 }));
     return res.data[0] ?? null;
   }
+}
+
+async function getFirstCommitSha() {
+  const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
+    owner,
+    repo: repoName,
+    per_page: 100,
+  });
+  return commits[commits.length - 1]?.sha;
+}
+
+async function getLatestCommitSha() {
+  const latestCommit = await retry(() =>
+    octokit.rest.repos.getCommit({
+      owner,
+      repo: repoName,
+      ref: githubSha,
+    }),
+  );
+  return latestCommit.data.sha;
+}
+
+async function getBaseSha(latestVersion: string): Promise<string> {
+  if (latestVersion === '0.0.0') {
+    return await getFirstCommitSha();
+  } else {
+    const tag = `v${latestVersion}`;
+    const res = await octokit.rest.git.getRef({
+      owner,
+      repo: repoName,
+      ref: `tags/${tag}`,
+    });
+    return res.data.object.sha;
+  }
+}
+
+//=================== Main method =================//
+
+async function generateChangelog(latestVersion: string) {
+  const headSha = await getLatestCommitSha();
+  const baseSha = await getBaseSha(latestVersion);
+
+  const comparison = await retry(() =>
+    octokit.rest.repos.compareCommits({
+      owner,
+      repo: repoName,
+      base: baseSha,
+      head: headSha,
+    }),
+  );
+
+  const changelogText = comparison.data.commits
+    .map((c) => ({
+      message: c.commit.message,
+    }))
+    .map((c) => `- ${c.message}`)
+    .join('\n');
+
+  const template = fs.readFileSync(path.resolve(__dirname, 'release.template.md'), 'utf-8');
+  const prompt = `
+You are a release notes generator.
+
+# Context
+Here is the changelog text:
+${changelogText}
+
+# Instruction
+Please summarize and rewrite the changelog into professional release notes 
+following exactly this template:
+
+${template}`;
+
+  return await gemini(prompt);
 }
 
 async function buildRelease(version: string): Promise<BuildResult> {
@@ -98,14 +192,14 @@ async function buildRelease(version: string): Promise<BuildResult> {
   return { fileDir: bundleDir, exeFile, sigFile, latestJson };
 }
 
-async function uploadRelease(version: string, build: BuildResult) {
+async function uploadRelease(version: string, build: BuildResult, changelogs: string) {
   const release = await retry(() =>
     octokit.rest.repos.createRelease({
       owner,
       repo: repoName,
       tag_name: `v${version}`,
       name: `ALauncher ${version}`,
-      body: `Release ${version}`,
+      body: changelogs,
       draft: false,
       prerelease: false,
     }),
@@ -140,7 +234,10 @@ async function uploadRelease(version: string, build: BuildResult) {
   if (semver.gt(currentVersion, latestVersion)) {
     try {
       const build = await buildRelease(currentVersion);
-      await uploadRelease(currentVersion, build);
+
+      const changelogs = await generateChangelog(latestVersion);
+
+      await uploadRelease(currentVersion, build, changelogs);
     } catch (err) {
       console.error('❌ Release failed:', err);
       process.exit(1);

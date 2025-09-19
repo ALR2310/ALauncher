@@ -331,65 +331,7 @@ class InstanceService {
     limit = 3,
     worlds?: string[],
   ) {
-    const filesToDownload: DownloadOptions[] = [];
-
-    for (const [type, contents] of Object.entries(groupedContents)) {
-      if (type === 'datapacks' && Array.isArray(worlds) && worlds.length) {
-        for (const worldName of worlds) {
-          const pathDir = await this.getPathByContentType(instanceId, type, worldName);
-
-          for (const c of contents) {
-            const filePath = path.join(pathDir, c.fileName);
-            let needDownload = true;
-
-            if (existsSync(filePath)) {
-              try {
-                const fileStat = await stat(filePath);
-                if (fileStat.size === c.fileSize) needDownload = false;
-              } catch {
-                needDownload = true;
-              }
-            }
-
-            if (needDownload) {
-              filesToDownload.push({
-                url: c.fileUrl,
-                path: filePath,
-                folder: pathDir,
-                length: c.fileSize,
-                type,
-              });
-            }
-          }
-        }
-      } else {
-        const pathDir = await this.getPathByContentType(instanceId, type);
-
-        for (const c of contents) {
-          const filePath = path.join(pathDir, c.fileName);
-          let needDownload = true;
-
-          if (existsSync(filePath)) {
-            try {
-              const fileStat = await stat(filePath);
-              if (fileStat.size === c.fileSize) needDownload = false;
-            } catch {
-              needDownload = true;
-            }
-          }
-
-          if (needDownload) {
-            filesToDownload.push({
-              url: c.fileUrl,
-              path: filePath,
-              folder: pathDir,
-              length: c.fileSize,
-              type,
-            });
-          }
-        }
-      }
-    }
+    const filesToDownload = await this.prepareDownloadOptions(groupedContents, instanceId, worlds);
 
     if (!filesToDownload.length) return null;
 
@@ -438,9 +380,7 @@ class InstanceService {
           event.emit('estimated', `${m}m ${s}s`);
         }, DELAY),
       )
-      .on('error', (err) => {
-        event.emit('error', err);
-      });
+      .on('error', (err) => event.emit('error', err));
 
     return event;
   }
@@ -462,6 +402,64 @@ class InstanceService {
       throw new BadRequestException('Invalid additional type');
     }
     return pathDir;
+  }
+
+  private async prepareDownloadOptions(
+    groupedContents: Record<string, ContentDto[]>,
+    instanceId: string,
+    worlds?: string[],
+  ): Promise<DownloadOptions[]> {
+    const filesToDownload: DownloadOptions[] = [];
+
+    for (const [type, contents] of Object.entries(groupedContents)) {
+      if (type === 'datapacks' && Array.isArray(worlds) && worlds.length) {
+        for (const worldName of worlds) {
+          const pathDir = await this.getPathByContentType(instanceId, type, worldName);
+
+          for (const c of contents) {
+            const filePath = path.join(pathDir, c.fileName);
+            if (await this.checkNeedDownload(filePath, c.fileSize)) {
+              filesToDownload.push({
+                url: c.fileUrl,
+                path: filePath,
+                folder: pathDir,
+                length: c.fileSize,
+                type,
+              });
+            }
+          }
+        }
+      } else {
+        const pathDir = await this.getPathByContentType(instanceId, type);
+
+        for (const c of contents) {
+          const filePath = path.join(pathDir, c.fileName);
+          if (await this.checkNeedDownload(filePath, c.fileSize)) {
+            filesToDownload.push({
+              url: c.fileUrl,
+              path: filePath,
+              folder: pathDir,
+              length: c.fileSize,
+              type,
+            });
+          }
+        }
+      }
+    }
+
+    return filesToDownload;
+  }
+
+  private async checkNeedDownload(filePath: string, expectedSize: number): Promise<boolean> {
+    if (existsSync(filePath)) {
+      try {
+        const fileStat = await stat(filePath);
+        return fileStat.size !== expectedSize;
+      } catch {
+        return true;
+      }
+    }
+    return true;
   }
 
   private async ensureInstanceDir() {

@@ -19,9 +19,8 @@ if (existsSync('.env')) {
     Object.entries(envFile).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')]),
   );
 } else {
-  define = Object.fromEntries(
-    Object.entries(process.env).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')]),
-  );
+  const safeEnv = Object.entries(process.env).filter(([key]) => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key));
+  define = Object.fromEntries(safeEnv.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value ?? '')]));
 }
 
 (async () => {

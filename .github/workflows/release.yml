@@ -16,6 +16,7 @@ env:
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
   GITHUB_REPOSITORY: ${{ github.repository }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_SHA: ${{ github.sha }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   VITE_CURSEFORGE_API_KEY: ${{ secrets.VITE_CURSEFORGE_API_KEY }}
 

@@ -28,7 +28,8 @@ const root = createRoot(container!);
 // Load server
 if (window.isTauri) {
   const command = Command.sidecar('binaries/server');
-  command.spawn();
+  const process = await command.spawn();
+  (window as any).serverProcess = process;
 }
 
 // Render GUI

@@ -4,7 +4,7 @@ import { BrowserRouter, Outlet, Route, Routes } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import DockNav from './components/layouts/DockNav';
-import { checkForAppUpdates } from './hooks/useUpdater';
+import { useUpdater } from './hooks/useUpdater';
 import BrowsePage from './pages/browse/BrowsePage';
 import HomePage from './pages/home/HomePage';
 import LoadingPage from './pages/LoadingPage';
@@ -64,15 +64,17 @@ function Layout() {
 }
 
 export default function App() {
+  const { checkForUpdates } = useUpdater();
+
   useEffect(() => {
     if (isTauri) {
-      checkForAppUpdates();
+      checkForUpdates();
 
       const handler = (e: MouseEvent) => e.preventDefault();
       document.addEventListener('contextmenu', handler);
       return () => document.removeEventListener('contextmenu', handler);
     }
-  }, []);
+  }, [checkForUpdates]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
+default-run = "alauncher"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -25,6 +26,11 @@ serde_json = "1"
 tauri-plugin-process = "2"
 tauri-plugin-shell = "2"
 
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-updater = "2"
+[[bin]]
+name = "alauncher"
+path = "src/main.rs"
 
+
+[[bin]]
+name = "updater"
+path = "src/updater.rs"

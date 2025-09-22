@@ -17,8 +17,6 @@ const octokit = new Octokit({ auth: token });
 interface BuildResult {
   fileDir: string;
   exeFile: string;
-  sigFile: string;
-  latestJson: string;
 }
 
 //================= Helper method =================//
@@ -157,39 +155,14 @@ async function buildRelease(version: string): Promise<BuildResult> {
 
   // clean old bundle + build
   fs.removeSync(bundleDir);
-  const env = {
-    ...process.env,
-    TAURI_SIGNING_PRIVATE_KEY: process.env.TAURI_SIGNING_PRIVATE_KEY,
-    TAURI_SIGNING_PRIVATE_KEY_PASSWORD: process.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD,
-  };
-
-  execSync('yarn build:server', { stdio: 'inherit' });
-  execSync('yarn tauri build', { stdio: 'inherit', env });
+  execSync('yarn build', { stdio: 'inherit' });
 
   // find files
   const files = fs.readdirSync(bundleDir);
   const exeFile = files.find((f) => f.endsWith('.exe'));
   if (!exeFile) throw new Error('No .exe file found in bundle directory');
 
-  const sigFile = `${exeFile}.sig`;
-  const signature = fs.readFileSync(path.join(bundleDir, sigFile), 'utf-8').trim();
-
-  // create latest.json
-  const latestInfo = {
-    version,
-    notes: `Release ${version}`,
-    pub_date: new Date().toISOString(),
-    platforms: {
-      'windows-x86_64': {
-        signature,
-        url: `https://github.com/${repo}/releases/latest/download/${exeFile}`,
-      },
-    },
-  };
-  const latestJson = path.join(bundleDir, 'latest.json');
-  fs.writeFileSync(latestJson, JSON.stringify(latestInfo, null, 2));
-
-  return { fileDir: bundleDir, exeFile, sigFile, latestJson };
+  return { fileDir: bundleDir, exeFile };
 }
 
 async function uploadRelease(version: string, build: BuildResult, changelogs: string) {
@@ -220,11 +193,7 @@ async function uploadRelease(version: string, build: BuildResult, changelogs: st
     console.log(`📦 Uploaded ${name}`);
   };
 
-  await Promise.all([
-    upload(path.join(build.fileDir, build.exeFile), build.exeFile, 'application/vnd.microsoft.portable-executable'),
-    upload(path.join(build.fileDir, build.sigFile), build.sigFile, 'application/octet-stream'),
-    upload(build.latestJson, 'latest.json', 'application/json'),
-  ]);
+  await upload(path.join(build.fileDir, build.exeFile), build.exeFile, 'application/vnd.microsoft.portable-executable');
 }
 
 (async () => {

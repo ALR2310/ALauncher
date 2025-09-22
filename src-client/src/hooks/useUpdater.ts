@@ -1,28 +1,38 @@
-import { check } from '@tauri-apps/plugin-updater';
-
-import { confirm } from './useConfirm';
+import { app } from '@tauri-apps/api';
+import { useEffect, useRef, useState } from 'react';
 
 export function useUpdater() {
+  const evtRef = useRef<EventSource | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [progress, setProgress] = useState<number | undefined>(undefined);
+
   const checkForUpdates = async () => {
-    const update = await check();
+    const version = await app.getVersion();
 
-    if (update) {
-      await update.download();
+    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT ?? 1421}/api/update?version=${version}`;
+    evtRef.current = new EventSource(url);
+    setIsUpdating(true);
 
-      const yes = await confirm({
-        backdropClose: true,
-        iconClose: true,
-        titlePosition: 'center',
-        title: 'Update Available',
-        content: 'A new version of ALauncher is available. Restart to apply?',
-      });
-
-      if (yes) {
-        (window as any).serverProcess.kill();
-        await update.install();
-      }
-    }
+    evtRef.current.addEventListener('progress', (e) => {
+      setProgress(parseFloat(e.data));
+    });
+    evtRef.current.addEventListener('done', () => {
+      setIsUpdating(false);
+      setProgress(undefined);
+      evtRef?.current?.close();
+    });
+    evtRef.current.addEventListener('error', () => {
+      setIsUpdating(false);
+      setProgress(undefined);
+      evtRef?.current?.close();
+    });
   };
 
-  return { checkForUpdates };
+  useEffect(() => {
+    return () => {
+      evtRef.current?.close();
+    };
+  }, []);
+
+  return { checkForUpdates, isUpdating, progress };
 }

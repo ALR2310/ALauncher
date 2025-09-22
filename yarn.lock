@@ -1027,13 +1027,6 @@
   dependencies:
     "@tauri-apps/api" "^2.8.0"
 
-"@tauri-apps/plugin-updater@~2.9.0":
-  version "2.9.0"
-  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-updater/-/plugin-updater-2.9.0.tgz#ba50b4e644fe19fa6f8465bd86d48119b0d3f41c"
-  integrity sha512-j++sgY8XpeDvzImTrzWA08OqqGqgkNyxczLD7FjNJJx/uXxMZFz5nDcfkyoI/rCjYuj2101Tci/r/HFmOmoxCg==
-  dependencies:
-    "@tauri-apps/api" "^2.6.0"
-
 "@tybys/wasm-util@^0.10.0":
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.0.tgz#2fd3cd754b94b378734ce17058d0507c45c88369"
@@ -2106,7 +2099,6 @@ eslint-import-resolver-node@^0.3.9:
 
 eslint-js@eslint/js:
   version "1.0.0"
-  uid "16219fe72680addc67c09f7a799a98083b3967ee"
   resolved "https://codeload.github.com/eslint/js/tar.gz/16219fe72680addc67c09f7a799a98083b3967ee"
 
 eslint-module-utils@^2.12.1:

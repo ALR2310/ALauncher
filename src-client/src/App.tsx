@@ -31,6 +31,15 @@ function Layout() {
   const width = 1150 / window.devicePixelRatio;
   const height = 650 / window.devicePixelRatio;
 
+  const { checkForUpdates, isUpdating, progress } = useUpdater();
+
+  useEffect(() => {
+    checkForUpdates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  console.log(progress);
+
   const findReleaseNotesQuery = useContextSelector(LauncherContext, (v) => v.findReleaseNotesQuery);
   const findAllVersionQuery = useContextSelector(LauncherContext, (v) => v.findAllVersionQuery);
   const findAllInstanceQuery = useContextSelector(LauncherContext, (v) => v.findAllInstanceQuery);
@@ -39,7 +48,7 @@ function Layout() {
 
   const isError = queries.some((q) => q.isError);
   const isSuccess = queries.every((q) => q.isSuccess);
-  const isLoaded = isSuccess && !isError;
+  const isLoaded = isSuccess && !isError && !isUpdating;
 
   return (
     <ContentHeightProvider>
@@ -49,7 +58,7 @@ function Layout() {
         style={{ width: isTauri ? '100vw' : `${width}px`, height: isTauri ? '100vh' : `${height}px` }}
       >
         {!isLoaded ? (
-          <LoadingPage />
+          <LoadingPage progress={progress} />
         ) : (
           <>
             <main className="flex-1">
@@ -64,17 +73,13 @@ function Layout() {
 }
 
 export default function App() {
-  const { checkForUpdates } = useUpdater();
-
   useEffect(() => {
     if (isTauri) {
-      checkForUpdates();
-
       const handler = (e: MouseEvent) => e.preventDefault();
       document.addEventListener('contextmenu', handler);
       return () => document.removeEventListener('contextmenu', handler);
     }
-  }, [checkForUpdates]);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

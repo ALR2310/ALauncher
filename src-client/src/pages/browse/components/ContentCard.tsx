@@ -3,7 +3,7 @@ import { WorldDto } from '@shared/dtos/world.dto';
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 
 import worldIcon from '~/assets/imgs/world_default.png';
 import Modal from '~/components/Modal';
@@ -18,7 +18,8 @@ interface ContentCardProps {
 }
 
 export default function ContentCard({ data, categoryType, versionSelected, loaderType, worlds }: ContentCardProps) {
-  const { instanceId } = useParams<{ instanceId: string }>();
+  const [searchParams] = useSearchParams();
+  const instanceId = searchParams.get('instanceId');
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const evtRef = useRef<EventSource | null>(null);
 
@@ -37,6 +38,8 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
   }, []);
 
   const handleInstall = () => {
+    if (!instanceId) return;
+
     const query = new URLSearchParams({
       ...(worlds ? { worlds: worldsSelected.join(',') } : {}),
     });
@@ -99,9 +102,9 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
 
             <div className="w-[15%]">
               <button
-                className={`btn btn-soft w-full ${status !== 'Install' ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
+                className={`btn btn-soft w-full ${status !== 'Install' || !instanceId ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
+                disabled={!instanceId}
                 onClick={() => {
-                  console.log(categoryType);
                   if (categoryType === categoryMap.idToKey['6945']) modalRef.current?.showModal();
                   else handleInstall();
                 }}
@@ -183,7 +186,7 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
 
         <form method="dialog" className="flex justify-end mt-4 gap-3">
           <button className="btn btn-soft w-[90px]">Cancel</button>
-          <button className="btn btn-primary w-[90px]" onClick={handleInstall}>
+          <button className="btn btn-primary w-[90px]" disabled={!instanceId} onClick={handleInstall}>
             OK
           </button>
         </form>

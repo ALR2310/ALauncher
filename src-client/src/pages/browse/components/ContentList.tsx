@@ -1,5 +1,5 @@
 import { categoryMap } from '@shared/mappings/general.mapping';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
@@ -16,7 +16,7 @@ interface ContentListProps {
 
 export default function ContentList({ className }: ContentListProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { instanceId } = useParams<{ instanceId: string }>();
+  const instanceId = searchParams.get('instanceId');
   const { height, isReady } = useContentHeight();
 
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export default function ContentList({ className }: ContentListProps) {
   const loaderType = searchParams.get('loaderType') || '0';
   const categoryIds = searchParams.get('categoryIds') ? JSON.parse(searchParams.get('categoryIds')!) : undefined;
 
-  const findAllWorldQuery = useContextSelector(LauncherContext, (v) => v.findAllWorldQuery(instanceId));
+  const findAllWorldQuery = useContextSelector(LauncherContext, (v) => v.findAllWorldQuery(instanceId || undefined));
   const findAllContentQuery = useContextSelector(LauncherContext, (v) =>
     v.findAllContentQuery({
       instanceId: instanceId || undefined,
@@ -91,7 +91,9 @@ export default function ContentList({ className }: ContentListProps) {
         <button
           className="btn btn-soft btn-circle"
           onClick={() => {
-            navigate(`/manager/${instanceId}`);
+            if (instanceId) {
+              navigate(`/manager/${instanceId}`);
+            }
           }}
         >
           <i className="fa-light fa-xmark"></i>

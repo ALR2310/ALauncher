@@ -89,7 +89,7 @@ export default function App() {
                 <Route path="/" element={<Layout />}>
                   <Route index element={<HomePage />} />
                   <Route path="/manager/:instanceId" element={<ManagerPage />} />
-                  <Route path="/browse/:instanceId" element={<BrowsePage />} />
+                  <Route path="/browse" element={<BrowsePage />} />
                 </Route>
               </Routes>
             </BrowserRouter>

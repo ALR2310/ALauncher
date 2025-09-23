@@ -1,7 +1,7 @@
 import { CategoryDto } from '@shared/dtos/category.dto';
 import { categoryMap } from '@shared/mappings/general.mapping';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import Select from '~/components/Select';
@@ -15,7 +15,7 @@ interface ContentFilterProps {
 
 export default function ContentFilter({ className }: ContentFilterProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { instanceId } = useParams<{ instanceId: string }>();
+  const instanceId = searchParams.get('instanceId');
   const { isReady, height } = useContentHeight();
 
   // State management for filter parameters

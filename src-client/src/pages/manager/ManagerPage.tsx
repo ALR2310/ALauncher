@@ -75,9 +75,10 @@ export default function ManagerPage() {
           className="btn btn-soft"
           onClick={() => {
             navigate({
-              pathname: instanceId ? `/browse/${instanceId}` : '/browse',
+              pathname: '/browse',
               search: `?${createSearchParams(
                 Object.entries({
+                  ...(instanceId ? { instanceId } : {}),
                   categoryType: tab,
                   ...(instance?.version ? { gameVersion: instance.version } : {}),
                   ...(tab === 'mc-mods' && instance?.loader

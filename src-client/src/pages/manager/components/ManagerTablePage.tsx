@@ -1,7 +1,7 @@
 import { ContentResponseDto } from '@shared/dtos/content.dto';
 import { RemoveContentInstanceDto } from '@shared/dtos/instance.dto';
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { canRemoveContentInstance, removeContentInstance, toggleContentInstance } from '~/api/instance.api';
 import { confirm } from '~/hooks/useConfirm';

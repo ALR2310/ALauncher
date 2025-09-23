@@ -153,6 +153,9 @@ async function buildRelease(version: string): Promise<BuildResult> {
   tauriConf.version = version;
   fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2));
 
+  // build server
+  execSync('yarn build:server', { stdio: 'inherit' });
+
   // build updater
   execSync('cd src-tauri && cargo build --release --bin updater', { stdio: 'inherit' });
   fs.copyFileSync(
@@ -160,9 +163,9 @@ async function buildRelease(version: string): Promise<BuildResult> {
     path.join('src-tauri', 'binaries', 'updater-x86_64-pc-windows-msvc.exe'),
   );
 
-  // clean old bundle + build
+  // clean old bundle + build tauri
   fs.removeSync(bundleDir);
-  execSync('yarn build', { stdio: 'inherit' });
+  execSync('yarn tauri build', { stdio: 'inherit' });
 
   // find files
   const files = fs.readdirSync(bundleDir);

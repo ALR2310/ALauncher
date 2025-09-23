@@ -37,4 +37,15 @@ End with a **short summary paragraph** (2–3 sentences).
 - Each list item should start with `-`.  
 - No more than **1–2 lines per bullet point**.  
 - The `Summary` section is optional.  
-- Keep wording **clear, simple, and professional**.
+- Keep wording **clear, simple, and professional**.  
+- If a section (Added, Changed, Fixed, Build & CI/CD) has no relevant content, **omit the section entirely**.  
+- Do not include empty headings or placeholder text like "No changes".
+
+---
+
+# 🚫 Content Restrictions
+- ❌ Do **not** mention specific filenames, file paths, or extensions (e.g., `useUpdater.ts`, `release.ts`, `build.ts`, `src/`, `dist/`).  
+- ❌ Do **not** mention specific classes, functions, or variables (e.g., `UpdateService`, `UpdateController`).  
+- ❌ Do **not** mention external tool warnings or build logs.  
+- ✅ Always describe changes in **general terms**: focus on features, improvements, and user impact.  
+- ✅ Prefer high-level language such as *"Refactored update logic"* instead of *"Refactored useUpdater hook"*.  

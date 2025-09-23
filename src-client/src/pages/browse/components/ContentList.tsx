@@ -7,14 +7,14 @@ import { useContentHeight } from '~/hooks/useContentHeight';
 import { useDebounce } from '~/hooks/useDebounce';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
-import ContentCard from './components/ContentCard';
-import ContentCardSkeleton from './components/ContentCardSkeleton';
+import ContentCard from './ContentCard';
+import ContentCardSkeleton from './ContentCardSkeleton';
 
-interface BrowseContentPageProps {
+interface ContentListProps {
   className?: string;
 }
 
-export default function BrowseContentPage({ className }: BrowseContentPageProps) {
+export default function ContentList({ className }: ContentListProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { instanceId } = useParams<{ instanceId: string }>();
   const { height, isReady } = useContentHeight();

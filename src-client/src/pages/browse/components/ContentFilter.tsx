@@ -8,12 +8,12 @@ import Select from '~/components/Select';
 import { useContentHeight } from '~/hooks/useContentHeight';
 import { LauncherContext } from '~/providers/LauncherProvider';
 
-interface BrowseFilterPageProps {
+interface ContentFilterProps {
   className?: string;
   categoryId?: number;
 }
 
-export default function BrowseFilterPage({ className }: BrowseFilterPageProps) {
+export default function ContentFilter({ className }: ContentFilterProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { instanceId } = useParams<{ instanceId: string }>();
   const { isReady, height } = useContentHeight();

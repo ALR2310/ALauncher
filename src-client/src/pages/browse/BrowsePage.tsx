@@ -1,11 +1,11 @@
-import BrowseContentPage from './BrowseContentPage';
-import BrowseFilterPage from './BrowseFilterPage';
+import ContentFilter from './components/ContentFilter';
+import ContentList from './components/ContentList';
 
 export default function BrowsePage() {
   return (
     <div className="flex h-full">
-      <BrowseFilterPage className="w-[250px]" />
-      <BrowseContentPage className="flex-1" />
+      <ContentFilter className="w-[250px]" />
+      <ContentList className="flex-1" />
     </div>
   );
 }

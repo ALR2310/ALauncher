@@ -12,6 +12,7 @@
     "build": "yarn build:server && yarn tauri build",
     "build:client": "cd src-client && tsc && vite build",
     "build:server": "tsx scripts/build-server.ts",
+    "build:updater": "cargo build --manifest-path src-tauri/updater/Cargo.toml --release",
     "release": "tsx scripts/release.ts"
   },
   "dependencies": {

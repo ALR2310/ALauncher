@@ -18,6 +18,7 @@ interface ImportMeta {
 }
 
 interface ImportMetaEnv {
+  readonly MODE: 'development' | 'production' | 'test';
   readonly VITE_SERVER_PORT: string;
   readonly VITE_CURSEFORGE_API_KEY: string;
 }

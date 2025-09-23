@@ -39,6 +39,7 @@ const contentResponseSchema = z.object({
       summary: z.string(),
       downloadCount: z.number(),
       fileSize: z.string(),
+      fileName: z.string().optional(),
       authors: z.array(
         z.object({
           id: z.number(),

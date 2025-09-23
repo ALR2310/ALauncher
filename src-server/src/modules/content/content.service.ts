@@ -14,7 +14,7 @@ class ContentService {
     const instance = instanceId ? await instanceService.findOne(instanceId) : null;
 
     try {
-      const installedContentsMap = new Map<number, { fileId: number; enabled: boolean }>();
+      const installedContentsMap = new Map<number, { fileId: number; enabled: boolean; fileName: string }>();
 
       if (instance) {
         const allTypes = ['mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'worlds'] as const;
@@ -22,7 +22,7 @@ class ContentService {
           const contents = instance[t];
           if (contents) {
             contents.forEach((c) => {
-              installedContentsMap.set(c.id, { fileId: c.fileId, enabled: c.enabled });
+              installedContentsMap.set(c.id, { fileId: c.fileId, enabled: c.enabled, fileName: c.fileName });
             });
           }
         }
@@ -32,6 +32,7 @@ class ContentService {
         data: response.data.map((item: any) => {
           let status: 'not_installed' | 'outdated' | 'latest' = 'not_installed';
           let enabled = false;
+          let fileName: string | null = null;
 
           if (instance) {
             const loaderType = instance.loader.type;
@@ -43,6 +44,8 @@ class ContentService {
 
             const installedFileId = installedContentsMap.get(item.id)?.fileId;
             const installedContent = installedContentsMap.get(item.id);
+            fileName = installedContent?.fileName ?? null;
+            enabled = installedContent?.enabled ?? false;
 
             if (installedFileId && latestMatch) {
               if (installedFileId === latestMatch.fileId) status = 'latest';
@@ -50,8 +53,6 @@ class ContentService {
             } else if (installedFileId) {
               status = 'outdated';
             }
-
-            enabled = installedContent?.enabled ?? false;
           }
 
           return {
@@ -64,6 +65,7 @@ class ContentService {
             enabled,
             downloadCount: item.downloadCount,
             fileSize: formatBytes(item.latestFiles?.[0]?.fileLength ?? 0),
+            fileName,
             authors: item.authors,
             logoUrl: item.logo?.url,
             dateCreated: item.dateCreated,

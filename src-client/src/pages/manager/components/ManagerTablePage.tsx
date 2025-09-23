@@ -227,12 +227,27 @@ export default function ManagerTablePage({ contentData, contentType, isLoading, 
                     <img src={item.logoUrl} alt={item.name} loading="lazy" className="w-full h-full" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-ellipsis-1 w-full">{item.name}</span>
+                    <a
+                      href={item.link}
+                      className="font-semibold text-ellipsis-1 w-full hover:underline"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
+                      {item.name}
+                    </a>
+                    <span className="label text-ellipsis-1 w-full">{item.fileName}</span>
                   </div>
                 </div>
               </td>
               <td className="text-center">
-                <span className="italic">{item.authors[0]?.name ?? 'Unknown'}</span>
+                <a
+                  href={item.authors[0].url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="italic hover:underline"
+                >
+                  {item.authors[0]?.name ?? 'Unknown'}
+                </a>
               </td>
               <td className="text-center">
                 {item.status === 'outdated' ? <button className="btn btn-outline btn-sm">Update</button> : 'Latest'}

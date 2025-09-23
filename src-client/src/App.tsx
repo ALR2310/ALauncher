@@ -34,11 +34,9 @@ function Layout() {
   const { checkForUpdates, isUpdating, progress } = useUpdater();
 
   useEffect(() => {
-    checkForUpdates();
+    if (isTauri && import.meta.env.MODE !== 'development') checkForUpdates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  console.log(progress);
 
   const findReleaseNotesQuery = useContextSelector(LauncherContext, (v) => v.findReleaseNotesQuery);
   const findAllVersionQuery = useContextSelector(LauncherContext, (v) => v.findAllVersionQuery);

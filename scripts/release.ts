@@ -157,7 +157,7 @@ async function buildRelease(version: string): Promise<BuildResult> {
   execSync('yarn build:server', { stdio: 'inherit' });
 
   // build updater
-  execSync('cd src-tauri && cargo build --release --bin updater', { stdio: 'inherit' });
+  execSync('cargo build --manifest-path src-tauri/Cargo.toml --release --bin updater', { stdio: 'inherit' });
   fs.copyFileSync(
     path.join('src-tauri', 'target', 'release', 'updater.exe'),
     path.join('src-tauri', 'binaries', 'updater-x86_64-pc-windows-msvc.exe'),

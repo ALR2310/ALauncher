@@ -1,0 +1,84 @@
+.project-description {
+  position: relative;
+  overflow-wrap: break-word;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.project-description h1,
+.project-description h2,
+.project-description h3,
+.project-description h4,
+.project-description h5,
+.project-description h6 {
+  display: block;
+  line-height: 145%;
+  margin-bottom: 24px;
+  font-size: medium;
+}
+
+.project-description h1 {
+  font-size: 28px;
+}
+
+.project-description h2 {
+  font-size: 22px;
+}
+
+.project-description pre {
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+}
+
+.project-description a {
+  text-decoration: underline;
+}
+
+.project-description p {
+  margin-bottom: 1rem;
+}
+
+.project-description img {
+  height: auto;
+  display: inline;
+  vertical-align: top;
+  max-width: 100%;
+}
+
+.project-description iframe {
+  max-width: 100%;
+  margin-bottom: 1rem;
+}
+
+.project-description ul {
+  list-style: unset;
+  padding-left: 18px;
+  list-style-position: inside;
+  margin-bottom: 2rem;
+}
+
+.project-description ol {
+  list-style: decimal;
+  margin-left: 1em;
+}
+
+.project-description .codeStyle,
+.project-description code {
+  background-color: #262626;
+  display: inline-block;
+  vertical-align: middle;
+  white-space: pre-wrap;
+  overflow: auto;
+  padding: 2px 4px;
+  border: 1px solid #4d4d4d;
+}
+
+.project-description hr {
+  margin-bottom: 12px;
+}
+
+.btn-lined.read-more {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 32px;
+}

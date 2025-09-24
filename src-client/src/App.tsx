@@ -5,6 +5,7 @@ import { useContextSelector } from 'use-context-selector';
 
 import DockNav from './components/layouts/DockNav';
 import { useUpdater } from './hooks/useUpdater';
+import BrowseDetailPage from './pages/browse/BrowseDetailPage';
 import BrowsePage from './pages/browse/BrowsePage';
 import HomePage from './pages/home/HomePage';
 import LoadingPage from './pages/LoadingPage';
@@ -89,7 +90,10 @@ export default function App() {
                 <Route path="/" element={<Layout />}>
                   <Route index element={<HomePage />} />
                   <Route path="/manager/:instanceId" element={<ManagerPage />} />
-                  <Route path="/browse" element={<BrowsePage />} />
+                  <Route path="/browse">
+                    <Route index element={<BrowsePage />} />
+                    <Route path=":contentId" element={<BrowseDetailPage />} />
+                  </Route>
                 </Route>
               </Routes>
             </BrowserRouter>

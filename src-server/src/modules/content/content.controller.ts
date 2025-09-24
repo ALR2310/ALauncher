@@ -1,6 +1,6 @@
-import { ContentQueryDto } from '@shared/dtos/content.dto';
+import { ContentQueryDto, DetailContentQueryDto } from '@shared/dtos/content.dto';
 
-import { Controller, Get, Query, Validate } from '~/common/decorators';
+import { Controller, Get, Param, Query, Validate } from '~/common/decorators';
 
 import { contentService } from './content.service';
 
@@ -10,5 +10,12 @@ export class ContentController {
   @Validate(ContentQueryDto)
   async findAll(@Query() query: ContentQueryDto) {
     return contentService.findAll(query);
+  }
+
+  @Get('/:id')
+  @Validate(DetailContentQueryDto)
+  async findOne(@Param('id') id, @Query() query) {
+    const payload = { id, ...query };
+    return contentService.findOne(payload);
   }
 }

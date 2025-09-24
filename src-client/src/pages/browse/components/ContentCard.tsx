@@ -3,7 +3,7 @@ import { WorldDto } from '@shared/dtos/world.dto';
 import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { abbreviateNumber, capitalize } from '@shared/utils/general.utils';
 import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import worldIcon from '~/assets/imgs/world_default.png';
 import Modal from '~/components/Modal';
@@ -78,14 +78,12 @@ export default function ContentCard({ data, categoryType, versionSelected, loade
           <div className="flex">
             <div className="flex-1">
               <div className="flex items-center font-semibold ">
-                <a
-                  href={data.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to={`/browse/${data.id}`}
                   className="text-base-content text-ellipsis-1 hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
                 >
                   {data.name}
-                </a>
+                </Link>
                 <div className="divider divider-horizontal"></div>
                 <a
                   href={data.authors[0].url}

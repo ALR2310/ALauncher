@@ -116,6 +116,26 @@ class CurseForgeService {
       return [];
     }
   }
+
+  async getMod(modId: number) {
+    try {
+      const res = await api.get(`mods/${modId}`);
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching mod:', e);
+      return null;
+    }
+  }
+
+  async getModDescription(modId: number) {
+    try {
+      const res = await api.get(`mods/${modId}/description`);
+      return res.data;
+    } catch (e) {
+      console.error('Error fetching mod description:', e);
+      return null;
+    }
+  }
 }
 
 export const curseForgeService = new CurseForgeService();

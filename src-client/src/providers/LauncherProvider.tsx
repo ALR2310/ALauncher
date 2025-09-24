@@ -34,6 +34,7 @@ const LauncherContext = createContext<{
   canRemoveContentInstanceMutation: ReturnType<typeof useLauncherInstance>['canRemoveContentInstanceMutation'];
   toggleContentInstanceMutation: ReturnType<typeof useLauncherInstance>['toggleContentInstanceMutation'];
   findAllContentQuery: ReturnType<typeof useLauncherContent>['findAllContentQuery'];
+  findOneContentQuery: ReturnType<typeof useLauncherContent>['findOneContentQuery'];
   findAllWorldQuery: ReturnType<typeof useLauncherWorld>['findAllWorldQuery'];
 }>(null!);
 
@@ -54,7 +55,7 @@ const LauncherProvider = ({ children }) => {
     canRemoveContentInstanceMutation,
     toggleContentInstanceMutation,
   } = useLauncherInstance();
-  const { findAllContentQuery } = useLauncherContent();
+  const { findAllContentQuery, findOneContentQuery } = useLauncherContent();
   const { findAllWorldQuery } = useLauncherWorld();
 
   const ctx = useMemo(
@@ -82,6 +83,7 @@ const LauncherProvider = ({ children }) => {
       canRemoveContentInstanceMutation,
       toggleContentInstanceMutation,
       findAllContentQuery,
+      findOneContentQuery,
       findAllWorldQuery,
     }),
     [
@@ -97,6 +99,7 @@ const LauncherProvider = ({ children }) => {
       findAllWorldQuery,
       findContentInstanceQuery,
       findLoadersVersionQuery,
+      findOneContentQuery,
       findOneInstanceQuery,
       findReleaseNotesQuery,
       findReleasesVersionQuery,

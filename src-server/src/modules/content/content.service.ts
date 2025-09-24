@@ -1,6 +1,13 @@
-import { ContentQueryDto, ContentResponseDto } from '@shared/dtos/content.dto';
+import {
+  ContentQueryDto,
+  ContentResponseDto,
+  DetailContentQueryDto,
+  DetailContentResponseDto,
+} from '@shared/dtos/content.dto';
 import { loaderMap } from '@shared/mappings/general.mapping';
 import { formatBytes } from '@shared/utils/general.utils';
+
+import { NotFoundException } from '~/common/filters/exception.filter';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
@@ -85,6 +92,58 @@ class ContentService {
     } catch (e) {
       throw new Error('Failed to parse mod data');
     }
+  }
+
+  async findOne(payload: DetailContentQueryDto) {
+    const { id } = payload;
+
+    const [modInfo, modDesc] = await Promise.all([
+      curseForgeService.getMod(id).then((res) => res.data),
+      curseForgeService.getModDescription(id).then((res) => res.data),
+    ]);
+
+    if (!modInfo) throw new NotFoundException(`Mod with id ${id} not found`);
+
+    modInfo.description = modDesc;
+
+    const result: DetailContentResponseDto = {
+      screenshots: modInfo.screenshots.map((s: any) => ({
+        title: s.title,
+        thumbnailUrl: s.thumbnailUrl,
+        url: s.url,
+      })),
+      id: modInfo.id,
+      name: modInfo.name,
+      slug: modInfo.slug,
+      links: modInfo.links,
+      summary: modInfo.summary,
+      downloadCount: modInfo.downloadCount,
+      categories: modInfo.categories.map((cat: any) => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        url: cat.url,
+        iconUrl: cat.iconUrl,
+      })),
+      classId: modInfo.classId,
+      authors: modInfo.authors.map((author: any) => ({
+        id: author.id,
+        name: author.name,
+        url: author.url,
+        avatarUrl: author.avatarUrl,
+      })),
+      logo: {
+        title: modInfo.logo.title,
+        thumbnailUrl: modInfo.logo.thumbnailUrl,
+        url: modInfo.logo.url,
+      },
+      dateCreated: modInfo.dateCreated,
+      dateModified: modInfo.dateModified,
+      dateReleased: modInfo.dateReleased,
+      description: modDesc,
+    };
+
+    return result;
   }
 }
 

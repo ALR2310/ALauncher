@@ -82,6 +82,61 @@ const contentResponseSchema = z.object({
   }),
 });
 
+const detailContentQuerySchema = z.object({
+  id: z.coerce.number(),
+  instanceId: z.string().optional(),
+});
+
+const detailContentResponseSchema = z.object({
+  screenshots: z.array(
+    z.object({
+      title: z.string(),
+      thumbnailUrl: z.url(),
+      url: z.url(),
+    }),
+  ),
+  id: z.number(),
+  name: z.string(),
+  slug: z.string(),
+  links: z.object({
+    websiteUrl: z.url(),
+    wikiUrl: z.url(),
+    issuesUrl: z.url(),
+    sourceUrl: z.url(),
+  }),
+  summary: z.string(),
+  description: z.string().nullish(),
+  downloadCount: z.number(),
+  categories: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      slug: z.string(),
+      url: z.url(),
+      iconUrl: z.url(),
+    }),
+  ),
+  classId: z.number(),
+  authors: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      url: z.url(),
+      avatarUrl: z.url(),
+    }),
+  ),
+  logo: z.object({
+    title: z.string(),
+    thumbnailUrl: z.string(),
+    url: z.string(),
+  }),
+  dateCreated: z.string(),
+  dateModified: z.string(),
+  dateReleased: z.string(),
+});
+
 export class ContentDto extends createZodDto(contentSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
 export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
+export class DetailContentQueryDto extends createZodDto(detailContentQuerySchema) {}
+export class DetailContentResponseDto extends createZodDto(detailContentResponseSchema) {}

@@ -1,13 +1,13 @@
 import { ContentQueryDto, ContentResponseDto, DetailContentResponseDto } from '@shared/dtos/content.dto';
 
-import api from '~/configs/axios';
+import { API } from '~/api/api';
 
-export const findAllContent = async (query: ContentQueryDto) => {
-  const res = await api.get('contents', { params: query });
-  return res.data as ContentResponseDto;
+const BASE_PATH = '/contents';
+
+export const findAllContent = async (params: ContentQueryDto) => {
+  return API.get<ContentResponseDto>(`${BASE_PATH}`, params);
 };
 
 export const findOneContent = async (contentId: number) => {
-  const res = await api.get(`contents/${contentId}`);
-  return res.data as DetailContentResponseDto;
+  return API.get<DetailContentResponseDto>(`${BASE_PATH}/${contentId}`);
 };

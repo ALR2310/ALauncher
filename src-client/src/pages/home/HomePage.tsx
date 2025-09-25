@@ -1,11 +1,11 @@
-import HomeNotePage from './HomeNotePage';
-import HomeSidePage from './HomeSidePage';
+import HomeReleaseNote from './components/HomeReleaseNote';
+import HomeSidebar from './components/HomeSidebar';
 
 export default function HomePage() {
   return (
     <div className="flex h-full">
-      <HomeSidePage className="flex-1/4" />
-      <HomeNotePage className="flex-3/4" />
+      <HomeSidebar className="flex-1/4" />
+      <HomeReleaseNote className="flex-3/4" />
     </div>
   );
 }

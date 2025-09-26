@@ -16,6 +16,17 @@ export default defineConfig(async () => ({
     cssMinify: !isDev,
     emptyOutDir: true,
     outDir: resolve(__dirname, '../dist'),
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'vendor_react';
+            }
+          }
+        }
+      }
+    }
   },
   server: {
     port: clientPort,

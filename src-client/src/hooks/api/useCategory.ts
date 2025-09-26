@@ -1,4 +1,3 @@
-import { CategoryQueryDto } from '@shared/dtos/category.dto';
 import { useQuery } from '@tanstack/react-query';
 
 import { findAllCategory } from '~/api/category.api';

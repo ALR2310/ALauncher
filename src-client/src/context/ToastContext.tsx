@@ -1,8 +1,9 @@
 import uniqueId from 'lodash/uniqueId';
-import { AnimatePresence, motion } from 'motion/react';
-import React, { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
+import { animate } from 'motion';
+import React, { createContext, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import { setToastFunction } from '~/hooks/app/useToast';
+
 type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 interface ToastProps {
@@ -36,15 +37,26 @@ const titleMap = {
 
 const Toast: React.FC<ToastProps & { onClose: () => void }> = ({ type, message, title, isLoading, onClose }) => {
   const { toast: toastClass, icon: iconClass } = classMap[type];
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      animate(ref.current, { x: ['105%', '-5%', '2%', '0%'], opacity: [0, 1] }, { duration: 0.5 });
+    }
+  }, []);
+
+  const handleClose = () => {
+    if (ref.current) {
+      animate(ref.current, { x: ['0%', '-5%', '105%'], opacity: [1, 0] }, { duration: 0.5 }).finished.then(() =>
+        onClose(),
+      );
+    } else {
+      onClose();
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ x: '100%', opacity: 0 }}
-      animate={{ x: ['105%', '-5%', '2%', '0%'], opacity: 1 }}
-      exit={{ x: ['0%', '-5%', '105%'], opacity: 0 }}
-      transition={{ x: { type: 'tween', duration: 0.4 }, opacity: { duration: 0.5 } }}
-      className={`alert ${toastClass} alert-soft p-3 flex gap-2 items-start max-w-[70vw]`}
-    >
+    <div ref={ref} className={`alert ${toastClass} alert-soft p-3 flex gap-2 items-start max-w-[70vw]`}>
       <div className="flex-none">
         {isLoading ? (
           <span className="loading loading-spinner loading-sm"></span>
@@ -56,8 +68,8 @@ const Toast: React.FC<ToastProps & { onClose: () => void }> = ({ type, message, 
         <strong>{title || titleMap[type]}</strong>
         <p className="text-wrap">{message}</p>
       </div>
-      <i className="fa-light fa-xmark cursor-pointer" onClick={onClose}></i>
-    </motion.div>
+      <i className="fa-light fa-xmark cursor-pointer" onClick={handleClose}></i>
+    </div>
   );
 };
 
@@ -90,11 +102,9 @@ const ToastProvider = ({ children }: { children: ReactNode }) => {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div id="toast-container" className="toast toast-top z-10">
-        <AnimatePresence>
-          {toasts.map((toast) => (
-            <Toast key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
-          ))}
-        </AnimatePresence>
+        {toasts.map((toast) => (
+          <Toast key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
+        ))}
       </div>
     </ToastContext.Provider>
   );

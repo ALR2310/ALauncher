@@ -1,8 +1,7 @@
 import { WorldDto, WorldsQueryDto } from '@shared/dtos/world.dto';
 
-import api from '~/configs/axios';
+import { API } from '~/api/api';
 
 export const findAllWorld = async (payload: WorldsQueryDto) => {
-  const res = await api.get('/worlds', { params: payload });
-  return res.data as WorldDto[];
+  return API.get<WorldDto[]>('/worlds', { params: payload });
 };

@@ -8,7 +8,7 @@ import utc from 'dayjs/plugin/utc';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
-import { toast } from './hooks/useToast';
+import { toast } from './hooks/app/useToast';
 
 // Initialize dayjs plugin
 dayjs.extend(utc);
@@ -27,9 +27,7 @@ const root = createRoot(container!);
 
 // Load server
 if (window.isTauri) {
-  const command = Command.sidecar('binaries/server');
-  const process = await command.spawn();
-  (window as any).serverProcess = process;
+  Command.sidecar('binaries/server').spawn();
 }
 
 // Render GUI

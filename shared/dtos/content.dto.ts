@@ -130,6 +130,8 @@ const detailContentResponseSchema = z.object({
     thumbnailUrl: z.string(),
     url: z.string(),
   }),
+  gameVersions: z.array(z.string()),
+  loaderTypes: z.array(z.string()),
   dateCreated: z.string(),
   dateModified: z.string(),
   dateReleased: z.string(),

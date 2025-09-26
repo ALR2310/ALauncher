@@ -4,8 +4,11 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { ToastProvider } from './context/ToastContext';
+import ContentDetailLayout from './layouts/ContentDetailLayout';
 import MainLayout from './layouts/MainLayout';
-import ContentDetailPage from './pages/content/ContentDetailPage';
+import ContentDetailDescription from './pages/content/ContentDetailDescription';
+import ContentDetailFiles from './pages/content/ContentDetailFiles';
+import ContentDetailGallery from './pages/content/ContentDetailGallery';
 import ContentPage from './pages/content/ContentPage';
 import HomePage from './pages/home/HomePage';
 import InstancePage from './pages/instance/InstancePage';
@@ -43,7 +46,11 @@ export default function App() {
                 <Route path="instances/:id" element={<InstancePage />} />
                 <Route path="contents">
                   <Route index element={<ContentPage />} />
-                  <Route path=":id" element={<ContentDetailPage />} />
+                  <Route path=":id" element={<ContentDetailLayout />}>
+                    <Route index element={<ContentDetailDescription />} />
+                    <Route path="files" element={<ContentDetailFiles />} />
+                    <Route path="gallery" element={<ContentDetailGallery />} />
+                  </Route>
                 </Route>
               </Route>
             </Routes>

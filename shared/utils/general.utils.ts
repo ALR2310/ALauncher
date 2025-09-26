@@ -35,3 +35,24 @@ export function capitalize(str: string): string {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function compareVersion(a: string, b: string): number {
+  const toNums = (v: string) => {
+    const main = v.split('-')[0];
+    const parts = main.split('.').map((s) => parseInt(s, 10));
+    return [parts[0] || 0, parts[1] || 0, parts[2] || 0] as const;
+  };
+
+  const [aMaj, aMin, aPatch] = toNums(a);
+  const [bMaj, bMin, bPatch] = toNums(b);
+
+  if (aMaj !== bMaj) return bMaj - aMaj; 
+  if (aMin !== bMin) return bMin - aMin;
+  if (aPatch !== bPatch) return bPatch - aPatch; 
+
+  const aPre = a.includes('-');
+  const bPre = b.includes('-');
+  if (aPre !== bPre) return aPre ? 1 : -1;
+
+  return 0;
+}

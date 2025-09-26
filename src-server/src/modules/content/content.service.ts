@@ -5,7 +5,7 @@ import {
   DetailContentResponseDto,
 } from '@shared/dtos/content.dto';
 import { loaderMap } from '@shared/mappings/general.mapping';
-import { formatBytes } from '@shared/utils/general.utils';
+import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
 
 import { NotFoundException } from '~/common/filters/exception.filter';
 
@@ -137,6 +137,16 @@ class ContentService {
         thumbnailUrl: modInfo.logo.thumbnailUrl,
         url: modInfo.logo.url,
       },
+      gameVersions: [...new Set<string>((modInfo.latestFilesIndexes ?? []).map((f: any) => f.gameVersion))].sort(
+        compareVersion,
+      ),
+      loaderTypes: [
+        ...new Set<string>(
+          (modInfo.latestFilesIndexes ?? [])
+            .map((f: any) => capitalize(loaderMap.idToKey[f.modLoader]))
+            .filter((loader: any) => loader != null),
+        ),
+      ],
       dateCreated: modInfo.dateCreated,
       dateModified: modInfo.dateModified,
       dateReleased: modInfo.dateReleased,

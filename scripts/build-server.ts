@@ -7,7 +7,7 @@ import * as ResEdit from 'resedit';
 
 config({ quiet: true });
 
-const isProd = process.env.NODE_ENV === 'production';
+const isDev = process.env.NODE_ENV === 'development';
 
 const outfile = 'dist/server.cjs';
 const target = 'node18';
@@ -35,16 +35,13 @@ if (existsSync('.env')) {
       format: 'cjs',
       outfile,
       define,
-      minify: isProd,
-      sourcemap: !isProd,
+      minify: !isDev,
+      sourcemap: isDev,
     });
     console.log('✅ esbuild done');
 
     const outputFile = path.resolve('src-tauri/binaries/server-x86_64-pc-windows-msvc.exe');
     const pkgCmd = `pkg ${outfile} --targets ${target}-win-x64 --output ${outputFile} --assets "node_modules/prismarine-nbt/**/*"`;
-    console.log('⚙️ Running:', pkgCmd);
-
-    console.log('⚙️ Running:', pkgCmd);
     execSync(pkgCmd, { stdio: 'inherit' });
     console.log('✅ pkg done, output at', outputFile);
 

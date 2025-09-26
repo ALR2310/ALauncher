@@ -8,11 +8,12 @@ config({ quiet: true, path: resolve(__dirname, '../.env') });
 
 const host = process.env.TAURI_DEV_HOST;
 const clientPort = Number(process.env.VITE_CLIENT_PORT) || 1420;
+const isDev = process.env.NODE_ENV === 'development';
 
 export default defineConfig(async () => ({
   build: {
-    minify: false,
-    cssMinify: false,
+    minify: !isDev,
+    cssMinify: !isDev,
     emptyOutDir: true,
     outDir: resolve(__dirname, '../dist'),
   },
@@ -22,10 +23,10 @@ export default defineConfig(async () => ({
     host: host || false,
     hmr: host
       ? {
-          protocol: 'ws',
-          host,
-          port: 1421,
-        }
+        protocol: 'ws',
+        host,
+        port: 1421,
+      }
       : undefined,
     watch: {
       ignored: ['**/src-tauri/**'],

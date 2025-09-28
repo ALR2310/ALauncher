@@ -1,4 +1,12 @@
+import { useParams } from 'react-router';
+
+import { useFindOneContentQuery } from '~/hooks/api/useContent';
+
 export default function ContentDetailGallery() {
+  const { id: contentId } = useParams<{ id: string }>();
+
+  const { data } = useFindOneContentQuery(Number(contentId));
+
   return (
     <div className="flex-1 p-2 bg-base-100 rounded-box overflow-y-auto">
       <div className="text-center py-8">

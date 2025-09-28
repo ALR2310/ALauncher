@@ -4,12 +4,12 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { ToastProvider } from './context/ToastContext';
-import ContentDetailLayout from './layouts/ContentDetailLayout';
+import ContentDetailLayout from './layouts/content-detail/ContentDetailLayout';
 import MainLayout from './layouts/MainLayout';
-import ContentDetailDescription from './pages/content/ContentDetailDescription';
-import ContentDetailFiles from './pages/content/ContentDetailFiles';
-import ContentDetailGallery from './pages/content/ContentDetailGallery';
 import ContentPage from './pages/content/ContentPage';
+import ContentDetailDescription from './pages/content/detail/ContentDetailDescription';
+import ContentDetailFiles from './pages/content/detail/ContentDetailFiles';
+import ContentDetailGallery from './pages/content/detail/ContentDetailGallery';
 import HomePage from './pages/home/HomePage';
 import InstancePage from './pages/instance/InstancePage';
 

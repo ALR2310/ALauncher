@@ -8,23 +8,25 @@ interface ContentDetailLayoutSidebarProps {
 
 export default function ContentDetailLayoutSidebar({ content, onBack }: ContentDetailLayoutSidebarProps) {
   return (
-    <div className="bg-base-100 w-64 rounded overflow-auto no-scrollbar h-full">
+    <div className="bg-base-100 w-64 rounded flex flex-col h-full">
       <ContentDetailLayoutSidebarBackButton onBack={onBack} />
 
-      <div className="divider m-0">Summary</div>
-      <ContentDetailLayoutSidebarSummary summary={content?.summary} />
+      <div className="flex-1 overflow-auto no-scrollbar">
+        <div className="divider m-0">Summary</div>
+        <ContentDetailLayoutSidebarSummary summary={content?.summary} />
 
-      <div className="divider m-0">Details</div>
-      <ContentDetailLayoutSidebarDetails content={content} />
+        <div className="divider m-0">Details</div>
+        <ContentDetailLayoutSidebarDetails content={content} />
 
-      <div className="divider m-0">Game Versions</div>
-      <ContentDetailLayoutSidebarGameVersions gameVersions={content?.gameVersions} />
+        <div className="divider m-0">Game Versions</div>
+        <ContentDetailLayoutSidebarGameVersions gameVersions={content?.gameVersions} />
 
-      <div className="divider m-0">Mod Loaders</div>
-      <ContentDetailLayoutSidebarLoaderTypes loaderTypes={content?.loaderTypes} />
+        <div className="divider m-0">Mod Loaders</div>
+        <ContentDetailLayoutSidebarLoaderTypes loaderTypes={content?.loaderTypes} />
 
-      <div className="divider m-0">Categories</div>
-      <ContentDetailLayoutSidebarCategories categories={content?.categories} />
+        <div className="divider m-0">Categories</div>
+        <ContentDetailLayoutSidebarCategories categories={content?.categories} />
+      </div>
     </div>
   );
 }

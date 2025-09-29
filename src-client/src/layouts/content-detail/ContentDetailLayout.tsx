@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useParams } from 'react-router';
+import { Outlet, useParams } from 'react-router';
 
 import { useFindOneContentQuery } from '~/hooks/api/useContent';
 import { useContainer } from '~/hooks/app/useContainer';
@@ -11,13 +11,13 @@ export default function ContentDetailLayout() {
   const { id } = useParams<{ id: string }>();
   const { height, isReady } = useContainer();
 
-  const navigate = useNavigate();
-
   const { data } = useFindOneContentQuery(Number(id));
 
   return (
     <div className="flex gap-4 p-4" style={{ height: isReady ? height : '0px' }}>
-      <div className="flex-1 flex flex-col gap-2">
+      {/* 'min-w-0' is required to prevent flex children from overflowing their container. */}
+      {/* See: https://css-tricks.com/flexbox-truncated-text/#min-width-0 */}
+      <div className="flex-1 flex flex-col gap-2 min-w-0">
         <ContentDetailLayoutHeader content={data} />
         <ContentDetailLayoutTabs content={data} />
 
@@ -25,8 +25,7 @@ export default function ContentDetailLayout() {
           <Outlet />
         </div>
       </div>
-
-      <ContentDetailLayoutSidebar content={data} onBack={() => navigate(-1)} />
+      <ContentDetailLayoutSidebar content={data} />
     </div>
   );
 }

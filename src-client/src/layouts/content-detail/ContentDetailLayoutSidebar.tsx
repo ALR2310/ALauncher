@@ -1,15 +1,11 @@
 import type { DetailContentResponseDto } from '@shared/dtos/content.dto';
 import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 
-interface ContentDetailLayoutSidebarProps {
-  content?: DetailContentResponseDto;
-  onBack: () => void;
-}
-
-export default function ContentDetailLayoutSidebar({ content, onBack }: ContentDetailLayoutSidebarProps) {
+export default function ContentDetailLayoutSidebar({ content }: { content?: DetailContentResponseDto }) {
   return (
-    <div className="bg-base-100 w-64 rounded flex flex-col h-full">
-      <ContentDetailLayoutSidebarBackButton onBack={onBack} />
+    <div className="bg-base-100 w-64 h-full rounded flex flex-col">
+      <ContentDetailLayoutSidebarBackButton />
 
       <div className="flex-1 overflow-auto no-scrollbar">
         <div className="divider m-0">Summary</div>
@@ -31,14 +27,26 @@ export default function ContentDetailLayoutSidebar({ content, onBack }: ContentD
   );
 }
 
-interface ContentDetailLayoutSidebarBackButtonProps {
-  onBack: () => void;
-}
+export function ContentDetailLayoutSidebarBackButton() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-export function ContentDetailLayoutSidebarBackButton({ onBack }: ContentDetailLayoutSidebarBackButtonProps) {
+  const handleBack = () => {
+    const from = searchParams.get('from');
+    const instance = searchParams.get('instance');
+
+    if (from === 'instance' && instance) {
+      navigate(`/instances/${instance}`);
+    } else if (from === 'list') {
+      navigate(instance ? `/contents?instance=${instance}` : '/contents');
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <div className="p-4">
-      <button className="btn btn-soft w-full" onClick={onBack}>
+      <button className="btn btn-soft w-full" onClick={handleBack}>
         <i className="fa-light fa-arrow-left"></i>
         <span>Back</span>
       </button>
@@ -46,11 +54,7 @@ export function ContentDetailLayoutSidebarBackButton({ onBack }: ContentDetailLa
   );
 }
 
-interface ContentDetailLayoutSidebarSummaryProps {
-  summary?: string;
-}
-
-export function ContentDetailLayoutSidebarSummary({ summary }: ContentDetailLayoutSidebarSummaryProps) {
+export function ContentDetailLayoutSidebarSummary({ summary }: { summary?: string }) {
   const [expanded, setExpanded] = useState(false);
   const hasSummary = Boolean(summary && summary.length > 0);
 
@@ -67,11 +71,7 @@ export function ContentDetailLayoutSidebarSummary({ summary }: ContentDetailLayo
   );
 }
 
-interface ContentDetailLayoutSidebarDetailsProps {
-  content?: DetailContentResponseDto;
-}
-
-export function ContentDetailLayoutSidebarDetails({ content }: ContentDetailLayoutSidebarDetailsProps) {
+export function ContentDetailLayoutSidebarDetails({ content }: { content?: DetailContentResponseDto }) {
   return (
     <div className="grid grid-cols-2 gap-4 p-4">
       <p className="label">Downloads</p>
@@ -98,11 +98,7 @@ export function ContentDetailLayoutSidebarDetails({ content }: ContentDetailLayo
   );
 }
 
-interface ContentDetailLayoutSidebarGameVersionsProps {
-  gameVersions?: string[];
-}
-
-export function ContentDetailLayoutSidebarGameVersions({ gameVersions }: ContentDetailLayoutSidebarGameVersionsProps) {
+export function ContentDetailLayoutSidebarGameVersions({ gameVersions }: { gameVersions?: string[] }) {
   const hasVersions = Boolean(gameVersions && gameVersions.length > 0);
 
   return (
@@ -122,11 +118,7 @@ export function ContentDetailLayoutSidebarGameVersions({ gameVersions }: Content
   );
 }
 
-interface ContentDetailLayoutSidebarLoaderTypesProps {
-  loaderTypes?: string[];
-}
-
-export function ContentDetailLayoutSidebarLoaderTypes({ loaderTypes }: ContentDetailLayoutSidebarLoaderTypesProps) {
+export function ContentDetailLayoutSidebarLoaderTypes({ loaderTypes }: { loaderTypes?: string[] }) {
   const hasLoaderTypes = Boolean(loaderTypes && loaderTypes.length);
 
   return (
@@ -142,11 +134,11 @@ export function ContentDetailLayoutSidebarLoaderTypes({ loaderTypes }: ContentDe
   );
 }
 
-interface ContentDetailLayoutSidebarCategoriesProps {
+export function ContentDetailLayoutSidebarCategories({
+  categories,
+}: {
   categories?: DetailContentResponseDto['categories'];
-}
-
-export function ContentDetailLayoutSidebarCategories({ categories }: ContentDetailLayoutSidebarCategoriesProps) {
+}) {
   const hasCategories = Boolean(categories && categories.length);
 
   return (

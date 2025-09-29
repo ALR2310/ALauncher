@@ -1,11 +1,7 @@
 import type { DetailContentResponseDto } from '@shared/dtos/content.dto';
 import { categoryMap } from '@shared/mappings/general.mapping';
 
-interface ContentDetailLayoutHeaderProps {
-  content?: DetailContentResponseDto;
-}
-
-export default function ContentDetailLayoutHeader({ content }: ContentDetailLayoutHeaderProps) {
+export default function ContentDetailLayoutHeader({ content }: { content?: DetailContentResponseDto }) {
   const leadingAuthor = content?.authors?.[0];
 
   return (

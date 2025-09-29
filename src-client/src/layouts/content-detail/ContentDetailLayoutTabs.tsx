@@ -1,12 +1,12 @@
 import type { DetailContentResponseDto } from '@shared/dtos/content.dto';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
-interface ContentDetailLayoutTabsProps {
-  content?: DetailContentResponseDto;
-}
-
-export default function ContentDetailLayoutTabs({ content }: ContentDetailLayoutTabsProps) {
+export default function ContentDetailLayoutTabs({ content }: { content?: DetailContentResponseDto }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchString = searchParams.toString();
+  const query = searchString ? `?${searchString}` : '';
+
   const galleryCount = content?.screenshots?.length ?? 0;
   const galleryLabel = `Gallery (${galleryCount})`;
 
@@ -18,21 +18,21 @@ export default function ContentDetailLayoutTabs({ content }: ContentDetailLayout
         className="tab"
         aria-label="Description"
         defaultChecked
-        onChange={() => navigate('')}
+        onChange={() => navigate(`${query}`)}
       />
       <input
         type="radio"
         name="content_details_tab"
         className="tab"
         aria-label="Files"
-        onChange={() => navigate('files')}
+        onChange={() => navigate(`files${query}`)}
       />
       <input
         type="radio"
         name="content_details_tab"
         className="tab"
         aria-label={galleryLabel}
-        onChange={() => navigate('gallery')}
+        onChange={() => navigate(`gallery${query}`)}
       />
       {Object.entries(content?.links ?? {}).map(([key, value]) => {
         if (!value) return null;
@@ -49,4 +49,3 @@ export default function ContentDetailLayoutTabs({ content }: ContentDetailLayout
     </div>
   );
 }
-

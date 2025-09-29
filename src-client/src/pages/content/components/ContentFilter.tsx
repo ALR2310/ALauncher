@@ -18,7 +18,7 @@ export default function ContentFilter({ className }: ContentFilterProps) {
   const { isReady, height } = useContainer();
 
   // Get filter states from context
-  const instanceId = useContextSelector(ContentContext, (c) => c.instanceId);
+  const instanceId = useContextSelector(ContentContext, (c) => c.instance);
   const categoryType = useContextSelector(ContentContext, (c) => c.categoryType);
   const gameVersion = useContextSelector(ContentContext, (c) => c.gameVersion);
   const loaderType = useContextSelector(ContentContext, (c) => c.loaderType);

@@ -10,7 +10,7 @@ export interface ContentContextType {
   gameVersion: string;
   loaderType: string;
   categoryIds: Set<number>;
-  instanceId: string | null;
+  instance: string | null;
 
   // Filter handlers
   setSortField: (value: string) => void;
@@ -27,8 +27,8 @@ const ContentContext = createContext<ContentContextType>(null!);
 function ContentProvider({ children }: { children: ReactNode }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Get instanceId from URL (read-only)
-  const instanceId = searchParams.get('instanceId');
+  // Get instance from URL (read-only) - fallback to instanceId for backward compatibility
+  const instance = searchParams.get('instance') || searchParams.get('instanceId');
 
   // Filter states synced with URL params
   const [sortField, setSortField] = useState(searchParams.get('sortField') || '2');
@@ -45,8 +45,8 @@ function ContentProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
 
-    // Keep instanceId if exists
-    if (instanceId) next.set('instanceId', instanceId);
+    // Keep instance if exists
+    if (instance) next.set('instance', instance);
 
     // Set filter params
     next.set('sortField', sortField);
@@ -69,7 +69,7 @@ function ContentProvider({ children }: { children: ReactNode }) {
     gameVersion,
     loaderType,
     categoryIds,
-    instanceId,
+    instance,
     searchParams,
     setSearchParams,
   ]);
@@ -95,7 +95,7 @@ function ContentProvider({ children }: { children: ReactNode }) {
     gameVersion,
     loaderType,
     categoryIds,
-    instanceId,
+    instance,
 
     // Filter handlers
     setSortField,

@@ -75,7 +75,7 @@ export default function InstancePage() {
           className="btn btn-soft"
           onClick={() => {
             const query = qs.stringify({
-              ...(id ? { instanceId: id } : {}),
+              ...(id ? { instance: id } : {}),
               categoryType: categoryKey,
               ...(instance?.version ? { gameVersion: instance.version } : {}),
               ...(categoryKey === 'mc-mods' && instance?.loader

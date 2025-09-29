@@ -46,6 +46,10 @@ export default function ContentDetailGallery() {
                 className="w-full h-40 object-contain bg-base-200"
                 loading="lazy"
               />
+              {/* Info */}
+              <div className="absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-3 transform transition-transform duration-300 translate-y-[calc(100%-0px)] group-hover:translate-y-0 group-focus:translate-y-0">
+                <p className="font-semibold">{s.title}</p>
+              </div>
             </button>
           ))}
         </div>

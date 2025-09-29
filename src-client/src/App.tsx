@@ -13,7 +13,7 @@ import ContentDetailGallery from './pages/content/detail/ContentDetailGallery';
 import HomePage from './pages/home/HomePage';
 import InstancePage from './pages/instance/InstancePage';
 
-const isTauri = window.isTauri;
+const { isTauri } = window;
 
 const queryClient = new QueryClient({
   defaultOptions: {

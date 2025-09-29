@@ -18,7 +18,7 @@ export default function ContentDetailLayoutTabs({ content }: { content?: DetailC
         className="tab"
         aria-label="Description"
         defaultChecked
-        onChange={() => navigate(`${query}`)}
+        onChange={() => navigate(`.${query}`, { relative: 'path' })}
       />
       <input
         type="radio"

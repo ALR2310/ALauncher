@@ -12,10 +12,10 @@ export class ContentController {
     return contentService.findAll(query);
   }
 
-  @Get('/:id')
+  @Get('/:slug')
   @Validate(DetailContentQueryDto)
-  async findOne(@Param('id') id, @Query() query) {
-    const payload = { id, ...query };
+  async findOne(@Param('slug') slug, @Query() query) {
+    const payload = { slug, ...query };
     return contentService.findOne(payload);
   }
 }

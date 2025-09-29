@@ -95,14 +95,12 @@ class ContentService {
   }
 
   async findOne(payload: DetailContentQueryDto) {
-    const { id } = payload;
+    const { slug } = payload;
 
-    const [modInfo, modDesc] = await Promise.all([
-      curseForgeService.getMod(id).then((res) => res.data),
-      curseForgeService.getModDescription(id).then((res) => res.data),
-    ]);
+    const modInfo = await curseForgeService.searchMods({ slug }).then((res) => res.data[0]);
+    const modDesc = modInfo ? await curseForgeService.getModDescription(modInfo.id).then((res) => res.data) : null;
 
-    if (!modInfo) throw new NotFoundException(`Mod with id ${id} not found`);
+    if (!modInfo) throw new NotFoundException(`Mod with slug ${slug} not found`);
 
     modInfo.description = modDesc;
 

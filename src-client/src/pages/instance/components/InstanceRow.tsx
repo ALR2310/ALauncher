@@ -107,7 +107,7 @@ export default function InstanceRow({
             <img src={item.logoUrl} alt={item.name} loading="lazy" className="w-full h-full" />
           </div>
           <div className="flex flex-col">
-            <Link to={`/contents/${item.id}?from=instance&instance=${instanceId}`} className="font-semibold text-ellipsis-1 w-full hover:underline">
+            <Link to={`/contents/${item.slug}?from=instance&instance=${instanceId}`} className="font-semibold text-ellipsis-1 w-full hover:underline">
               {item.name}
             </Link>
             <span className="label text-ellipsis-1 w-full">{item.fileName}</span>

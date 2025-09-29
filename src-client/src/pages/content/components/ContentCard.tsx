@@ -69,7 +69,7 @@ export function ContentCard({ data, categoryType, versionSelected, loaderType, w
             <div className="flex-1">
               <div className="flex items-center font-semibold ">
                 <Link
-                  to={`/contents/${data.id}?from=list${instanceId ? `&instance=${instanceId}` : ''}`}
+                  to={`/contents/${data.slug}?from=list${instanceId ? `&instance=${instanceId}` : ''}`}
                   className="text-base-content text-ellipsis-1 hover:text-primary hover:underline hover:underline-offset-4 hover:cursor-pointer hover:decoration-2"
                 >
                   {data.name}

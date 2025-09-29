@@ -8,10 +8,10 @@ import ContentDetailLayoutSidebar from './ContentDetailLayoutSidebar';
 import ContentDetailLayoutTabs from './ContentDetailLayoutTabs';
 
 export default function ContentDetailLayout() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { height, isReady } = useContainer();
 
-  const { data } = useFindOneContentQuery(Number(id));
+  const { data } = useFindOneContentQuery(slug!);
 
   return (
     <div className="flex gap-4 p-4" style={{ height: isReady ? height : '0px' }}>

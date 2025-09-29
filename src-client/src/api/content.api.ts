@@ -8,6 +8,6 @@ export const findAllContent = async (params: ContentQueryDto) => {
   return API.get<ContentResponseDto>(`${BASE_PATH}`, params);
 };
 
-export const findOneContent = async (contentId: number) => {
-  return API.get<DetailContentResponseDto>(`${BASE_PATH}/${contentId}`);
+export const findOneContent = async (slug: string) => {
+  return API.get<DetailContentResponseDto>(`${BASE_PATH}/${slug}`);
 };

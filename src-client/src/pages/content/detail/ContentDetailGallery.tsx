@@ -5,11 +5,11 @@ import Modal from '~/components/Modal';
 import { useFindOneContentQuery } from '~/hooks/api/useContent';
 
 export default function ContentDetailGallery() {
-  const { id: contentId } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const modalRef = useRef<HTMLDialogElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data } = useFindOneContentQuery(Number(contentId));
+  const { data } = useFindOneContentQuery(slug!);
   const screenshots = useMemo(() => data?.screenshots ?? [], [data]);
 
   useEffect(() => {

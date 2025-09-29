@@ -83,8 +83,8 @@ const contentResponseSchema = z.object({
 });
 
 const detailContentQuerySchema = z.object({
-  id: z.coerce.number(),
-  instanceId: z.string().optional(),
+  slug: z.string(),
+  instance: z.string().optional(),
 });
 
 const detailContentResponseSchema = z.object({

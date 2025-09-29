@@ -46,7 +46,7 @@ export default function App() {
                 <Route path="instances/:id" element={<InstancePage />} />
                 <Route path="contents">
                   <Route index element={<ContentPage />} />
-                  <Route path=":id" element={<ContentDetailLayout />}>
+                  <Route path=":slug" element={<ContentDetailLayout />}>
                     <Route index element={<ContentDetailDescription />} />
                     <Route path="files" element={<ContentDetailFiles />} />
                     <Route path="gallery" element={<ContentDetailGallery />} />

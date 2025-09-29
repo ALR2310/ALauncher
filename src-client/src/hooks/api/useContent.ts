@@ -18,9 +18,9 @@ export function useFindAllContentInfinite(params: ContentQueryDto) {
   });
 }
 
-export function useFindOneContentQuery(id: number) {
+export function useFindOneContentQuery(slug: string) {
   return useQuery({
-    queryKey: ['content', id],
-    queryFn: () => findOneContent(id),
+    queryKey: ['content', slug],
+    queryFn: () => findOneContent(slug),
   });
 }

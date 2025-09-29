@@ -477,10 +477,10 @@
     "@eslint/core" "^0.15.2"
     levn "^0.4.1"
 
-"@hono/node-server@^1.19.4":
-  version "1.19.4"
-  resolved "https://registry.yarnpkg.com/@hono/node-server/-/node-server-1.19.4.tgz#2721cda094f7c080ee985494ac3e074f16c503eb"
-  integrity sha512-AWKQZ/YkHUBSHeL/5Ld8FWgUs6wFf4TxGYxqp9wLZxRdFuHBpXmgOq+CuDoL4vllkZLzovCf5HBJnypiy3EtHA==
+"@hono/node-server@^1.19.5":
+  version "1.19.5"
+  resolved "https://registry.yarnpkg.com/@hono/node-server/-/node-server-1.19.5.tgz#6e9a991e2a5843b33aee8b93a11ff68b5fdc7712"
+  integrity sha512-iBuhh+uaaggeAuf+TftcjZyWh2GEgZcVGXkNtskLVoWaXhnJtC5HLHrU8W1KHDoucqO1MswwglmkWLFyiDn4WQ==
 
 "@humanfs/core@^0.19.1":
   version "0.19.1"
@@ -692,10 +692,10 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.9.tgz#d229a7b7f9dac167a156992ef23c7f023653f53b"
   integrity sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==
 
-"@rolldown/pluginutils@1.0.0-beta.35":
-  version "1.0.0-beta.35"
-  resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.35.tgz#1a477e7742b154b67519d40e4fc17485de338e7a"
-  integrity sha512-slYrCpoxJUqzFDDNlvrOYRazQUNRvWPjXA17dAOISY3rDMxX6k8K4cj2H+hEYMHF81HO3uNd5rHVigAWRM5dSg==
+"@rolldown/pluginutils@1.0.0-beta.38":
+  version "1.0.0-beta.38"
+  resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.38.tgz#95253608c4629eb2a5f3d656009ac9ba031eb292"
+  integrity sha512-N/ICGKleNhA5nc9XXQG/kkKHJ7S55u0x0XUJbbkmdCnFuoRkM1Il12q9q0eX19+M7KKUEPw/daUPIRnxhcxAIw==
 
 "@rollup/rollup-android-arm-eabi@4.50.0":
   version "4.50.0"
@@ -1153,10 +1153,10 @@
   dependencies:
     csstype "^3.0.2"
 
-"@types/react@19.1.13":
-  version "19.1.13"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.1.13.tgz#fc650ffa680d739a25a530f5d7ebe00cdd771883"
-  integrity sha512-hHkbU/eoO3EG5/MZkuFSKmYqPbSVk5byPFa3e7y/8TybHiLMACgI8seVYlicwk7H5K/rI2px9xrQp/C+AUDTiQ==
+"@types/react@19.1.15":
+  version "19.1.15"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.1.15.tgz#cf854cdf6624f79e34633ddf6dc1e104be459908"
+  integrity sha512-+kLxJpaJzXybyDyFXYADyP1cznTO8HSuBpenGlnKOAkH4hyNINiywvXS/tGJhsrGGP/gM185RA3xpjY0Yg4erA==
   dependencies:
     csstype "^3.0.2"
 
@@ -1263,22 +1263,22 @@
     "@typescript-eslint/types" "8.44.1"
     eslint-visitor-keys "^4.2.1"
 
-"@vitejs/plugin-react@^5.0.3":
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/@vitejs/plugin-react/-/plugin-react-5.0.3.tgz#182ea45406d89e55b4e35c92a4a8c2c8388726c8"
-  integrity sha512-PFVHhosKkofGH0Yzrw1BipSedTH68BFF8ZWy1kfUpCtJcouXXY0+racG8sExw7hw0HoX36813ga5o3LTWZ4FUg==
+"@vitejs/plugin-react@^5.0.4":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@vitejs/plugin-react/-/plugin-react-5.0.4.tgz#d642058e89c5b712655c8cbd13482f5813519602"
+  integrity sha512-La0KD0vGkVkSk6K+piWDKRUyg8Rl5iAIKRMH0vMJI0Eg47bq1eOxmoObAaQG37WMW9MSyk7Cs8EIWwJC1PtzKA==
   dependencies:
     "@babel/core" "^7.28.4"
     "@babel/plugin-transform-react-jsx-self" "^7.27.1"
     "@babel/plugin-transform-react-jsx-source" "^7.27.1"
-    "@rolldown/pluginutils" "1.0.0-beta.35"
+    "@rolldown/pluginutils" "1.0.0-beta.38"
     "@types/babel__core" "^7.20.5"
     react-refresh "^0.17.0"
 
-"@yao-pkg/pkg-fetch@3.5.24":
-  version "3.5.24"
-  resolved "https://registry.yarnpkg.com/@yao-pkg/pkg-fetch/-/pkg-fetch-3.5.24.tgz#37a671f077fe6446aec0758e6fc7961d183c3445"
-  integrity sha512-FPESCH1uXCYui6jeDp2aayWuFHR39w+uU1r88nI6JWRvPYOU64cHPUV/p6GSFoQdpna7ip92HnrZKbBC60l0gA==
+"@yao-pkg/pkg-fetch@3.5.25":
+  version "3.5.25"
+  resolved "https://registry.yarnpkg.com/@yao-pkg/pkg-fetch/-/pkg-fetch-3.5.25.tgz#2ff56e951cbbaf009f540222249dff3be1e94f35"
+  integrity sha512-6deLQjwn5EJVCGRb9Rsy5c8TZixRgiBHMu3cIFVakwZR6ebidE16/Oc7WDBvhQg9N3B3ExgDi7QA19w7Z2GZkA==
   dependencies:
     https-proxy-agent "^5.0.0"
     node-fetch "^2.6.6"
@@ -1288,15 +1288,15 @@
     tar-fs "^2.1.1"
     yargs "^16.2.0"
 
-"@yao-pkg/pkg@^6.6.0":
-  version "6.6.0"
-  resolved "https://registry.yarnpkg.com/@yao-pkg/pkg/-/pkg-6.6.0.tgz#e8c38ed5824381c676e6688f93e27f39e1752701"
-  integrity sha512-3/oiaSm7fS0Fc7dzp22r9B7vFaguGhO9vERgEReRYj2EUzdi5ssyYhe1uYJG4ec/dmo2GG6RRHOUAT8savl79Q==
+"@yao-pkg/pkg@^6.7.0":
+  version "6.7.0"
+  resolved "https://registry.yarnpkg.com/@yao-pkg/pkg/-/pkg-6.7.0.tgz#31177b9cd5fdd5f7e9fd1937ff24d27735f8f064"
+  integrity sha512-Q06diprlqZrZ0SFefUUhvVj06QboHsBOLyml2CpzWvMUdV7fleSZ8wq5tBrVfmjWu2/ka4bDWHwlocHuYD7HOQ==
   dependencies:
     "@babel/generator" "^7.23.0"
     "@babel/parser" "^7.23.0"
     "@babel/types" "^7.23.0"
-    "@yao-pkg/pkg-fetch" "3.5.24"
+    "@yao-pkg/pkg-fetch" "3.5.25"
     into-stream "^6.0.0"
     minimist "^1.2.6"
     multistream "^4.1.0"
@@ -1754,10 +1754,10 @@ cycle@1.0.x:
   resolved "https://registry.yarnpkg.com/cycle/-/cycle-1.0.3.tgz#21e80b2be8580f98b468f379430662b046c34ad2"
   integrity sha512-TVF6svNzeQCOpjCqsy0/CSy8VgObG3wXusJ73xW2GbG5rGx7lC8zxDSURicsXI2UsGdi2L0QNRCi745/wUDvsA==
 
-daisyui@^5.1.23:
-  version "5.1.23"
-  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.1.23.tgz#9ed81c2adabc082a0f02e0be4553371a94b24419"
-  integrity sha512-HgxmDidqO0FrcrkMVRz7KYwQi+eoZarMVud2kx5cGhTmTlaJPne/gbsSEn4/vM1svbp40ENCMjJsbBldCXhrOA==
+daisyui@^5.1.25:
+  version "5.1.25"
+  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.1.25.tgz#fdf72d935c5a5297f861c54796cc13c58f6d511b"
+  integrity sha512-LYOGVIzTCCucEFkKmdj0fxbHHPZ83fpkYD7jXYF3/7UwrUu68TtXkIdGtEXadzeqUT361hCe6cj5tBB/7mvszw==
 
 data-urls@^6.0.0:
   version "6.0.0"
@@ -2606,10 +2606,10 @@ hasown@^2.0.2:
   dependencies:
     function-bind "^1.1.2"
 
-hono@^4.9.8:
-  version "4.9.8"
-  resolved "https://registry.yarnpkg.com/hono/-/hono-4.9.8.tgz#1710981135ec775fe26fab5ea6535b403e92bcc3"
-  integrity sha512-JW8Bb4RFWD9iOKxg5PbUarBYGM99IcxFl2FPBo2gSJO11jjUDqlP1Bmfyqt8Z/dGhIQ63PMA9LdcLefXyIasyg==
+hono@^4.9.9:
+  version "4.9.9"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-4.9.9.tgz#a32ee02a5a9c4be8e7f4d48e4e181e738a1d65d7"
+  integrity sha512-Hxw4wT6zjJGZJdkJzAx9PyBdf7ZpxaTSA0NfxqjLghwMrLBX8p33hJBzoETRakF3UJu6OdNQBZAlNSkGqKFukw==
 
 html-encoding-sniffer@^4.0.0:
   version "4.0.0"
@@ -3637,17 +3637,17 @@ react-refresh@^0.17.0:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.17.0.tgz#b7e579c3657f23d04eccbe4ad2e58a8ed51e7e53"
   integrity sha512-z6F7K9bV85EfseRCp2bzrpyQ0Gkw1uLoCel9XBVWPg/TjRj94SkJzUTGfOa4bs7iJvBWtQG0Wq7wnI0syw3EBQ==
 
-react-router-dom@^7.9.2:
-  version "7.9.2"
-  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-7.9.2.tgz#2bb35d226ca23329f4e39c8f86d1db26ee4fdf26"
-  integrity sha512-pagqpVJnjZOfb+vIM23eTp7Sp/AAJjOgaowhP1f1TWOdk5/W8Uk8d/M/0wfleqx7SgjitjNPPsKeCZE1hTSp3w==
+react-router-dom@^7.9.3:
+  version "7.9.3"
+  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-7.9.3.tgz#67ab1655f67b9b6108fe20ed3d4881b53dccf87a"
+  integrity sha512-1QSbA0TGGFKTAc/aWjpfW/zoEukYfU4dc1dLkT/vvf54JoGMkW+fNA+3oyo2gWVW1GM7BxjJVHz5GnPJv40rvg==
   dependencies:
-    react-router "7.9.2"
+    react-router "7.9.3"
 
-react-router@7.9.2, react-router@^7.9.2:
-  version "7.9.2"
-  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.9.2.tgz#f424a14f87e4d7b5b268ce3647876e9504e4fca6"
-  integrity sha512-i2TPp4dgaqrOqiRGLZmqh2WXmbdFknUyiCRmSKs0hf6fWXkTKg5h56b+9F22NbGRAMxjYfqQnpi63egzD2SuZA==
+react-router@7.9.3, react-router@^7.9.3:
+  version "7.9.3"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.9.3.tgz#f2d5ff6181851de3df3acb4e7364fce0dee5fba2"
+  integrity sha512-4o2iWCFIwhI/eYAIL43+cjORXYn/aRQPgtFRRZb3VzoyQ5Uej0Bmqj7437L97N9NJW4wnicSwLOLS+yCXfAPgg==
   dependencies:
     cookie "^1.0.1"
     set-cookie-parser "^2.6.0"

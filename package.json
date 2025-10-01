@@ -58,7 +58,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "@yao-pkg/pkg": "^6.7.0",
     "concurrently": "^9.2.1",
-    "daisyui": "^5.1.25",
+    "daisyui": "^5.1.26",
     "dotenv": "^17.2.2",
     "esbuild": "^0.25.10",
     "eslint": "^9.36.0",

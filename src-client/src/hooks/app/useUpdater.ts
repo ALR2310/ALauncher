@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { appUpdate } from '~/api';
+import { appCheckUpdate, appUpdate } from '~/api';
 
 import { toast } from './useToast';
 
@@ -10,23 +10,30 @@ export function useUpdater() {
   const [progress, setProgress] = useState<number | undefined>(undefined);
 
   const checkForUpdates = async () => {
-    evtRef.current = await appUpdate();
     setIsUpdating(true);
 
-    evtRef.current.addEventListener('progress', (e) => {
-      setProgress(parseFloat(e.data));
-    });
-    evtRef.current.addEventListener('done', () => {
+    const check = await appCheckUpdate();
+
+    if (check.hasUpdate) {
+      evtRef.current = await appUpdate();
+
+      evtRef.current.addEventListener('progress', (e) => {
+        setProgress(parseFloat(e.data));
+      });
+      evtRef.current.addEventListener('done', () => {
+        setIsUpdating(false);
+        setProgress(undefined);
+        evtRef?.current?.close();
+        toast.success('Updated successfully');
+      });
+      evtRef.current.addEventListener('error', () => {
+        setIsUpdating(false);
+        setProgress(undefined);
+        evtRef?.current?.close();
+      });
+    } else {
       setIsUpdating(false);
-      setProgress(undefined);
-      evtRef?.current?.close();
-      toast.success('Updated successfully');
-    });
-    evtRef.current.addEventListener('error', () => {
-      setIsUpdating(false);
-      setProgress(undefined);
-      evtRef?.current?.close();
-    });
+    }
   };
 
   useEffect(() => {

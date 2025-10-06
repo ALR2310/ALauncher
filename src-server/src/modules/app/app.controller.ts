@@ -15,6 +15,9 @@ export class AppController {
   @Get('exit')
   exit = () => appService.exit();
 
+  @Get('update/check')
+  checkUpdate = () => appService.checkUpdate();
+
   @Get('update')
   async update(@Context() c) {
     const downloader = await appService.update();

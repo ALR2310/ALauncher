@@ -25,7 +25,7 @@ export default function MainLayout() {
 
   useEffect(() => {
     checkForUpdates();
-  }, [checkForUpdates]);
+  }, []);
 
   return (
     <ContainerProvider>

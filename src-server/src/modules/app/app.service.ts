@@ -26,23 +26,44 @@ class AppService {
     process.exit(0);
   }
 
+  async checkUpdate() {
+    const currentVersion = this.getVersion().version;
+    const gitToken = process.env.NODE_ENV === 'development' ? process.env.GITHUB_TOKEN : undefined;
+
+    try {
+      const res = await axios.get('https://api.github.com/repos/ALR2310/ALauncher/releases/latest', {
+        headers: gitToken ? { Authorization: `token ${gitToken}` } : undefined,
+      });
+      const latest = res.data;
+      const latestVersion = latest?.tag_name?.replace(/^v/, '') ?? '0.0.0';
+      const hasUpdate = semver.gt(latestVersion, currentVersion);
+
+      return {
+        hasUpdate,
+        assets: (latest?.assets as any[]) ?? [],
+      };
+    } catch (err: any) {
+      console.error('Check update error:', err?.message ?? err);
+      return {
+        hasUpdate: false,
+        assets: [],
+      };
+    }
+  }
+
   async update() {
     if (this.isUpdating) return null;
-
     this.isUpdating = true;
 
     try {
-      const version = this.getVersion();
-      const latest = await axios
-        .get('https://api.github.com/repos/ALR2310/ALauncher/releases/latest')
-        .then((res) => res.data);
+      const check = await this.checkUpdate();
 
-      if (!latest || semver.lte(latest.tag_name.replace(/^v/, ''), version.version)) {
+      if (!check.hasUpdate) {
         this.isUpdating = false;
         return null;
       }
 
-      const asset = latest.assets.find((a: any) => a.name.includes('Update.zip'));
+      const asset = check.assets.find((a: any) => a.name.includes('Update.zip'));
 
       if (!asset) {
         this.isUpdating = false;

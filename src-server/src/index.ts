@@ -7,6 +7,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { trimTrailingSlash } from 'hono/trailing-slash';
+import { rateLimiter } from 'hono-rate-limiter';
 
 import { exception } from './common/filters/exception.filter';
 import { registerController } from './common/register-controller';
@@ -23,7 +24,20 @@ const server = new Hono()
   .onError(exception)
   .use(cors({ origin: '*' }))
   .use(logger())
-  .use(trimTrailingSlash());
+  .use(trimTrailingSlash())
+  .use(
+    rateLimiter({
+      windowMs: 1000,
+      limit: 10,
+      standardHeaders: true,
+      message: 'Too many requests, please try again later.',
+      keyGenerator: (c) => {
+        const ip =
+          c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip') || c.req.header('x-real-ip') || 'unknown';
+        return `${ip}:${c.req.path}`;
+      },
+    }),
+  );
 registerController(server, [
   CategoryController,
   ContentController,

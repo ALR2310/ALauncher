@@ -20,6 +20,8 @@ if (existsSync('.env')) {
 
 define['process.env.NODE_ENV'] = JSON.stringify('production');
 
+const isDev = process.env.NODE_ENV === 'development';
+
 (async () => {
   try {
     console.log('⚙️ Starting esbuild...');
@@ -32,7 +34,7 @@ define['process.env.NODE_ENV'] = JSON.stringify('production');
       format: 'cjs',
       outfile,
       define,
-      minify: true,
+      minify: !isDev,
     });
   } catch (err) {
     console.error('build server failed:', err);

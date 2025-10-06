@@ -33,8 +33,7 @@ When generating **user-facing release notes**, always follow this friendly, valu
 👉 **Summary:**  
 End with a short, friendly recap (2–3 sentences):  
 - Highlight the **main improvement** or **biggest new feature**.  
-- Express the **value for the user** (e.g., smoother experience, easier to use, more stable).  
-- Keep the tone positive and human — you’re talking to users, not developers.
+- Express the **value for the user** (e.g., smoother experience, easier to use, more stable).
 
 ---
 

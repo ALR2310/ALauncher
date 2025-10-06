@@ -1,4 +1,5 @@
 import {
+  ContentFindFilesQueryDto,
   ContentQueryDto,
   ContentResponseDto,
   DetailContentQueryDto,
@@ -152,6 +153,10 @@ class ContentService {
     };
 
     return result;
+  }
+
+  async findFiles(payload: ContentFindFilesQueryDto) {
+    return payload;
   }
 }
 

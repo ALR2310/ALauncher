@@ -137,8 +137,13 @@ const detailContentResponseSchema = z.object({
   dateReleased: z.string(),
 });
 
+const contentFindFilesQuerySchema = z.object({
+  slug: z.string(),
+});
+
 export class ContentDto extends createZodDto(contentSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
 export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
 export class DetailContentQueryDto extends createZodDto(detailContentQuerySchema) {}
 export class DetailContentResponseDto extends createZodDto(detailContentResponseSchema) {}
+export class ContentFindFilesQueryDto extends createZodDto(contentFindFilesQuerySchema) {}

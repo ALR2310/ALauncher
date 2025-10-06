@@ -1,6 +1,6 @@
 import { CategoryDto } from '@shared/dtos/category.dto';
 
-import { API } from './api';
+import { API } from '.';
 
 const BASE_URL = '/categories';
 

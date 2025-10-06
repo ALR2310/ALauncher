@@ -1,7 +1,8 @@
-import { Command } from '@tauri-apps/plugin-shell';
+import { listen } from '@tauri-apps/api/event';
 import dayjs from 'dayjs';
 import { createRoot } from 'react-dom/client';
 
+import { appExit } from './api';
 import App from './App';
 import { toast } from './hooks/app/useToast';
 
@@ -14,7 +15,7 @@ const root = createRoot(container!);
 
 // Load server
 if (window.isTauri) {
-  Command.sidecar('binaries/server').spawn();
+  await listen('tauri://close-requested', () => appExit());
 }
 
 // Render GUI

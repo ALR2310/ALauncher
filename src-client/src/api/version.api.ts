@@ -1,6 +1,6 @@
 import { LoaderDto, ReleaseNoteDto, ReleaseNoteQueryDto, VersionDto } from '@shared/dtos/version.dto';
 
-import { API } from './api';
+import { API } from '.';
 
 const BASE_URL = '/versions';
 

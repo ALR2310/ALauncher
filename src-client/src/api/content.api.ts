@@ -1,6 +1,6 @@
 import { ContentQueryDto, ContentResponseDto, DetailContentResponseDto } from '@shared/dtos/content.dto';
 
-import { API } from '~/api/api';
+import { API } from '.';
 
 const BASE_PATH = '/contents';
 

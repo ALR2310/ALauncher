@@ -7,7 +7,7 @@ import {
 } from '@shared/dtos/instance.dto';
 import qs from 'qs';
 
-import { API, API_URL } from '~/api/api';
+import { API, API_URL } from '.';
 
 const BASE_PATH = 'instances';
 

@@ -24,9 +24,8 @@ export default function MainLayout() {
   const isLoaded = allSuccess && !isUpdating;
 
   useEffect(() => {
-    if (isTauri && import.meta.env.MODE !== 'development') checkForUpdates();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    checkForUpdates();
+  }, [checkForUpdates]);
 
   return (
     <ContainerProvider>

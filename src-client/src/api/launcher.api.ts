@@ -1,6 +1,6 @@
 import { LauncherConfigDto, UpdateLauncherConfigDto } from '@shared/dtos/launcher.dto';
 
-import { API, API_URL } from './api';
+import { API, API_URL } from '.';
 
 const BASE_PATH = 'launchers';
 

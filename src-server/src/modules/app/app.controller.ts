@@ -1,14 +1,23 @@
 import { streamSSE } from 'hono/streaming';
 
-import { Context, Controller, Get, Query } from '~/common/decorators';
+import { Context, Controller, Get } from '~/common/decorators';
 
-import { updateService } from './update.service';
+import { appService } from './app.service';
 
-@Controller('/update')
-export class UpdateController {
-  @Get()
-  async check(@Query() payload, @Context() c) {
-    const downloader = await updateService.check(payload);
+@Controller('app')
+export class AppController {
+  @Get('status')
+  getStatus = () => appService.getStatus();
+
+  @Get('version')
+  getVersion = () => appService.getVersion();
+
+  @Get('exit')
+  exit = () => appService.exit();
+
+  @Get('update')
+  async update(@Context() c) {
+    const downloader = await appService.update();
 
     if (!downloader) {
       return streamSSE(c, async (stream) => {

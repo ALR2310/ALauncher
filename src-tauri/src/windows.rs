@@ -1,13 +1,51 @@
-use std::env;
-
+use std::{env, os::windows::process::CommandExt, path::Path, process::Command};
 use tauri::{App, WebviewUrl, WebviewWindowBuilder};
+
+use crate::log::logger;
+
+fn spawn_runtime_process<P: AsRef<Path>>(runtime_path: P, data_path: P) {
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+    let _child = Command::new(runtime_path.as_ref())
+        .arg(data_path.as_ref())
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .unwrap_or_else(|e| {
+            let error_msg = format!(
+                "failed to start runtime: {:?}, runtime_path exists={}, data_path exists={}",
+                e,
+                runtime_path.as_ref().exists(),
+                data_path.as_ref().exists()
+            );
+            logger(&error_msg);
+            panic!("{}", error_msg);
+        });
+
+    logger("runtime.bin started successfully");
+}
 
 pub fn create_main_window(app: &App) {
     let node_env = env::var("NODE_ENV").unwrap_or_else(|_| "production".into());
 
+    let exe_dir = env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+        .expect("failed to get exe directory");
+
+    let runtime_path = exe_dir.join("runtime.bin");
+    let data_path = exe_dir.join("data.bin");
+
+    logger(&format!("NODE_ENV = {}", node_env));
+    logger(&format!("exe_dir = {:?}", exe_dir));
+    logger(&format!("runtime_path = {:?}", runtime_path));
+    logger(&format!("data_path = {:?}", data_path));
+
+    if node_env == "production" {
+        spawn_runtime_process(&runtime_path, &data_path);
+    }
+
     let monitor = app.primary_monitor().unwrap().unwrap();
     let scale_factor = monitor.scale_factor();
-
     let screen_size = monitor.size();
 
     // default size
@@ -28,7 +66,9 @@ pub fn create_main_window(app: &App) {
     let min_width = logical_width * 0.75;
     let min_height = logical_height * 0.75;
 
-    WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+    let url = WebviewUrl::External("http://localhost:1420".parse().unwrap());
+
+    WebviewWindowBuilder::new(app, "main", url)
         .title("ALauncher")
         .inner_size(logical_width, logical_height)
         .min_inner_size(min_width, min_height)

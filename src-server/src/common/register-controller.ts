@@ -16,6 +16,15 @@ async function safeJson(c: Context) {
   }
 }
 
+function safePath(base: string = '', sub: string = ''): string {
+  let b = base || '';
+  let s = sub || '';
+  if (b && !b.startsWith('/')) b = '/' + b;
+  if (s && !s.startsWith('/')) s = '/' + s;
+  const full = `${b}${s}`;
+  return full || '/';
+}
+
 export function registerController(app: Hono, controllers: (ControllerClass | ControllerInstance)[]) {
   const list = Array.isArray(controllers) ? controllers : [controllers];
 
@@ -27,7 +36,7 @@ export function registerController(app: Hono, controllers: (ControllerClass | Co
 
     for (const route of routes) {
       const handler = (controller as any)[route.handlerName].bind(controller);
-      const fullPath = `${basePath}${route.path}`;
+      const fullPath = safePath(basePath, route.path);
 
       (app as any)[route.method](fullPath, async (c: Context) => {
         const body = await safeJson(c);

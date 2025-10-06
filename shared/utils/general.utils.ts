@@ -46,9 +46,9 @@ export function compareVersion(a: string, b: string): number {
   const [aMaj, aMin, aPatch] = toNums(a);
   const [bMaj, bMin, bPatch] = toNums(b);
 
-  if (aMaj !== bMaj) return bMaj - aMaj; 
+  if (aMaj !== bMaj) return bMaj - aMaj;
   if (aMin !== bMin) return bMin - aMin;
-  if (aPatch !== bPatch) return bPatch - aPatch; 
+  if (aPatch !== bPatch) return bPatch - aPatch;
 
   const aPre = a.includes('-');
   const bPre = b.includes('-');

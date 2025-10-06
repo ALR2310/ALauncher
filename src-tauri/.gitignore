@@ -6,3 +6,7 @@
 # will have schema files for capabilities auto-completion
 /gen/schemas
 /minecraft/
+/assets/
+/data.bin
+/entry.bin
+/runtime.bin

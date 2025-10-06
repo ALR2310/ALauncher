@@ -1,4 +1,5 @@
 mod windows;
+mod log;
 
 #[tauri::command]
 async fn get_pid() -> u32 {

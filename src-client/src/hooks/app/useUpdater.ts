@@ -1,5 +1,8 @@
-import { app } from '@tauri-apps/api';
 import { useEffect, useRef, useState } from 'react';
+
+import { appUpdate } from '~/api';
+
+import { toast } from './useToast';
 
 export function useUpdater() {
   const evtRef = useRef<EventSource | null>(null);
@@ -7,10 +10,7 @@ export function useUpdater() {
   const [progress, setProgress] = useState<number | undefined>(undefined);
 
   const checkForUpdates = async () => {
-    const version = await app.getVersion();
-
-    const url = `http://localhost:${import.meta.env.VITE_SERVER_PORT ?? 1421}/api/update?version=${version}`;
-    evtRef.current = new EventSource(url);
+    evtRef.current = await appUpdate();
     setIsUpdating(true);
 
     evtRef.current.addEventListener('progress', (e) => {
@@ -20,6 +20,7 @@ export function useUpdater() {
       setIsUpdating(false);
       setProgress(undefined);
       evtRef?.current?.close();
+      toast.success('Updated successfully');
     });
     evtRef.current.addEventListener('error', () => {
       setIsUpdating(false);

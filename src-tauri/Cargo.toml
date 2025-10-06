@@ -1,8 +1,8 @@
 [package]
-name = "alauncher"
+name = "ALauncher"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "A modern, lightweight and open-source game launcher."
+authors = ["ALR"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -25,3 +25,4 @@ serde_json = "1"
 tauri-plugin-process = "2"
 tauri-plugin-shell = "2"
 dotenvy = "=0.15.7"
+chrono = { version = "0.4", features = ["clock"] }

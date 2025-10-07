@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import '@shared/utils/zod.utils';
 
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';

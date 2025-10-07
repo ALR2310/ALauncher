@@ -1,4 +1,9 @@
-import { CurseForgeFileReleaseType, CurseForgeModLoaderType } from 'curseforge-api';
+import {
+  CurseForgeFileReleaseType,
+  CurseForgeModLoaderType,
+  CurseForgeModsSearchSortField,
+  CurseForgeSortOrder,
+} from 'curseforge-api';
 import { z } from 'zod';
 
 import { createZodDto } from '../utils/zod.dto';
@@ -74,9 +79,9 @@ const detailContentResponseSchema = z.object({
         gameVersion: z.string(),
         fileId: z.number(),
         filename: z.string(),
-        releaseType: z.enum(CurseForgeFileReleaseType),
+        releaseType: z.number().enum(CurseForgeFileReleaseType),
         gameVersionTypeId: z.number().nullish(),
-        modLoader: z.enum(CurseForgeModLoaderType),
+        modLoader: z.number().enum(CurseForgeModLoaderType),
       }),
     )
     .nullish(),
@@ -99,9 +104,9 @@ const contentQuerySchema = z.object({
   gameVersion: z.string().optional(),
   gameVersions: z.string().optional(),
   searchFilter: z.string().optional(),
-  sortField: z.coerce.number().optional(),
-  sortOrder: z.string().optional(),
-  modLoaderType: z.coerce.number().optional(),
+  sortField: z.coerce.number().enum(CurseForgeModsSearchSortField).optional(),
+  sortOrder: z.enum(CurseForgeSortOrder).optional(),
+  modLoaderType: z.coerce.number().enum(CurseForgeModLoaderType).optional(),
   modLoaderTypes: z.string().optional(),
   gameVersionTypeId: z.coerce.number().optional(),
   authorId: z.coerce.number().optional(),

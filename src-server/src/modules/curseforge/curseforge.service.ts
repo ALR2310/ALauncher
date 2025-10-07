@@ -1,13 +1,20 @@
-import { loaderMap } from '@shared/mappings/general.mapping';
 import axios from 'axios';
+import { CurseForgeClient } from 'curseforge-api';
+import {
+  CurseForgeGetCategoriesOptions,
+  CurseForgeGetMinecraftModLoadersOptions,
+  CurseForgeGetModFilesOptions,
+  CurseForgeSearchModsOptions,
+} from 'curseforge-api/v1/Options';
+import { CurseForgeMinecraftModLoaderIndex } from 'curseforge-api/v1/Types';
 import { config } from 'dotenv';
-import { resolve } from 'path';
+import path from 'path';
 
-config({ quiet: true, path: resolve('..', '.env') });
+config({ quiet: true, path: path.resolve('..', '.env') });
 
 const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
 
-const api = axios.create({
+const API = axios.create({
   baseURL: 'https://api.curseforge.com/v1',
   headers: {
     'x-api-key': API_KEY,
@@ -15,126 +22,38 @@ const api = axios.create({
 });
 
 class CurseForgeService {
-  async getMinecraftVersions() {
-    try {
-      const res = await api.get('/minecraft/version');
-      return res.data;
-    } catch (err) {
-      console.error('Error fetching Minecraft version:', err);
-      return [];
-    }
+  private client = new CurseForgeClient(process.env.CURSEFORGE_API_KEY || '');
+  private gameId = 432; // Minecraft
+
+  async getCategories(payload: CurseForgeGetCategoriesOptions) {
+    return this.client.getCategories(this.gameId, payload);
   }
 
-  async getLoaderVersions(version?: string) {
-    try {
-      const res = await api.get(`minecraft/modloader`, {
-        params: {
-          includeAll: true,
-          version,
-        },
-      });
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching Loader version:', e);
-      return [];
-    }
+  async searchMods(payload: CurseForgeSearchModsOptions) {
+    return this.client.searchMods(this.gameId, payload);
   }
 
-  async getModFiles(modId: number, gameVersion?: string, modLoaderType?: string, pageSize = 1) {
-    const modLoader = modLoaderType ? loaderMap.keyToId[modLoaderType] : undefined;
-
-    try {
-      const res = await api.get(`mods/${modId}/files`, {
-        params: {
-          gameVersion,
-          modLoaderType: modLoader,
-          pageSize,
-        },
-      });
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching mod files:', e);
-      return [];
-    }
-  }
-
-  async getCategories(gameId: number, classId?: number, classesOnly?: boolean) {
-    try {
-      const res = await api.get('categories', { params: { gameId, classId, classesOnly } });
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching categories:', e);
-      return [];
-    }
-  }
-
-  async searchMods(params: any) {
-    const {
-      gameId = 432,
-      classId,
-      categoryIds,
-      gameVersion,
-      searchFilter,
-      sortField,
-      sortOrder = 'desc',
-      modLoaderType,
-      slug,
-      index = 0,
-      pageSize = 20,
-    } = params;
-
-    try {
-      const res = await api.get('mods/search', {
-        params: {
-          gameId,
-          classId,
-          categoryIds,
-          gameVersion,
-          searchFilter,
-          sortField,
-          sortOrder,
-          modLoaderType,
-          slug,
-          index: index * pageSize,
-          pageSize,
-        },
-      });
-      return res.data;
-    } catch (e) {
-      console.error('Error searching mods:', e);
-      return [];
-    }
-  }
-
-  async getMods(payload: { modIds: number[]; filterPcOnly?: boolean }) {
-    const { modIds, filterPcOnly = true } = payload;
-    try {
-      const res = await api.post('mods', { modIds, filterPcOnly });
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching mods:', e);
-      return [];
-    }
-  }
-
-  async getMod(modId: number) {
-    try {
-      const res = await api.get(`mods/${modId}`);
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching mod:', e);
-      return null;
-    }
+  async getMods(modIds: number[]) {
+    return this.client.getMods(modIds);
   }
 
   async getModDescription(modId: number) {
-    try {
-      const res = await api.get(`mods/${modId}/description`);
-      return res.data;
-    } catch (e) {
-      console.error('Error fetching mod description:', e);
-      return null;
-    }
+    return this.client.getModDescription(modId);
+  }
+
+  async getModFiles(modId: number, options: CurseForgeGetModFilesOptions) {
+    return this.client.getModFiles(modId, options);
+  }
+
+  async getMinecraftVersions() {
+    return this.client.getMinecraftVersions();
+  }
+
+  async getMinecraftModLoaders(options?: CurseForgeGetMinecraftModLoadersOptions) {
+    if (options?.version) return this.client.getMinecraftModLoaders(options);
+    return API.get(`/minecraft/modloader`, { params: { includeAll: true } }).then(
+      (res) => res.data.data as CurseForgeMinecraftModLoaderIndex[],
+    );
   }
 }
 

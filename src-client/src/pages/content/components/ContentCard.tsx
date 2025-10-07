@@ -27,12 +27,13 @@ export function ContentCard({ data, categoryType, versionSelected, loaderType, w
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const [worldsSelected, setWorldsSelected] = useState<string[]>([]);
-  const [status, setStatus] = useState<'Install' | 'Installing' | 'Installed'>('Install');
+  const [status, setStatus] = useState<'Install' | 'Installing' | 'Installed' | 'Update'>('Install');
   const { addContent, isDownloading, progress } = useAddContentInstanceEvent();
 
   useEffect(() => {
-    if (data.status === 'latest') setStatus('Installed');
-  }, [data.status]);
+    if (data.instance?.status === 'latest') setStatus('Installed');
+    else if (data.instance?.status === 'outdated') setStatus('Update');
+  }, []);
 
   useEffect(() => {
     if (progress !== undefined && progress >= 100) {
@@ -56,8 +57,8 @@ export function ContentCard({ data, categoryType, versionSelected, loaderType, w
       <div className="h-[120px] flex bg-base-100 p-3 rounded gap-4">
         <div className={`flex justify-center items-center min-w-24 ${!imgLoaded ? 'skeleton' : ''}`}>
           <img
-            src={data.logoUrl}
-            alt="mod img"
+            src={data.logo.url}
+            alt={data.logo.title}
             loading="lazy"
             className="w-full h-full object-cover"
             onLoad={() => setImgLoaded(true)}
@@ -90,7 +91,17 @@ export function ContentCard({ data, categoryType, versionSelected, loaderType, w
 
             <div className="w-[15%]">
               <button
-                className={`btn btn-soft w-full ${status !== 'Install' || !instanceId ? 'pointer-events-none' : 'btn-primary'} ${status === 'Installed' ? 'btn-success ' : 'btn-primary'}`}
+                className={`btn btn-soft w-full ${
+                  status === 'Installed'
+                    ? 'btn-success pointer-events-none'
+                    : status === 'Update'
+                      ? 'btn-primary'
+                      : status === 'Installing'
+                        ? 'btn-primary pointer-events-none'
+                        : instanceId
+                          ? 'btn-primary'
+                          : 'pointer-events-none'
+                }`}
                 disabled={!instanceId}
                 onClick={() => {
                   if (categoryType === categoryMap.idToKey['6945']) modalRef.current?.showModal();

@@ -49,7 +49,6 @@ export default function Select(props: SelectProps) {
     if (dlg) return dlg;
     const modalDiv = host.closest('.modal') as HTMLElement | null;
     return modalDiv ?? document.body; // fallback
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {

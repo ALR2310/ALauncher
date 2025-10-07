@@ -7,7 +7,7 @@ import {
   ToggleContentInstanceDto,
   UpdateInstanceDto,
 } from '@shared/dtos/instance.dto';
-import { categoryMap } from '@shared/mappings/general.mapping';
+import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
 import { formatToSlug } from '@shared/utils/general.utils';
 import AdmZip from 'adm-zip';
 import { Mutex } from 'async-mutex';
@@ -127,7 +127,7 @@ class InstanceService {
 
     if (contentIds.length === 0) return { data: [] };
 
-    const response = await contentService.findAll({ instanceId, ids: contentIds.join(',') });
+    const response = await contentService.findAll({ instance: instanceId, ids: contentIds.join(',') });
     return response;
   }
 
@@ -151,19 +151,17 @@ class InstanceService {
       ): Promise<ContentDto | null> => {
         if (visited.has(id)) return visited.get(id)!;
 
-        const contentInfo = await curseForgeService
-          .getMods({ modIds: [id] })
-          .then((res) => (res.data.length ? res.data[0] : null));
+        const contentInfo = await curseForgeService.getMods([id]).then((res) => (res.length ? res[0] : null));
 
         if (!contentInfo) return null;
 
-        const mappedType = categoryMap.idToText[contentInfo.classId];
+        const mappedType = contentInfo.classId ? categoryMap.idToText[contentInfo.classId] : undefined;
         const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? initialType);
 
-        const effectiveLoader = realType === 'mods' ? instance.loader?.type : undefined;
+        const effectiveLoader = realType === 'mods' ? loaderMap.keyToId[instance.loader.type] : undefined;
 
         const contentFile = await curseForgeService
-          .getModFiles(id, gameVersion, effectiveLoader)
+          .getModFiles(id, { gameVersion, modLoaderType: effectiveLoader })
           .then((res) => (res.data.length ? res.data[0] : null));
         if (!contentFile) return null;
 

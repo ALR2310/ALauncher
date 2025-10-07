@@ -52,10 +52,10 @@ class VersionService {
   }
 
   async findReleases(): Promise<VersionDto[]> {
-    const raw = await curseForgeService.getMinecraftVersions();
-    return raw.data
-      .filter((v: any) => !v.versionString.toLowerCase().includes('snapshot'))
-      .map((v: any) => ({
+    const res = await curseForgeService.getMinecraftVersions();
+    return res
+      .filter((v) => !v.versionString.toLowerCase().includes('snapshot'))
+      .map((v) => ({
         name: `Release ${v.versionString}`,
         type: 'release',
         version: v.versionString,
@@ -64,29 +64,30 @@ class VersionService {
 
   async findLoaders(payload: LoaderDto): Promise<VersionDto[]> {
     const { version, type } = payload;
-    const raw = await curseForgeService.getLoaderVersions(version);
+    const res = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });
 
-    const mapped = (raw.data ?? []).map((item: any) => {
+    const mapped = res.flatMap((item) => {
       const loaderType = loaderMap.idToKey[item.type];
-      if (!loaderType) return null;
+      if (!loaderType) return [];
 
       let loaderVersion = item.name.replace(`${loaderType}-`, '');
-
       if (loaderVersion.endsWith(`-${item.gameVersion}`)) {
         loaderVersion = loaderVersion.replace(`-${item.gameVersion}`, '');
       }
 
       const displayName = `${capitalize(loaderType)} ${loaderVersion.replace(/-/g, ' ')}`;
 
-      return {
-        name: displayName,
-        type: 'modified',
-        version: item.gameVersion,
-        loader: {
-          type: loaderType,
-          version: loaderVersion,
+      return [
+        {
+          name: displayName,
+          type: 'modified' as const,
+          version: item.gameVersion,
+          loader: {
+            type: loaderType,
+            version: loaderVersion,
+          },
         },
-      };
+      ];
     });
 
     return mapped.filter((m) => m && (!type || m.loader?.type === type));
@@ -114,10 +115,10 @@ class VersionService {
   }
 
   private async findLoadersByVersion(version?: string) {
-    const raw = await curseForgeService.getLoaderVersions(version);
+    const res = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });
 
     const grouped: Record<string, Record<number, any[]>> = {};
-    for (const item of raw.data ?? []) {
+    for (const item of res) {
       if (!grouped[item.gameVersion]) grouped[item.gameVersion] = {};
       if (!grouped[item.gameVersion][item.type]) grouped[item.gameVersion][item.type] = [];
       grouped[item.gameVersion][item.type].push(item);
@@ -156,7 +157,7 @@ class VersionService {
     }));
   }
 
-  private async findDownloadedVersions() {
+  private async findDownloadedVersions(): Promise<string[]> {
     try {
       const gameDir = (await configService.getConfig()).minecraft.gamedir;
       const versionPath = path.resolve(gameDir, 'versions');

@@ -104,7 +104,7 @@ export default function InstanceRow({
       <td>
         <div className="flex items-center gap-3">
           <div className="w-8 shrink-0">
-            <img src={item.logoUrl} alt={item.name} loading="lazy" className="w-full h-full" />
+            <img src={item.logo.url} alt={item.logo.title} loading="lazy" className="w-full h-full" />
           </div>
           <div className="flex flex-col">
             <Link
@@ -113,7 +113,7 @@ export default function InstanceRow({
             >
               {item.name}
             </Link>
-            <span className="label text-ellipsis-1 w-full">{item.fileName}</span>
+            <span className="label text-ellipsis-1 w-full">{item.instance?.fileName}</span>
           </div>
         </div>
       </td>
@@ -123,7 +123,7 @@ export default function InstanceRow({
         </a>
       </td>
       <td className="text-center">
-        {item.status === 'outdated' ? <button className="btn btn-outline btn-sm">Update</button> : 'Latest'}
+        {item.instance?.status === 'outdated' ? <button className="btn btn-outline btn-sm">Update</button> : 'Latest'}
       </td>
       <td className="text-center">
         <p className="text-nowrap">{item.fileSize}</p>

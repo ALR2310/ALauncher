@@ -20,7 +20,7 @@ export default function ContentList({ className }: ContentListProps) {
   const navigate = useNavigate();
 
   // Get filter states from context
-  const instanceId = useContextSelector(ContentContext, (c) => c.instance);
+  const instance = useContextSelector(ContentContext, (c) => c.instance);
   const categoryType = useContextSelector(ContentContext, (c) => c.categoryType);
   const gameVersion = useContextSelector(ContentContext, (c) => c.gameVersion);
   const loaderType = useContextSelector(ContentContext, (c) => c.loaderType);
@@ -33,9 +33,9 @@ export default function ContentList({ className }: ContentListProps) {
   const debouncedSearchFilter = useDebounce(searchFilter, 500);
 
   // API queries using context states
-  const findAllWorldQuery = useFindAllWorldQuery(instanceId || undefined);
+  const findAllWorldQuery = useFindAllWorldQuery(instance || undefined);
   const findAllContentQuery = useFindAllContentInfinite({
-    instanceId: instanceId || undefined,
+    instance: instance || undefined,
     classId: categoryMap.keyToId[categoryType],
     categoryIds: categoryIds.size > 0 ? Array.from(categoryIds) : undefined,
     gameVersion,
@@ -80,7 +80,7 @@ export default function ContentList({ className }: ContentListProps) {
         <button
           className="btn btn-soft btn-circle"
           onClick={() => {
-            if (instanceId) navigate(`/instances/${instanceId}`);
+            if (instance) navigate(`/instances/${instance}`);
           }}
         >
           <i className="fa-light fa-xmark"></i>

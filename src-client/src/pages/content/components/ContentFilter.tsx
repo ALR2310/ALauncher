@@ -1,5 +1,5 @@
-import { CategoryDto } from '@shared/dtos/category.dto';
 import { categoryMap } from '@shared/mappings/general.mapping';
+import { CurseForgeCategory } from 'curseforge-api/v1/Types';
 import { useEffect, useMemo, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
@@ -93,7 +93,7 @@ export default function ContentFilter({ className }: ContentFilterProps) {
     const map = new Map<number, any>();
     sorted.forEach((c) => map.set(c.id, { ...c, children: [] }));
 
-    const roots: CategoryDto[] = [];
+    const roots: CurseForgeCategory[] = [];
     sorted.forEach((c) => {
       if (c.parentCategoryId && map.has(c.parentCategoryId)) {
         map.get(c.parentCategoryId).children.push(map.get(c.id));

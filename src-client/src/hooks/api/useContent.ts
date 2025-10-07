@@ -6,11 +6,11 @@ import { findAllContent, findOneContent } from '~/api';
 export function useFindAllContentInfinite(params: ContentQueryDto) {
   return useInfiniteQuery({
     queryKey: ['contents', params],
-    queryFn: ({ pageParam = 0 }) => findAllContent({ ...params, index: pageParam }),
-    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      const nextPageIndex = lastPageParam + 1;
-      const total = lastPage.pagination.totalCount;
-      if (nextPageIndex * lastPage.pagination.pageSize < total) return nextPageIndex;
+    queryFn: ({ pageParam }) => findAllContent({ ...params, index: pageParam }),
+    getNextPageParam: (lastPage) => {
+      const { index, pageSize, totalCount } = lastPage.pagination;
+      const nextIndex = index + pageSize;
+      if (nextIndex < totalCount) return nextIndex;
       return undefined;
     },
     staleTime: 0,

@@ -13,6 +13,9 @@ import pkg from '../../../../package.json' assert { type: 'json' };
 
 class AppService {
   private isUpdating = false;
+  private updateCache: { hasUpdate: boolean; assets: any[] } | null = null;
+  private cacheTimestamp: number | null = null;
+  private readonly CACHE_TTL = 5 * 60 * 1000;
 
   getStatus() {
     return { status: 'ok' };
@@ -26,9 +29,14 @@ class AppService {
     process.exit(0);
   }
 
-  async checkUpdate() {
+  async checkUpdate(forceRefresh = false) {
     const currentVersion = this.getVersion().version;
     const gitToken = process.env.NODE_ENV === 'development' ? process.env.GITHUB_TOKEN : undefined;
+
+    const now = Date.now();
+    if (!forceRefresh && this.updateCache && this.cacheTimestamp && now - this.cacheTimestamp < this.CACHE_TTL) {
+      return this.updateCache;
+    }
 
     try {
       const res = await axios.get('https://api.github.com/repos/ALR2310/ALauncher/releases/latest', {
@@ -38,17 +46,33 @@ class AppService {
       const latestVersion = latest?.tag_name?.replace(/^v/, '') ?? '0.0.0';
       const hasUpdate = semver.gt(latestVersion, currentVersion);
 
-      return {
+      const result = {
         hasUpdate,
         assets: (latest?.assets as any[]) ?? [],
       };
+
+      this.updateCache = result;
+      this.cacheTimestamp = now;
+
+      return result;
     } catch (err: any) {
       console.error('Check update error:', err?.message ?? err);
-      return {
+      const errorResult = {
         hasUpdate: false,
         assets: [],
       };
+
+      if (this.updateCache) {
+        return this.updateCache;
+      }
+
+      return errorResult;
     }
+  }
+
+  clearUpdateCache() {
+    this.updateCache = null;
+    this.cacheTimestamp = null;
   }
 
   async update() {
@@ -89,6 +113,7 @@ class AppService {
                 await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
                 await this.decompress(path.resolve(fileName), path.resolve());
                 await rm(path.resolve(fileName), { force: true });
+                this.clearUpdateCache();
                 this.reloadRuntime();
               } catch (err) {
                 event.emit('error', err);

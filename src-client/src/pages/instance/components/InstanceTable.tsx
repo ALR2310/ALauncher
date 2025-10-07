@@ -34,7 +34,7 @@ export default function InstanceTable({ contentData, contentType, isLoading }: I
   // Initialize enabledMap when contents change
   useEffect(() => {
     const init: Record<number, boolean> = {};
-    contents.forEach((item) => (init[item.id] = item.enabled!));
+    contents.forEach((item) => (init[item.id] = item.instance!.enabled));
     setEnabledMap(init);
   }, [contents]);
 

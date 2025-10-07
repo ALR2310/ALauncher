@@ -1,18 +1,20 @@
-import { CategoryDto, CategoryQueryDto } from '@shared/dtos/category.dto';
+import { CategoryQueryDto } from '@shared/dtos/category.dto';
+import { CurseForgeCategory } from 'curseforge-api/v1/Types';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 
 class CategoriesService {
-  async findAll(payload: CategoryQueryDto): Promise<CategoryDto[]> {
-    const { classId, classesOnly } = payload;
-    const result = await curseForgeService.getCategories(432, classId, classesOnly);
-    let categories = result.data;
+  async findAll(payload: CategoryQueryDto): Promise<CurseForgeCategory[]> {
+    const result = await curseForgeService.getCategories(payload);
+    let categories = result;
 
-    if (classId === 6) {
-      categories = categories.filter((cat: any) => cat.id !== 426 && cat.parentCategoryId !== 426);
+    if (payload.classId === 6) {
+      categories = categories.filter((cat: CurseForgeCategory) => cat.id !== 426 && cat.parentCategoryId !== 426);
     }
 
-    return categories.sort((a: any, b: any) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    return categories.sort((a: CurseForgeCategory, b: CurseForgeCategory) =>
+      a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }),
+    );
   }
 }
 

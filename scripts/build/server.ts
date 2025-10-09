@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { parse } from 'dotenv';
 import { build } from 'esbuild';
 import { existsSync, readFileSync } from 'fs';
+import path from 'path';
 
 const outfile = 'dist/data.bin';
 const target = 'node18';
@@ -35,6 +36,9 @@ const isDev = process.env.NODE_ENV === 'development';
       outfile,
       define,
       minify: !isDev,
+      alias: {
+        '@shared': path.resolve('shared'),
+      },
     });
   } catch (err) {
     console.error('build server failed:', err);

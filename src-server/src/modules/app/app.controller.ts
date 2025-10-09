@@ -1,6 +1,7 @@
 import { SetConfigDto } from '@shared/dtos/app.dto';
+import { streamSSE } from 'hono/streaming';
 
-import { Body, Controller, Get, Put, Validate } from '~/common/decorators';
+import { Body, Context, Controller, Get, Put, Validate } from '~/common/decorators';
 
 import { appService } from './app.service';
 
@@ -35,7 +36,33 @@ export class AppController {
   }
 
   @Get('update/install')
-  async installUpdates() {
-    return appService.installUpdates();
+  async installUpdates(@Context() c) {
+    const updater = await appService.installUpdates();
+
+    if (!updater) {
+      return streamSSE(c, async (stream) => {
+        await stream.writeSSE({ event: 'done', data: 'No Update found' });
+        await stream.close();
+      });
+    }
+
+    return streamSSE(c, async (stream) => {
+      const done = new Promise<void>((resolve) => {
+        updater
+          .on('progress', async (percent) => await stream.writeSSE({ event: 'progress', data: percent }))
+          .on('done', async () => {
+            await stream.writeSSE({ event: 'done', data: 'Download complete' });
+            await stream.close();
+            resolve();
+          })
+          .on('error', async (err) => {
+            await stream.writeSSE({ event: 'error', data: err.message });
+            await stream.close();
+            resolve();
+          });
+      });
+
+      await done;
+    });
   }
 }

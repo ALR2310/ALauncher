@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { ToastProvider } from './context/ToastContext';
+import MainLayout from './layouts/MainLayout';
 
 const isTauri = window.isTauri;
 
@@ -33,7 +34,7 @@ export default function App() {
         <ConfirmProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<div>layout</div>}></Route>
+              <Route path="/" element={<MainLayout />}></Route>
             </Routes>
           </BrowserRouter>
         </ConfirmProvider>

@@ -1,29 +1,28 @@
-import {
-  ContentFindFilesQueryDto,
-  ContentQueryDto,
-  ContentResponseDto,
-  DetailContentQueryDto,
-  DetailContentResponseDto,
-} from '@shared/dtos/content.dto';
-import { loaderMap } from '@shared/mappings/general.mapping';
+import { ContentDto, ContentFileDto, ContentFileQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
+import { INSTANCE_CONTENT_STATUS, INSTANCE_CONTENT_TYPE, InstanceContentDto } from '@shared/dtos/instance.dto';
 import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
-import { CurseForgePagination } from 'curseforge-api/v1/Types';
+import {
+  CurseForgeFileReleaseType,
+  CurseForgeFileStatus,
+  CurseForgeModLoaderType,
+  CurseForgePagination,
+} from 'curseforge-api/v1/Types';
 import pick from 'lodash/pick';
 
-import { NotFoundException } from '~/common/filters/exception.filter';
+import { BadRequestException } from '~/common/filters/exception.filter';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
 
-class ContentService {
-  async findAll(payload: ContentQueryDto): Promise<ContentResponseDto> {
+export const contentService = new (class ContentService {
+  async findAll(payload: ContentQueryDto) {
     const { instance: instanceId, ids, ...rest } = payload;
 
     let pagination: CurseForgePagination = { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 };
 
     const contents = ids
-      ? await curseForgeService.getMods(ids.split(',').map((id) => parseInt(id, 10)))
-      : await curseForgeService.searchMods(rest as any).then((res) => {
+      ? await curseForgeService.getMods(ids.split(',').map((id) => Number(id)))
+      : await curseForgeService.searchMods(rest).then((res) => {
           pagination = res.pagination;
           return res.data;
         });
@@ -31,47 +30,48 @@ class ContentService {
     const instance = instanceId ? await instanceService.findOne(instanceId) : null;
 
     try {
-      const installedContentsMap = new Map<number, { fileId: number; enabled: boolean; fileName: string }>();
+      const installedContentsMap = new Map<number, InstanceContentDto>();
 
       if (instance) {
-        const allTypes = ['mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'worlds'] as const;
-        for (const t of allTypes) {
+        const types = Object.values(INSTANCE_CONTENT_TYPE);
+        for (const t of types) {
           const contents = instance[t];
           if (contents) {
-            contents.forEach(({ id, fileId, enabled, fileName }) => {
-              installedContentsMap.set(id, { fileId, enabled, fileName });
+            contents.forEach((c) => {
+              installedContentsMap.set(c.id, c);
             });
           }
         }
       }
 
       const data = contents.map((item) => {
-        let status: 'not_installed' | 'outdated' | 'latest' = 'not_installed';
+        let status: INSTANCE_CONTENT_STATUS = INSTANCE_CONTENT_STATUS.NOT_INSTALLED;
         let enabled = false;
         let fileName: string | null = null;
 
-        if (instance) {
+        if (instance && instance.loader) {
           const loaderType = instance.loader.type;
           const gameVersion = instance.version;
 
-          const latestMatch = (item.latestFilesIndexes ?? []).find(
-            (f: any) => f.gameVersion === gameVersion && f.modLoader === loaderMap.keyToId[loaderType],
+          const latestMatch = item.latestFilesIndexes.find(
+            (f) => f.gameVersion === gameVersion && f.modLoader === CurseForgeModLoaderType[loaderType],
           );
+          const installContent = installedContentsMap.get(item.id);
 
-          const installedFileId = installedContentsMap.get(item.id)?.fileId;
-          const installedContent = installedContentsMap.get(item.id);
-          fileName = installedContent?.fileName ?? null;
-          enabled = installedContent?.enabled ?? false;
+          fileName = installContent?.fileName ?? null;
+          enabled = installContent?.enabled ?? false;
 
-          if (installedFileId && latestMatch) {
-            if (installedFileId === latestMatch.fileId) status = 'latest';
-            else status = 'outdated';
-          } else if (installedFileId) {
-            status = 'outdated';
+          if (installContent?.fileId && latestMatch) {
+            status =
+              installContent.fileId === latestMatch.fileId
+                ? INSTANCE_CONTENT_STATUS.INSTALLED
+                : INSTANCE_CONTENT_STATUS.OUTDATED;
+          } else if (installContent?.fileId && !latestMatch) {
+            status = INSTANCE_CONTENT_STATUS.INCOMPATIBLE;
           }
         }
 
-        const result: DetailContentResponseDto = {
+        const result: ContentDto = {
           screenshots: item.screenshots.map(({ title, thumbnailUrl, url }) => ({ title, thumbnailUrl, url })),
           id: item.id,
           name: item.name,
@@ -84,16 +84,14 @@ class ContentService {
           classId: item.classId,
           authors: item.authors.map(({ id, name, url, avatarUrl }: any) => ({ id, name, url, avatarUrl })),
           logo: { ...pick(item.logo, ['title', 'thumbnailUrl', 'url']) },
-          gameVersions: [...new Set<string>((item.latestFilesIndexes ?? []).map((f) => f.gameVersion))].sort(
-            compareVersion,
-          ),
-          loaderTypes: [
+          gameVersions: [
             ...new Set<string>(
               (item.latestFilesIndexes ?? [])
-                .map((f) => capitalize(loaderMap.idToKey[f.modLoader]))
+                .map((f) => capitalize(CurseForgeModLoaderType[f.modLoader]))
                 .filter((loader) => loader != null),
             ),
-          ],
+            ...new Set<string>((item.latestFilesIndexes ?? []).map((f) => f.gameVersion)),
+          ].sort(compareVersion),
           dateCreated: item.dateCreated,
           dateModified: item.dateModified,
           dateReleased: item.dateReleased,
@@ -104,59 +102,43 @@ class ContentService {
         return result;
       });
 
-      return {
-        data,
-        pagination,
-      };
-    } catch (e) {
-      throw new Error('Failed to parse mod data');
+      return { data, pagination };
+    } catch (err) {
+      throw new BadRequestException('Failed to get contents');
     }
   }
 
-  async findOne(payload: DetailContentQueryDto) {
-    const { slug } = payload;
+  async findFiles(payload: ContentFileQueryDto) {
+    const { id, ...rest } = payload;
 
-    const modInfo = await curseForgeService.searchMods({ slug }).then((res) => res.data[0]);
-    const modDesc = modInfo ? await curseForgeService.getModDescription(modInfo.id) : null;
+    let pagination: CurseForgePagination = { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 };
 
-    if (!modInfo) throw new NotFoundException(`Mod with slug ${slug} not found`);
+    const result = await curseForgeService.getModFiles(id, { ...rest }).then((res) => {
+      pagination = res.pagination;
+      return res.data;
+    });
 
-    const result: DetailContentResponseDto = {
-      screenshots: modInfo.screenshots.map(({ title, thumbnailUrl, url }) => ({ title, thumbnailUrl, url })),
-      id: modInfo.id,
-      name: modInfo.name,
-      slug: modInfo.slug,
-      links: { ...modInfo.links },
-      summary: modInfo.summary,
-      downloadCount: modInfo.downloadCount,
-      fileSize: formatBytes(modInfo.latestFiles?.[0]?.fileLength ?? 0),
-      categories: modInfo.categories.map(({ id, name, slug, url, iconUrl }) => ({ id, name, slug, url, iconUrl })),
-      classId: modInfo.classId,
-      authors: modInfo.authors.map(({ id, name, url, avatarUrl }: any) => ({ id, name, url, avatarUrl })),
-      logo: { ...pick(modInfo.logo, ['title', 'thumbnailUrl', 'url']) },
-      gameVersions: [...new Set<string>((modInfo.latestFilesIndexes ?? []).map((f: any) => f.gameVersion))].sort(
-        compareVersion,
-      ),
-      loaderTypes: [
-        ...new Set<string>(
-          (modInfo.latestFilesIndexes ?? [])
-            .map((f: any) => capitalize(loaderMap.idToKey[f.modLoader]))
-            .filter((loader: any) => loader != null),
-        ),
-      ],
-      dateCreated: modInfo.dateCreated,
-      dateModified: modInfo.dateModified,
-      dateReleased: modInfo.dateReleased,
-      description: modDesc,
-      latestFilesIndexes: modInfo.latestFilesIndexes,
-    };
+    const files = result.map((item) => {
+      const downloadUrl =
+        item.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${item.modId}/files/${item.id}/download`;
 
-    return result;
+      const file: ContentFileDto = {
+        id: item.id,
+        contentId: item.modId,
+        releaseType: CurseForgeFileReleaseType[item.releaseType],
+        fileName: item.fileName,
+        fileStatus: CurseForgeFileStatus[item.fileStatus],
+        fileDate: item.fileDate,
+        fileLength: item.fileLength,
+        fileSize: formatBytes(item.fileLength),
+        downloadCount: item.downloadCount,
+        downloadUrl,
+        gameVersions: item.gameVersions,
+        dependencies: item.dependencies,
+      };
+      return file;
+    });
+
+    return { data: files, pagination };
   }
-
-  async findFiles(payload: ContentFindFilesQueryDto) {
-    return payload;
-  }
-}
-
-export const contentService = new ContentService();
+})();

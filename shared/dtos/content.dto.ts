@@ -1,30 +1,14 @@
+import { createZodDto } from '@shared/utils/zod.dto';
 import {
   CurseForgeFileReleaseType,
+  CurseForgeFileStatus,
   CurseForgeModLoaderType,
   CurseForgeModsSearchSortField,
   CurseForgeSortOrder,
 } from 'curseforge-api';
-import { z } from 'zod';
+import z from 'zod';
 
-import { createZodDto } from '../utils/zod.dto';
-
-export const contentSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  fileId: z.number(),
-  fileName: z.string(),
-  fileUrl: z.url(),
-  fileSize: z.number(),
-  enabled: z.boolean(),
-  dependencies: z.array(z.number()).optional(),
-});
-
-const detailContentQuerySchema = z.object({
-  slug: z.string(),
-  instance: z.string().optional(),
-});
-
-const detailContentResponseSchema = z.object({
+const contentSchema = z.object({
   screenshots: z.array(
     z.object({
       title: z.string(),
@@ -69,7 +53,6 @@ const detailContentResponseSchema = z.object({
     url: z.string(),
   }),
   gameVersions: z.array(z.string()),
-  loaderTypes: z.array(z.string()),
   dateCreated: z.date(),
   dateModified: z.date(),
   dateReleased: z.date(),
@@ -94,6 +77,16 @@ const detailContentResponseSchema = z.object({
     .nullish(),
 });
 
+const contentListSchema = z.object({
+  data: z.array(contentSchema),
+  pagination: z.object({
+    index: z.number(),
+    pageSize: z.number(),
+    resultCount: z.number(),
+    totalCount: z.number(),
+  }),
+});
+
 const contentQuerySchema = z.object({
   ids: z.string().optional(),
   instance: z.string().optional(),
@@ -113,26 +106,40 @@ const contentQuerySchema = z.object({
   primaryAuthorId: z.coerce.number().optional(),
   slug: z.string().optional(),
   index: z.coerce.number().min(0).optional(),
-  pageSize: z.coerce.number().max(100).optional(),
+  pageSize: z.coerce.number().max(50).optional(),
 });
 
-const contentResponseSchema = z.object({
-  data: z.array(detailContentResponseSchema),
-  pagination: z.object({
-    index: z.number(),
-    pageSize: z.number(),
-    resultCount: z.number(),
-    totalCount: z.number(),
-  }),
+const contentFileSchema = z.object({
+  id: z.number(),
+  contentId: z.number(),
+  releaseType: z.enum(Object.keys(CurseForgeFileReleaseType)),
+  fileName: z.string(),
+  fileStatus: z.enum(Object.keys(CurseForgeFileStatus)),
+  fileDate: z.date(),
+  fileLength: z.number(),
+  fileSize: z.string(),
+  downloadCount: z.number(),
+  downloadUrl: z.url(),
+  gameVersions: z.array(z.string()),
+  dependencies: z.array(
+    z.object({
+      modId: z.number(),
+      relationType: z.number(),
+    }),
+  ),
 });
 
-const contentFindFilesQuerySchema = z.object({
-  slug: z.string(),
+const contentFileQuerySchema = z.object({
+  id: z.coerce.number(),
+  gameVersion: z.string().optional(),
+  modLoaderType: z.coerce.number().enum(CurseForgeModLoaderType).optional(),
+  gameVersionTypeId: z.coerce.number().optional(),
+  index: z.coerce.number().min(0).optional(),
+  pageSize: z.coerce.number().max(50).optional(),
 });
 
 export class ContentDto extends createZodDto(contentSchema) {}
+export class ContentListDto extends createZodDto(contentListSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
-export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
-export class DetailContentQueryDto extends createZodDto(detailContentQuerySchema) {}
-export class DetailContentResponseDto extends createZodDto(detailContentResponseSchema) {}
-export class ContentFindFilesQueryDto extends createZodDto(contentFindFilesQuerySchema) {}
+export class ContentFileDto extends createZodDto(contentFileSchema) {}
+export class ContentFileQueryDto extends createZodDto(contentFileQuerySchema) {}

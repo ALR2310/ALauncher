@@ -1,472 +1,216 @@
-import { ContentDto } from '@shared/dtos/content.dto';
+import { categoryMap } from '@shared/dtos/category.dto';
 import {
-  AddContentInstanceDto,
-  FindContentsInstanceDto,
+  InstanceContentAddQueryDto,
+  InstanceContentDto,
+  InstanceContentQueryDto,
   InstanceDto,
-  RemoveContentInstanceDto,
-  ToggleContentInstanceDto,
-  UpdateInstanceDto,
+  InstanceQueryDto,
 } from '@shared/dtos/instance.dto';
-import { categoryMap, loaderMap } from '@shared/mappings/general.mapping';
-import { formatToSlug } from '@shared/utils/general.utils';
-import AdmZip from 'adm-zip';
 import { Mutex } from 'async-mutex';
-import EventEmitter from 'events';
-import { existsSync } from 'fs';
-import { mkdir, readdir, readFile, rename, rm, stat, unlink, writeFile } from 'fs/promises';
-import throttle from 'lodash/throttle';
+import { CurseForgeModLoaderType } from 'curseforge-api';
+import dayjs from 'dayjs';
+import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
+import orderBy from 'lodash/orderBy';
 import pLimit from 'p-limit';
 import path from 'path';
 
-import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
-import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
-import { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
+import { NotFoundException } from '~/common/filters/exception.filter';
+import { logger } from '~/common/logger';
 
-import { configService } from '../config/config.service';
+import { appService } from '../app/app.service';
 import { contentService } from '../content/content.service';
 import { curseForgeService } from '../curseforge/curseforge.service';
 
-const instanceLocks = new Map<string, Mutex>();
+export const instanceService = new (class InstanceService {
+  private readonly FILE_NAME = 'instance.json';
+  private instanceDirCache: string = null!;
+  private instanceLocks = new Map<string, Mutex>();
 
-function getInstanceLock(instanceId: string) {
-  if (!instanceLocks.has(instanceId)) {
-    instanceLocks.set(instanceId, new Mutex());
-  }
-  return instanceLocks.get(instanceId)!;
-}
+  async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
+    const { sortBy, sortDir } = payload;
 
-class InstanceService {
-  private instanceDir: string | null = null;
-
-  async findAll() {
-    await this.ensureInstanceDir();
-
-    const dirs = await readdir(this.instanceDir!, { withFileTypes: true });
-    const dirList = dirs.filter((d) => d.isDirectory());
+    const instanceDir = await this.getInstanceDir();
+    const dirs = (await readdir(instanceDir, { withFileTypes: true })).filter((d) => d.isDirectory());
 
     const limiter = pLimit(5);
 
-    const instances = await Promise.all(
-      dirList.map((dir) =>
-        limiter(async () => {
-          const instancePath = path.join(this.instanceDir!, dir.name, 'instance.json');
-          try {
-            const data = await readFile(instancePath, 'utf-8');
-            return JSON.parse(data) as InstanceDto;
-          } catch (err) {
-            return null;
+    const instances = (
+      await Promise.all(
+        dirs.map((dir) =>
+          limiter(async () => {
+            const filePath = path.join(instanceDir, dir.name, this.FILE_NAME);
+            try {
+              const jsonString = await readFile(filePath, 'utf-8');
+              return JSON.parse(jsonString);
+            } catch {
+              logger(`Failed to read instance ${dir.name}:`);
+              return null;
+            }
+          }),
+        ),
+      )
+    ).filter((inst): inst is InstanceDto => inst !== null);
+
+    const sorted = orderBy(
+      instances,
+      [
+        (inst) => {
+          const value = inst[sortBy];
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+            return dayjs(value).valueOf();
           }
-        }),
-      ),
+          return value?.toString().toLowerCase() ?? '';
+        },
+      ],
+      [sortDir],
     );
 
-    const validInstances = instances.filter((i): i is InstanceDto => i !== null);
-
-    return validInstances.sort((a, b) => {
-      if (!a.last_updated && !b.last_updated) return 0;
-      if (!a.last_updated) return 1;
-      if (!b.last_updated) return -1;
-      return b.last_updated.localeCompare(a.last_updated);
-    });
+    return sorted;
   }
 
-  async findOne(id: string) {
-    if (!id) throw new NotFoundException('Instance ID is required');
+  async findOne(id: string): Promise<InstanceDto> {
+    if (!id) throw new NotFoundException('Id is required');
 
-    await this.ensureInstanceDir();
-
-    const filePath = path.join(this.instanceDir!, id, 'instance.json');
+    const filePath = path.join(await this.getInstanceDir(), id, this.FILE_NAME);
     try {
-      const data = await readFile(filePath, 'utf-8');
-      return JSON.parse(data) as InstanceDto;
+      const jsonString = await readFile(filePath, 'utf-8');
+      return JSON.parse(jsonString);
     } catch (err) {
-      throw new BadRequestException(`An error occurred while reading instance ${id}`);
+      throw new NotFoundException(`Instance with id ${id} not found`);
     }
   }
 
   async create(instance: InstanceDto) {
-    await this.ensureInstanceDir();
+    const lock = this.getInstanceLock(instance.id);
 
-    if (!instance.id) instance.id = formatToSlug(instance.name);
+    return lock.runExclusive(async () => {
+      const fileDir = path.join(await this.getInstanceDir(), instance.id);
+      const filePath = path.join(fileDir, this.FILE_NAME);
 
-    const dirPath = path.join(this.instanceDir!, instance.id);
-    const filePath = path.join(dirPath, 'instance.json');
-
-    await mkdir(dirPath, { recursive: true });
-    await writeFile(filePath, JSON.stringify(instance, null, 2), 'utf-8');
-    return instance;
+      await mkdir(fileDir, { recursive: true });
+      await writeFile(filePath, JSON.stringify(instance, null, 2), 'utf-8');
+      return instance;
+    });
   }
 
-  async update(payload: UpdateInstanceDto) {
-    const { id, instance } = payload;
-    await this.ensureInstanceDir();
-
+  async update(instance: InstanceDto) {
+    const { id } = instance;
     const existing = await this.findOne(id);
 
-    const updated: InstanceDto = { ...existing, ...instance };
-    const filePath = path.join(this.instanceDir!, id, 'instance.json');
-    await writeFile(filePath, JSON.stringify(updated, null, 2), 'utf-8');
-    return updated;
+    const lock = this.getInstanceLock(id);
+
+    return lock.runExclusive(async () => {
+      const filePath = path.join(await this.getInstanceDir(), id, this.FILE_NAME);
+      const updated = { ...existing, ...instance };
+      await writeFile(filePath, JSON.stringify(updated, null, 2), 'utf-8');
+      return updated;
+    });
   }
 
   async delete(id: string) {
-    await this.ensureInstanceDir();
-
     const existing = await this.findOne(id);
 
-    const dirPath = path.join(this.instanceDir!, id);
-    await rm(dirPath, { recursive: true, force: true });
-    return existing;
-  }
-
-  async findContents(payload: FindContentsInstanceDto) {
-    const { id: instanceId, type } = payload;
-
-    const instance = await this.findOne(instanceId);
-    const contentIds = instance[type]?.map((c) => c.id) ?? [];
-
-    if (contentIds.length === 0) return { data: [] };
-
-    const response = await contentService.findAll({ instance: instanceId, ids: contentIds.join(',') });
-    return response;
-  }
-
-  async addContent(payload: AddContentInstanceDto) {
-    const { id: instanceId, type: initialType, contentId } = payload;
-    const worlds = payload.worlds?.split(',') ?? [];
-
-    const lock = getInstanceLock(instanceId);
+    const lock = this.getInstanceLock(id);
 
     return lock.runExclusive(async () => {
-      const config = await configService.getConfig();
+      const fileDir = path.join(await this.getInstanceDir(), id);
+      await rm(fileDir, { recursive: true, force: true });
+      return existing;
+    });
+  }
+
+  async getContents(payload: InstanceContentQueryDto) {
+    const { id, contentType } = payload;
+    const instance = await this.findOne(id);
+
+    const contentIds = (instance[contentType]?.map((c) => c.id) ?? []).join(',');
+
+    const contents = await contentService.findAll({ instance: id, ids: contentIds });
+    return contents;
+  }
+
+  async addContents(payload: InstanceContentAddQueryDto) {
+    const { id: instanceId, contentType, contentId } = payload;
+    const worlds = payload.worlds?.split(',') ?? [];
+
+    const lock = this.getInstanceLock(instanceId);
+
+    return lock.runExclusive(async () => {
       const instance = await this.findOne(instanceId);
 
-      const groupedContents: Record<string, ContentDto[]> = {};
-      const visited = new Map<number, ContentDto>();
+      const groupedContents: Record<string, InstanceContentDto[]> = {};
+      const visited = new Map<number, InstanceContentDto>();
 
-      const resolveContent = async (
-        id: number,
-        gameVersion: string,
-        parentType?: string,
-      ): Promise<ContentDto | null> => {
-        if (visited.has(id)) return visited.get(id)!;
+      const resolveDependencies = async (id: number, gameVersion: string, parentType?: number) => {
+        if (visited.has(id)) return visited.get(id);
 
         const contentInfo = await curseForgeService.getMods([id]).then((res) => (res.length ? res[0] : null));
-
         if (!contentInfo) return null;
 
         const mappedType = contentInfo.classId ? categoryMap.idToText[contentInfo.classId] : undefined;
-        const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? initialType);
+        const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? contentType);
 
-        const effectiveLoader = realType === 'mods' ? loaderMap.keyToId[instance.loader.type] : undefined;
+        const loader = realType === 'mods' ? CurseForgeModLoaderType[instance.loader!.type] : undefined;
 
-        const contentFile = await curseForgeService
-          .getModFiles(id, { gameVersion, modLoaderType: effectiveLoader })
+        const contentFile = await contentService
+          .findFiles({ id: id, gameVersion, modLoaderType: loader })
           .then((res) => (res.data.length ? res.data[0] : null));
         if (!contentFile) return null;
 
-        const fileUrl =
-          contentFile.downloadUrl ??
-          `https://www.curseforge.com/api/v1/mods/${contentFile.modId}/files/${contentFile.id}/download`;
-
-        const content: ContentDto = {
-          id: contentFile.modId,
+        const instanceContent: InstanceContentDto = {
+          id: contentInfo.id,
           name: contentInfo.name,
           fileId: contentFile.id,
           fileName: contentFile.fileName,
-          fileUrl,
-          fileSize: contentFile.fileLength,
-          enabled: true,
+          fileUrl: contentFile.downloadUrl,
+          fileLength: contentFile.fileLength,
+          enabled: false,
           dependencies: [],
         };
 
-        visited.set(content.id, content);
+        visited.set(id, instanceContent);
 
         if (!groupedContents[realType]) groupedContents[realType] = [];
-        groupedContents[realType].push(content);
+        groupedContents[realType].push(instanceContent);
 
-        if (contentFile.dependencies?.length) {
+        if (contentFile.dependencies.length) {
           const deps = await Promise.all(
             contentFile.dependencies
-              .filter((dep: { relationType: number }) => dep.relationType === 3)
-              .map(async (dep: { modId: number }) => {
-                const depContent = await resolveContent(dep.modId, gameVersion, realType);
-                return depContent?.id ?? null;
+              .filter((dep) => dep.relationType === 3)
+              .map(async (dep) => {
+                const depContent = await resolveDependencies(dep.modId, gameVersion, realType);
+                return depContent?.id;
               }),
           );
-          content.dependencies = deps.filter((id): id is number => id !== null);
+          instanceContent.dependencies = deps.filter((d): d is number => d !== undefined && d !== null);
         }
 
-        return content;
+        return instanceContent;
       };
 
-      await resolveContent(contentId, instance.version);
+      await resolveDependencies(contentId, instance.version);
 
       for (const [type, newContents] of Object.entries(groupedContents)) {
-        const existing = instance[type] ?? [];
+        const existingContents = instance[type] ?? [];
         instance[type] = [
-          ...existing.filter((a: ContentDto) => !newContents.some((n) => n.id === a.id)),
+          ...existingContents.filter((c: InstanceContentDto) => !newContents.some((n) => n.id === c.id)),
           ...newContents,
         ];
       }
 
-      await this.update({ id: instanceId, instance });
-
-      return this.handleDownloadContents(groupedContents, instanceId, config.download_multiple, worlds);
+      await this.update(instance);
     });
   }
 
-  async removeContent(payload: RemoveContentInstanceDto) {
-    const { id: instanceId, type, contentId } = payload;
-
-    const lock = getInstanceLock(instanceId);
-
-    return lock.runExclusive(async () => {
-      const [instance, pathDir] = await Promise.all([
-        this.findOne(instanceId),
-        this.getPathByContentType(instanceId, type),
-      ]);
-
-      const content = instance[type]?.find((c) => c.id === contentId);
-      if (!content) throw new NotFoundException('Content not found in instance');
-
-      const filePath = path.join(pathDir, content.fileName);
-      const disabledPath = filePath + '.disabled';
-
-      try {
-        if (existsSync(filePath)) {
-          await unlink(filePath);
-        } else if (existsSync(disabledPath)) {
-          await unlink(disabledPath);
-        }
-      } catch (err: any) {
-        if (err.code !== 'ENOENT') throw err;
-      }
-
-      instance[type] = instance[type]?.filter((c) => c.id !== contentId);
-      await this.update({ id: instanceId, instance });
-
-      return {
-        message: 'Removed successfully',
-        data: {
-          id: contentId,
-          fileName: content.fileName,
-        },
-      };
-    });
-  }
-
-  async canRemoveContent(payload: RemoveContentInstanceDto) {
-    const { id: instanceId, type, contentId } = payload;
-
-    const lock = getInstanceLock(instanceId);
-
-    return lock.runExclusive(async () => {
-      const instance = await this.findOne(instanceId);
-
-      const content = instance.mods!.find((c) => c.id === contentId);
-      if (!content) return { canRemove: false, message: `Content ${contentId} not found in instance`, dependents: [] };
-
-      const dependents = (instance[type] ?? [])
-        .filter((c) => c.id !== contentId && c.dependencies?.includes(contentId))
-        .map((c) => c.name);
-
-      if (dependents.length)
-        return {
-          canRemove: false,
-          message: 'This mod cannot be removed because other mods depend on it',
-          dependents,
-        };
-
-      return { canRemove: true, message: 'Mod can be removed', dependents: [] };
-    });
-  }
-
-  async toggleContent(payload: ToggleContentInstanceDto) {
-    const { id: instanceId, type, contentIds, enabled } = payload;
-
-    const lock = getInstanceLock(instanceId);
-
-    return lock.runExclusive(async () => {
-      const [instance, pathDir] = await Promise.all([
-        this.findOne(instanceId),
-        this.getPathByContentType(instanceId, type),
-      ]);
-
-      const toggleSet = new Set(contentIds);
-
-      const updateContents = await Promise.all(
-        (instance[type] ?? []).map(async (content) => {
-          if (!toggleSet.has(content.id)) return content;
-
-          const shouldEnable = enabled ?? !content.enabled;
-
-          const filePath = path.resolve(pathDir, content.fileName);
-          const disabledPath = filePath + '.disabled';
-
-          try {
-            if (shouldEnable && existsSync(disabledPath)) {
-              await rename(disabledPath, filePath);
-            } else if (!shouldEnable && existsSync(filePath)) {
-              await rename(filePath, disabledPath);
-            }
-          } catch (err) {
-            console.error(`Failed to rename mod file ${content.fileName}:`, err);
-          }
-          return { ...content, enabled: shouldEnable };
-        }),
-      );
-
-      instance[type] = updateContents;
-      await this.update({ id: instanceId, instance });
-      return { message: 'Toggled successfully' };
-    });
-  }
-
-  async handleDownloadContents(
-    groupedContents: Record<string, ContentDto[]>,
-    instanceId: string,
-    limit = 3,
-    worlds?: string[],
-  ) {
-    const filesToDownload = await this.prepareDownloadOptions(groupedContents, instanceId, worlds);
-
-    if (!filesToDownload.length) return null;
-
-    const DELAY = 500;
-    const totalSize = filesToDownload.reduce((acc, f) => acc + (f.length ?? 0), 0);
-    const event = new EventEmitter();
-    const downloader = new Downloader();
-
-    downloader.downloadFileMultiple(filesToDownload, totalSize, limit);
-
-    downloader
-      .on(
-        'progress',
-        throttle(async (p, s) => {
-          const percent = ((p / s) * 100).toFixed(2);
-          event.emit('progress', percent);
-          if (p >= s) {
-            for (const file of filesToDownload) {
-              if (file.type === 'worlds' && file.path.endsWith('.zip')) {
-                try {
-                  const zip = new AdmZip(file.path);
-                  zip.extractAllTo(file.folder, true);
-                  // await unlink(file.path);
-                  event.emit('extract', `Extracting ${path.basename(file.path)}`);
-                } catch {
-                  console.log(`Failed to extract ${path.basename(file.path)}`);
-                }
-              }
-            }
-            event.emit('done', 'Download complete');
-          }
-        }, DELAY),
-      )
-      .on(
-        'speed',
-        throttle((s) => {
-          const speedMB = (s / 1024 / 1024).toFixed(2);
-          event.emit('speed', `${speedMB}MB/s`);
-        }, DELAY),
-      )
-      .on(
-        'estimated',
-        throttle((e) => {
-          const m = Math.floor(e / 60);
-          const s = Math.floor(e % 60);
-          event.emit('estimated', `${m}m ${s}s`);
-        }, DELAY),
-      )
-      .on('error', (err) => event.emit('error', err));
-
-    return event;
-  }
-
-  async getPathByContentType(instanceId: string, type: string, worldName?: string) {
-    await this.ensureInstanceDir();
-    const basePath = path.join(this.instanceDir!, instanceId);
-
-    let pathDir: string;
-
-    if (type === 'mods' || type === 'resourcepacks' || type === 'shaderpacks') {
-      pathDir = path.join(basePath, type);
-    } else if (type === 'datapacks') {
-      if (!worldName) throw new BadRequestException('World name is required for datapacks');
-      pathDir = path.join(basePath, 'saves', worldName, 'datapacks');
-    } else if (type === 'worlds') {
-      pathDir = path.join(basePath, 'saves');
-    } else {
-      throw new BadRequestException('Invalid additional type');
+  private getInstanceLock(id: string) {
+    if (!this.instanceLocks.has(id)) {
+      this.instanceLocks.set(id, new Mutex());
     }
-    return pathDir;
+    return this.instanceLocks.get(id)!;
   }
 
-  private async prepareDownloadOptions(
-    groupedContents: Record<string, ContentDto[]>,
-    instanceId: string,
-    worlds?: string[],
-  ): Promise<DownloadOptions[]> {
-    const filesToDownload: DownloadOptions[] = [];
-
-    for (const [type, contents] of Object.entries(groupedContents)) {
-      if (type === 'datapacks' && Array.isArray(worlds) && worlds.length) {
-        for (const worldName of worlds) {
-          const pathDir = await this.getPathByContentType(instanceId, type, worldName);
-
-          for (const c of contents) {
-            const filePath = path.join(pathDir, c.fileName);
-            if (await this.checkNeedDownload(filePath, c.fileSize)) {
-              filesToDownload.push({
-                url: c.fileUrl,
-                path: filePath,
-                folder: pathDir,
-                length: c.fileSize,
-                type,
-              });
-            }
-          }
-        }
-      } else {
-        const pathDir = await this.getPathByContentType(instanceId, type);
-
-        for (const c of contents) {
-          const filePath = path.join(pathDir, c.fileName);
-          if (await this.checkNeedDownload(filePath, c.fileSize)) {
-            filesToDownload.push({
-              url: c.fileUrl,
-              path: filePath,
-              folder: pathDir,
-              length: c.fileSize,
-              type,
-            });
-          }
-        }
-      }
-    }
-
-    return filesToDownload;
+  private async getInstanceDir() {
+    if (!this.instanceDirCache) this.instanceDirCache = (await appService.getConfig()).minecraft.gameDir;
+    return this.instanceDirCache;
   }
-
-  private async checkNeedDownload(filePath: string, expectedSize: number): Promise<boolean> {
-    if (existsSync(filePath)) {
-      try {
-        const fileStat = await stat(filePath);
-        return fileStat.size !== expectedSize;
-      } catch {
-        return true;
-      }
-    }
-    return true;
-  }
-
-  private async ensureInstanceDir() {
-    if (!this.instanceDir) {
-      const config = await configService.getConfig();
-      this.instanceDir = path.resolve(config.minecraft.gamedir, 'versions');
-    }
-    await mkdir(this.instanceDir, { recursive: true });
-  }
-}
-
-export const instanceService = new InstanceService();
+})();

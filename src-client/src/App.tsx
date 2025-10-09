@@ -4,16 +4,8 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { ToastProvider } from './context/ToastContext';
-import ContentDetailLayout from './layouts/content-detail/ContentDetailLayout';
-import MainLayout from './layouts/MainLayout';
-import ContentPage from './pages/content/ContentPage';
-import ContentDetailDescription from './pages/content/detail/ContentDetailDescription';
-import ContentDetailFiles from './pages/content/detail/ContentDetailFiles';
-import ContentDetailGallery from './pages/content/detail/ContentDetailGallery';
-import HomePage from './pages/home/HomePage';
-import InstancePage from './pages/instance/InstancePage';
 
-const { isTauri } = window;
+const isTauri = window.isTauri;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,18 +33,7 @@ export default function App() {
         <ConfirmProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<MainLayout />}>
-                <Route index element={<HomePage />} />
-                <Route path="instances/:id" element={<InstancePage />} />
-                <Route path="contents">
-                  <Route index element={<ContentPage />} />
-                  <Route path=":slug" element={<ContentDetailLayout />}>
-                    <Route index element={<ContentDetailDescription />} />
-                    <Route path="files" element={<ContentDetailFiles />} />
-                    <Route path="gallery" element={<ContentDetailGallery />} />
-                  </Route>
-                </Route>
-              </Route>
+              <Route path="/" element={<div>layout</div>}></Route>
             </Routes>
           </BrowserRouter>
         </ConfirmProvider>

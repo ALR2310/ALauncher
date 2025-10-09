@@ -1,67 +1,42 @@
+import '~/configs/env.config';
 import 'reflect-metadata';
 import '@shared/utils/zod.utils';
 
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { readFile } from 'fs/promises';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { trimTrailingSlash } from 'hono/trailing-slash';
-import { rateLimiter } from 'hono-rate-limiter';
 
+import { controllerRegister } from './common/controller.register';
 import { exception } from './common/filters/exception.filter';
-import { registerController } from './common/register-controller';
+import { renderGUI } from './common/middlewares/gui.render';
+import { createRateLimiter } from './common/middlewares/rate.limiter';
 import { AppController } from './modules/app/app.controller';
 import { CategoryController } from './modules/category/category.controller';
 import { ContentController } from './modules/content/content.controller';
 import { InstanceController } from './modules/instance/instance.controller';
 import { LauncherController } from './modules/launcher/launcher.controller';
 import { VersionController } from './modules/version/version.controller';
-import { WorldController } from './modules/world/world.controller';
 
-const server = new Hono()
-  .basePath('/api')
-  .onError(exception)
+const app = new Hono()
   .use(cors({ origin: '*' }))
   .use(logger())
   .use(trimTrailingSlash())
-  .use(
-    rateLimiter({
-      windowMs: 1000,
-      limit: 10,
-      standardHeaders: true,
-      message: 'Too many requests, please try again later.',
-      keyGenerator: (c) => {
-        const ip =
-          c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip') || c.req.header('x-real-ip') || 'unknown';
-        return `${ip}:${c.req.path}`;
-      },
-    }),
-  );
-registerController(server, [
+  .use(createRateLimiter())
+  .use(serveStatic({ root: '.' }))
+  .use(renderGUI)
+  .onError(exception);
+controllerRegister(app.basePath('/api'), [
+  AppController,
   CategoryController,
   ContentController,
   InstanceController,
   LauncherController,
   VersionController,
-  WorldController,
-  AppController,
 ]);
 
-serve({ fetch: server.fetch, port: Number(process.env.VITE_SERVER_PORT ?? 1421) }, (info) => {
-  console.log(`Server listening on http://localhost:${info.port}`);
+serve({ fetch: app.fetch, port: Number(process.env.VITE_PORT ?? 2310) }, (info) => {
+  console.log(`App listening on http://localhost:${info.port}`);
 });
-
-if (process.env.NODE_ENV !== 'development') {
-  const client = new Hono().use('/*', serveStatic({ root: '.' })).get('*', async (c) => {
-    const buf = await readFile('./entry.bin', 'utf8');
-    return c.body(buf, 200, {
-      'Content-Type': 'text/html; charset=utf-8',
-    });
-  });
-
-  serve({ fetch: client.fetch, port: 1420 }, (info) => {
-    console.log(`Client listening on http://localhost:${info.port}`);
-  });
-}

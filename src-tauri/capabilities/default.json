@@ -4,32 +4,10 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "remote": {
-    "urls": ["http://localhost:1420/*"]
+    "urls": ["http://localhost:2310/*"]
   },
   "permissions": [
     "core:default",
-    "opener:default",
-    "process:default",
-    "shell:default",
-    "core:webview:allow-create-webview",
-    "core:webview:allow-create-webview-window",
-    {
-      "identifier": "shell:allow-spawn",
-      "allow": [
-        {
-          "name": "binaries/server",
-          "sidecar": true
-        }
-      ]
-    },
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "name": "binaries/server",
-          "sidecar": true
-        }
-      ]
-    }
+    "opener:default"
   ]
 }

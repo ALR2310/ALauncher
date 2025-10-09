@@ -13,7 +13,7 @@ const root = createRoot(container!);
 (window as any).dayjs = dayjs;
 (window as any).toast = toast;
 
-// Load server
+// App Event
 if (window.isTauri) {
   await listen('tauri://close-requested', () => appExit());
 }

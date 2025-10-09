@@ -51,12 +51,6 @@ export class APIService {
   }
 }
 
-export const API_URL = `http://localhost:${import.meta.env.VITE_SERVER_PORT ?? 1421}/api`;
+export const API_URL = `http://localhost:${import.meta.env.VITE_PORT ?? 1421}/api`;
 export const API = new APIService(API_URL);
 export * from './app.api';
-export * from './category.api';
-export * from './content.api';
-export * from './instance.api';
-export * from './launcher.api';
-export * from './version.api';
-export * from './world.api';

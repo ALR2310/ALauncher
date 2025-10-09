@@ -7,7 +7,7 @@ import { defineConfig } from 'vite';
 config({ quiet: true, path: resolve(__dirname, '../.env') });
 
 const host = process.env.TAURI_DEV_HOST;
-const clientPort = Number(process.env.VITE_CLIENT_PORT) || 1420;
+const clientPort = Number(process.env.VITE_PORT) + 1 || 2311;
 const isDev = process.env.NODE_ENV === 'development';
 
 export default defineConfig(async () => ({

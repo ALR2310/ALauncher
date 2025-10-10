@@ -2,6 +2,7 @@ import {
   InstanceContentAddQueryDto,
   InstanceContentQueryDto,
   InstanceContentRemoveQueryDto,
+  InstanceContentToggleQueryDto,
   InstanceDto,
   InstanceQueryDto,
 } from '@shared/dtos/instance.dto';
@@ -90,5 +91,9 @@ export class InstanceController {
   }
 
   @Put(':id/:contentType')
-  async toggleContents() {}
+  @Validate(InstanceContentToggleQueryDto)
+  async toggleContents(@Param() param, @Body() body) {
+    const payload: InstanceContentToggleQueryDto = { ...param, ...body };
+    return instanceService.toggleContents(payload);
+  }
 }

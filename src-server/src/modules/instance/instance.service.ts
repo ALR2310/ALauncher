@@ -7,6 +7,7 @@ import {
   InstanceContentDto,
   InstanceContentQueryDto,
   InstanceContentRemoveQueryDto,
+  InstanceContentToggleQueryDto,
   InstanceDto,
   InstanceQueryDto,
 } from '@shared/dtos/instance.dto';
@@ -17,7 +18,7 @@ import { CurseForgePagination } from 'curseforge-api/v1/Types';
 import dayjs from 'dayjs';
 import EventEmitter from 'events';
 import { existsSync } from 'fs';
-import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises';
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises';
 import orderBy from 'lodash/orderBy';
 import throttle from 'lodash/throttle';
 import pLimit from 'p-limit';
@@ -190,7 +191,7 @@ export const instanceService = new (class InstanceService {
           fileName: contentFile.fileName,
           fileUrl: contentFile.downloadUrl,
           fileLength: contentFile.fileLength,
-          enabled: false,
+          enabled: true,
           dependencies: [],
         };
 
@@ -265,6 +266,47 @@ export const instanceService = new (class InstanceService {
           fileName: content.fileName,
         },
       };
+    });
+  }
+
+  async toggleContents(payload: InstanceContentToggleQueryDto) {
+    const { id: instanceId, contentType, contentIds, enable } = payload;
+
+    const lock = this.getInstanceLock(instanceId, 'toggleContent');
+
+    return lock.runExclusive(async () => {
+      const [instance, contentDir] = await Promise.all([
+        this.findOne(instanceId),
+        this.getContentDir(instanceId, contentType),
+      ]);
+
+      const toggleSet = new Set(contentIds);
+
+      const updatedContents = await Promise.all(
+        (instance[contentType] ?? []).map(async (content) => {
+          if (!toggleSet.has(content.id)) return content;
+
+          const shouldEnable = enable ?? !content.enabled;
+          const filePath = path.join(contentDir, content.fileName);
+          const fileDisabledPath = filePath + '.disabled';
+
+          try {
+            if (shouldEnable && existsSync(fileDisabledPath)) {
+              await rename(fileDisabledPath, filePath);
+            } else if (!shouldEnable && existsSync(filePath)) {
+              await rename(filePath, fileDisabledPath);
+            }
+          } catch (err: any) {
+            throw new BadRequestException(`Failed to toggle content ${content.id} in instance ${instanceId}`);
+          }
+          return { ...content, enabled: shouldEnable };
+        }),
+      );
+
+      instance[contentType] = updatedContents;
+      await this.update(instance);
+
+      return { message: 'Toggled successfully' };
     });
   }
 

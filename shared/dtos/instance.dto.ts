@@ -75,10 +75,16 @@ const instanceContentDownloadQuerySchema = z.object({
   worlds: z.array(z.string()).optional(),
 });
 
+const instanceContentToggleQuerySchema = instanceContentQuerySchema.extend({
+  contentIds: z.array(z.number()),
+  enable: z.boolean().optional(),
+});
+
 export class InstanceDto extends createZodDto(instanceSchema) {}
 export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}
 export class InstanceContentRemoveQueryDto extends createZodDto(instanceContentRemoveQuerySchema) {}
+export class InstanceContentToggleQueryDto extends createZodDto(instanceContentToggleQuerySchema) {}
 export class InstanceContentDownloadQueryDto extends createZodDto(instanceContentDownloadQuerySchema) {}

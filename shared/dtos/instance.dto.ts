@@ -63,8 +63,14 @@ const instanceContentQuerySchema = z.object({
 });
 
 const instanceContentAddQuerySchema = instanceContentQuerySchema.extend({
-  contentId: z.number(),
+  contentId: z.coerce.number(),
   worlds: z.string().nullish(),
+});
+
+const instanceContentDownloadQuerySchema = z.object({
+  groupedContents: z.record(z.string(), z.array(instanceContentSchema)),
+  instanceId: z.string(),
+  worlds: z.array(z.string()).optional(),
 });
 
 export class InstanceDto extends createZodDto(instanceSchema) {}
@@ -72,3 +78,4 @@ export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}
+export class InstanceContentDownloadQueryDto extends createZodDto(instanceContentDownloadQuerySchema) {}

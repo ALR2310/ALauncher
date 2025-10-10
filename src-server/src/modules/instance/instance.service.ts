@@ -1,21 +1,30 @@
 import { categoryMap } from '@shared/dtos/category.dto';
+import { ContentDto } from '@shared/dtos/content.dto';
 import {
+  INSTANCE_CONTENT_TYPE,
   InstanceContentAddQueryDto,
+  InstanceContentDownloadQueryDto,
   InstanceContentDto,
   InstanceContentQueryDto,
   InstanceDto,
   InstanceQueryDto,
 } from '@shared/dtos/instance.dto';
+import AdmZip from 'adm-zip';
 import { Mutex } from 'async-mutex';
 import { CurseForgeModLoaderType } from 'curseforge-api';
+import { CurseForgePagination } from 'curseforge-api/v1/Types';
 import dayjs from 'dayjs';
-import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
+import EventEmitter from 'events';
+import { existsSync } from 'fs';
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises';
 import orderBy from 'lodash/orderBy';
+import throttle from 'lodash/throttle';
 import pLimit from 'p-limit';
 import path from 'path';
 
-import { NotFoundException } from '~/common/filters/exception.filter';
+import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
+import Downloader, { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
 
 import { appService } from '../app/app.service';
 import { contentService } from '../content/content.service';
@@ -25,6 +34,7 @@ export const instanceService = new (class InstanceService {
   private readonly FILE_NAME = 'instance.json';
   private instanceDirCache: string = null!;
   private instanceLocks = new Map<string, Mutex>();
+  private readonly DELAY_MS = 500;
 
   async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
     const { sortBy, sortDir } = payload;
@@ -125,6 +135,12 @@ export const instanceService = new (class InstanceService {
 
     const contentIds = (instance[contentType]?.map((c) => c.id) ?? []).join(',');
 
+    if (!contentIds)
+      return {
+        data: [] as ContentDto[],
+        pagination: { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 } as CurseForgePagination,
+      };
+
     const contents = await contentService.findAll({ instance: id, ids: contentIds });
     return contents;
   }
@@ -133,7 +149,7 @@ export const instanceService = new (class InstanceService {
     const { id: instanceId, contentType, contentId } = payload;
     const worlds = payload.worlds?.split(',') ?? [];
 
-    const lock = this.getInstanceLock(instanceId);
+    const lock = this.getInstanceLock(instanceId, 'addContent');
 
     return lock.runExclusive(async () => {
       const instance = await this.findOne(instanceId);
@@ -199,18 +215,153 @@ export const instanceService = new (class InstanceService {
       }
 
       await this.update(instance);
+
+      return this.downloadContents({ groupedContents, instanceId, worlds });
     });
   }
 
-  private getInstanceLock(id: string) {
-    if (!this.instanceLocks.has(id)) {
-      this.instanceLocks.set(id, new Mutex());
+  async downloadContents(payload: InstanceContentDownloadQueryDto) {
+    const [config, filesToDownload] = await Promise.all([appService.getConfig(), this.prepareDownloadOptions(payload)]);
+
+    if (!filesToDownload.length) return null;
+
+    const totalSize = filesToDownload.reduce((acc, f) => acc + (f.length ?? 0), 0);
+    const event = new EventEmitter();
+    const downloader = new Downloader();
+
+    downloader.downloadFileMultiple(filesToDownload, totalSize, config.downloadMultiple);
+
+    downloader
+      .on(
+        'progress',
+        throttle(async (p, s) => {
+          const percent = ((p / s) * 100).toFixed(2);
+          event.emit('progress', percent);
+          if (p >= s) {
+            for (const file of filesToDownload) {
+              if (file.type === 'worlds' && file.path.endsWith('.zip')) {
+                try {
+                  const zip = new AdmZip(file.path);
+                  zip.extractAllTo(file.folder, true);
+                  // await unlink(file.path);
+                  event.emit('extract', `Extracting ${path.basename(file.path)}`);
+                } catch {
+                  console.log(`Failed to extract ${path.basename(file.path)}`);
+                }
+              }
+            }
+            event.emit('done', 'Download complete');
+          }
+        }, this.DELAY_MS),
+      )
+      .on(
+        'speed',
+        throttle((s) => {
+          const speedMB = (s / 1024 / 1024).toFixed(2);
+          event.emit('speed', `${speedMB}MB/s`);
+        }, this.DELAY_MS),
+      )
+      .on(
+        'estimated',
+        throttle((e) => {
+          const m = Math.floor(e / 60);
+          const s = Math.floor(e % 60);
+          event.emit('estimated', `${m}m ${s}s`);
+        }, this.DELAY_MS),
+      )
+      .on('error', (err) => event.emit('error', err));
+
+    return event;
+  }
+
+  private getInstanceLock(id: string, action = 'default') {
+    const key = `${id}:${action}`;
+    if (!this.instanceLocks.has(key)) {
+      this.instanceLocks.set(key, new Mutex());
     }
-    return this.instanceLocks.get(id)!;
+    return this.instanceLocks.get(key)!;
   }
 
   private async getInstanceDir() {
     if (!this.instanceDirCache) this.instanceDirCache = (await appService.getConfig()).minecraft.gameDir;
     return this.instanceDirCache;
+  }
+
+  private async getPathByContentType(instanceId: string, type: string, worldName?: string) {
+    const baseDir = path.join(await this.getInstanceDir(), instanceId);
+
+    let fullDir: string;
+
+    if (
+      type === INSTANCE_CONTENT_TYPE.MODS ||
+      type === INSTANCE_CONTENT_TYPE.RESOURCEPACKS ||
+      type === INSTANCE_CONTENT_TYPE.SHADERPACKS
+    ) {
+      fullDir = path.join(baseDir, type);
+    } else if (type === INSTANCE_CONTENT_TYPE.DATAPACKS) {
+      if (!worldName) throw new BadRequestException('World name is required for datapacks');
+      fullDir = path.join(baseDir, 'saves', worldName, type);
+    } else if (type === INSTANCE_CONTENT_TYPE.WORLDS) {
+      fullDir = path.join(baseDir, 'saves');
+    } else {
+      throw new BadRequestException('Invalid content type');
+    }
+    return fullDir;
+  }
+
+  private async prepareDownloadOptions(payload: InstanceContentDownloadQueryDto) {
+    const { groupedContents, instanceId, worlds } = payload;
+
+    const filesToDownload: DownloadOptions[] = [];
+
+    for (const [type, contents] of Object.entries(groupedContents)) {
+      if (type === INSTANCE_CONTENT_TYPE.DATAPACKS && Array.isArray(worlds) && worlds.length) {
+        for (const worldName of worlds) {
+          const pathDir = await this.getPathByContentType(instanceId, type, worldName);
+
+          for (const c of contents) {
+            const filePath = path.join(pathDir, c.fileName);
+            if (await this.checkNeedDownload(filePath, c.fileLength)) {
+              filesToDownload.push({
+                url: c.fileUrl,
+                path: filePath,
+                folder: pathDir,
+                length: c.fileLength,
+                type,
+              });
+            }
+          }
+        }
+      } else {
+        const pathDir = await this.getPathByContentType(instanceId, type);
+
+        for (const c of contents) {
+          const filePath = path.join(pathDir, c.fileName);
+          if (await this.checkNeedDownload(filePath, c.fileLength)) {
+            filesToDownload.push({
+              url: c.fileUrl,
+              path: filePath,
+              folder: pathDir,
+              length: c.fileLength,
+              type,
+            });
+          }
+        }
+      }
+    }
+
+    return filesToDownload;
+  }
+
+  private async checkNeedDownload(filePath: string, expectedSize: number): Promise<boolean> {
+    if (existsSync(filePath)) {
+      try {
+        const fileStat = await stat(filePath);
+        return fileStat.size !== expectedSize;
+      } catch {
+        return true;
+      }
+    }
+    return true;
   }
 })();

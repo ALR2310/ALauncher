@@ -47,6 +47,52 @@ export class InstanceController {
     return instanceService.getWorlds(id);
   }
 
+  @Get(':id/launch')
+  async launch(@Param('id') id: string, @Context() c) {
+    const launcher = await instanceService.launch(id);
+
+    if (!launcher) {
+      return streamSSE(c, async (stream) => {
+        await stream.writeSSE({ event: 'error', data: 'Cannot launch' });
+        await stream.close();
+      });
+    }
+
+    return streamSSE(c, async (stream) => {
+      const done = new Promise<void>((resolve) =>
+        launcher
+          .on('progress', async (p) => await stream.writeSSE({ event: 'progress', data: p }))
+          .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l }))
+          .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
+          .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
+          .on('extract', async (e) => await stream.writeSSE({ event: 'extract', data: e }))
+          .on('patch', async (p) => await stream.writeSSE({ event: 'patch', data: p }))
+          .on('close', async () => {
+            await stream.writeSSE({ event: 'close', data: 'Launch closed' });
+            await stream.close();
+            resolve();
+          })
+          .on('cancelled', async () => {
+            await stream.writeSSE({ event: 'cancelled', data: 'Launch cancelled' });
+            await stream.close();
+            resolve();
+          })
+          .on('error', async (err) => {
+            await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
+            await stream.close();
+            resolve();
+          }),
+      );
+
+      await done;
+    });
+  }
+
+  @Get(':id/stop')
+  async stop(@Param('id') id: string) {
+    return instanceService.stop(id);
+  }
+
   @Get(':id/:contentType')
   @Validate(InstanceContentQueryDto)
   async getContents(@Param() param) {

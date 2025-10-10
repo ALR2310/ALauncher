@@ -28,6 +28,7 @@ import { parse } from 'prismarine-nbt';
 
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
+import { Launch, Mojang } from '~/libraries/minecraft-java-core/build/Index';
 import Downloader, { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
 
 import { appService } from '../app/app.service';
@@ -39,6 +40,8 @@ export const instanceService = new (class InstanceService {
   private instanceDirCache: string = null!;
   private instanceLocks = new Map<string, Mutex>();
   private readonly DELAY_MS = 500;
+  private instanceLaunch = new Map<string, Launch>();
+  private instanceLaunchEvent = new Map<string, EventEmitter>();
 
   async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
     const { sortBy, sortDir } = payload;
@@ -134,6 +137,8 @@ export const instanceService = new (class InstanceService {
   }
 
   async getWorlds(id: string) {
+    if (!id) throw new NotFoundException('Id is required');
+
     const worldDir = await this.getContentDir(id, INSTANCE_CONTENT_TYPE.WORLDS);
     const dirs = await readdir(worldDir, { withFileTypes: true });
 
@@ -151,7 +156,7 @@ export const instanceService = new (class InstanceService {
             const data: any = parsed.value.Data?.value;
 
             if (!data || typeof data !== 'object' || Array.isArray(data)) {
-              console.log(`Invalid NBT data in ${dir.name}/level.dat`);
+              logger(`Invalid NBT data in ${dir.name}/level.dat`);
               return null;
             }
 
@@ -175,7 +180,7 @@ export const instanceService = new (class InstanceService {
 
             return result;
           } catch (err) {
-            console.log(`Failed to read world ${dir.name}/level.dat:`, err);
+            logger(`Failed to read world ${dir.name}/level.dat:`, err);
             return null;
           }
         }),
@@ -183,6 +188,114 @@ export const instanceService = new (class InstanceService {
 
     const worlds = (await Promise.all(tasks)).filter((w): w is InstanceWorldDto => w !== null);
     return worlds;
+  }
+
+  async launch(id: string) {
+    const [instance, config] = await Promise.all([this.findOne(id), appService.getConfig()]);
+
+    try {
+      if (this.instanceLaunch.has(id)) return this.instanceLaunchEvent.get(id);
+
+      const launch = new Launch();
+      const eventEmitter = new EventEmitter();
+
+      this.instanceLaunch.set(id, launch);
+      this.instanceLaunchEvent.set(id, eventEmitter);
+
+      const auth = await Mojang.login(config.auth.username);
+
+      launch.Launch({
+        path: config.minecraft.gameDir,
+        version: instance.version,
+        bypassOffline: true,
+        authenticator: auth,
+        loader: {
+          path: '.',
+          type: instance.loader?.type,
+          build: instance.loader?.version ?? 'latest',
+          enable: !!instance.loader,
+        },
+        instance: path.join('..', 'versions', id),
+        mcp: undefined,
+        verify: false,
+        ignored: [],
+        java: config.minecraft.java,
+        screen: config.minecraft.screen,
+        memory: {
+          min: `${config.minecraft.memory.min}M`,
+          max: `${config.minecraft.memory.max}M`,
+        },
+        downloadFileMultiple: config.downloadMultiple,
+        JVM_ARGS: [],
+        GAME_ARGS: [],
+      });
+
+      launch
+        .on(
+          'progress',
+          throttle((p, s) => {
+            const percent = ((p / s) * 100).toFixed(2);
+            this.instanceLaunchEvent.get(id)?.emit('progress', percent);
+          }, this.DELAY_MS),
+        )
+        .on(
+          'data',
+          throttle((l) => this.instanceLaunchEvent.get(id)?.emit('log', l), this.DELAY_MS),
+        )
+        .on(
+          'speed',
+          throttle((s) => {
+            const speedMB = (s / 1024 / 1024).toFixed(2);
+            this.instanceLaunchEvent.get(id)?.emit('speed', `${speedMB}MB/s`);
+          }, this.DELAY_MS),
+        )
+        .on(
+          'estimated',
+          throttle((e) => {
+            const m = Math.floor(e / 60);
+            const s = Math.floor(e % 60);
+            this.instanceLaunchEvent.get(id)?.emit('estimated', `${m}m ${s}s`);
+          }, this.DELAY_MS),
+        )
+        .on(
+          'extract',
+          throttle((e) => this.instanceLaunchEvent.get(id)?.emit('extract', e), this.DELAY_MS),
+        )
+        .on(
+          'patch',
+          throttle((p) => this.instanceLaunchEvent.get(id)?.emit('patch', p), this.DELAY_MS),
+        )
+        .on('close', () => {
+          this.instanceLaunchEvent.get(id)?.emit('close');
+          this.launchCleanup(id);
+        })
+        .on('cancelled', () => {
+          this.instanceLaunchEvent.get(id)?.emit('cancelled');
+          this.launchCleanup(id);
+        })
+        .on('error', (err) => {
+          this.instanceLaunchEvent.get(id)?.emit('error', err);
+          this.launchCleanup(id);
+        });
+
+      return eventEmitter;
+    } catch (err) {
+      this.launchCleanup(id);
+      logger(err);
+      return null;
+    }
+  }
+
+  async stop(id: string) {
+    try {
+      this.instanceLaunch.get(id)?.cancel();
+      this.launchCleanup(id);
+      return true;
+    } catch (err) {
+      logger(err);
+      this.launchCleanup(id);
+      return false;
+    }
   }
 
   async getContents(payload: InstanceContentQueryDto) {
@@ -231,7 +344,8 @@ export const instanceService = new (class InstanceService {
         const mappedType = contentInfo.classId ? categoryMap.idToText[contentInfo.classId] : undefined;
         const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? contentType);
 
-        const loader = realType === 'mods' ? CurseForgeModLoaderType[instance.loader!.type] : undefined;
+        const loader =
+          realType === 'mods' && instance.loader?.type ? CurseForgeModLoaderType[instance.loader.type] : undefined;
 
         const contentFile = await contentService
           .findFiles({ id: id, gameVersion, modLoaderType: loader })
@@ -390,7 +504,7 @@ export const instanceService = new (class InstanceService {
                   // await unlink(file.path);
                   event.emit('extract', `Extracting ${path.basename(file.path)}`);
                 } catch {
-                  console.log(`Failed to extract ${path.basename(file.path)}`);
+                  logger(`Failed to extract ${path.basename(file.path)}`);
                 }
               }
             }
@@ -507,5 +621,18 @@ export const instanceService = new (class InstanceService {
       }
     }
     return true;
+  }
+
+  private launchCleanup(id: string) {
+    const launch = this.instanceLaunch.get(id);
+    const event = this.instanceLaunchEvent.get(id);
+    if (launch) {
+      launch.removeAllListeners();
+      this.instanceLaunch.delete(id);
+    }
+    if (event) {
+      event.removeAllListeners();
+      this.instanceLaunchEvent.delete(id);
+    }
   }
 })();

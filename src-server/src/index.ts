@@ -17,7 +17,6 @@ import { AppController } from './modules/app/app.controller';
 import { CategoryController } from './modules/category/category.controller';
 import { ContentController } from './modules/content/content.controller';
 import { InstanceController } from './modules/instance/instance.controller';
-import { LauncherController } from './modules/launcher/launcher.controller';
 import { VersionController } from './modules/version/version.controller';
 
 const app = new Hono()
@@ -33,7 +32,6 @@ controllerRegister(app.basePath('/api'), [
   CategoryController,
   ContentController,
   InstanceController,
-  LauncherController,
   VersionController,
 ]);
 

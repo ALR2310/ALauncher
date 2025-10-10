@@ -190,6 +190,22 @@ export const instanceService = new (class InstanceService {
     return worlds;
   }
 
+  async download(id: string) {
+    const instance = await this.findOne(id);
+
+    const groupedContents: Record<string, InstanceContentDto[]> = {};
+    const contentsTypes = Object.values(INSTANCE_CONTENT_TYPE);
+
+    for (const type of contentsTypes) {
+      const contents: InstanceContentDto[] = instance[type] ?? [];
+      if (contents.length) {
+        groupedContents[type] = contents;
+      }
+    }
+
+    return this.handleDownloadContents({ groupedContents, instanceId: id });
+  }
+
   async launch(id: string) {
     const [instance, config] = await Promise.all([this.findOne(id), appService.getConfig()]);
 
@@ -396,7 +412,7 @@ export const instanceService = new (class InstanceService {
 
       await this.update(instance);
 
-      return this.downloadContents({ groupedContents, instanceId, worlds });
+      return this.handleDownloadContents({ groupedContents, instanceId, worlds });
     });
   }
 
@@ -478,60 +494,6 @@ export const instanceService = new (class InstanceService {
     });
   }
 
-  async downloadContents(payload: InstanceContentDownloadQueryDto) {
-    const [config, filesToDownload] = await Promise.all([appService.getConfig(), this.prepareDownloadOptions(payload)]);
-
-    if (!filesToDownload.length) return null;
-
-    const totalSize = filesToDownload.reduce((acc, f) => acc + (f.length ?? 0), 0);
-    const event = new EventEmitter();
-    const downloader = new Downloader();
-
-    downloader.downloadFileMultiple(filesToDownload, totalSize, config.downloadMultiple);
-
-    downloader
-      .on(
-        'progress',
-        throttle(async (p, s) => {
-          const percent = ((p / s) * 100).toFixed(2);
-          event.emit('progress', percent);
-          if (p >= s) {
-            for (const file of filesToDownload) {
-              if (file.type === 'worlds' && file.path.endsWith('.zip')) {
-                try {
-                  const zip = new AdmZip(file.path);
-                  zip.extractAllTo(file.folder, true);
-                  // await unlink(file.path);
-                  event.emit('extract', `Extracting ${path.basename(file.path)}`);
-                } catch {
-                  logger(`Failed to extract ${path.basename(file.path)}`);
-                }
-              }
-            }
-            event.emit('done', 'Download complete');
-          }
-        }, this.DELAY_MS),
-      )
-      .on(
-        'speed',
-        throttle((s) => {
-          const speedMB = (s / 1024 / 1024).toFixed(2);
-          event.emit('speed', `${speedMB}MB/s`);
-        }, this.DELAY_MS),
-      )
-      .on(
-        'estimated',
-        throttle((e) => {
-          const m = Math.floor(e / 60);
-          const s = Math.floor(e % 60);
-          event.emit('estimated', `${m}m ${s}s`);
-        }, this.DELAY_MS),
-      )
-      .on('error', (err) => event.emit('error', err));
-
-    return event;
-  }
-
   private getInstanceLock(id: string, action = 'default') {
     const key = `${id}:${action}`;
     if (!this.instanceLocks.has(key)) {
@@ -565,6 +527,59 @@ export const instanceService = new (class InstanceService {
       throw new BadRequestException('Invalid content type');
     }
     return fullDir;
+  }
+
+  private async handleDownloadContents(payload: InstanceContentDownloadQueryDto) {
+    const [config, filesToDownload] = await Promise.all([appService.getConfig(), this.prepareDownloadOptions(payload)]);
+
+    if (!filesToDownload.length) return null;
+
+    const totalSize = filesToDownload.reduce((acc, f) => acc + (f.length ?? 0), 0);
+    const event = new EventEmitter();
+    const downloader = new Downloader();
+
+    downloader.downloadFileMultiple(filesToDownload, totalSize, config.downloadMultiple);
+
+    downloader
+      .on(
+        'progress',
+        throttle(async (p, s) => {
+          const percent = ((p / s) * 100).toFixed(2);
+          event.emit('progress', percent);
+          if (p >= s) {
+            for (const file of filesToDownload) {
+              if (file.type === 'worlds' && file.path.endsWith('.zip')) {
+                try {
+                  const zip = new AdmZip(file.path);
+                  zip.extractAllTo(file.folder, true);
+                  event.emit('extract', `Extracting ${path.basename(file.path)}`);
+                } catch {
+                  logger(`Failed to extract ${path.basename(file.path)}`);
+                }
+              }
+            }
+            event.emit('done', 'Download complete');
+          }
+        }, this.DELAY_MS),
+      )
+      .on(
+        'speed',
+        throttle((s) => {
+          const speedMB = (s / 1024 / 1024).toFixed(2);
+          event.emit('speed', `${speedMB}MB/s`);
+        }, this.DELAY_MS),
+      )
+      .on(
+        'estimated',
+        throttle((e) => {
+          const m = Math.floor(e / 60);
+          const s = Math.floor(e % 60);
+          event.emit('estimated', `${m}m ${s}s`);
+        }, this.DELAY_MS),
+      )
+      .on('error', (err) => event.emit('error', err));
+
+    return event;
   }
 
   private async prepareDownloadOptions(payload: InstanceContentDownloadQueryDto) {

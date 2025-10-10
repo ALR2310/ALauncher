@@ -1,6 +1,7 @@
 import {
   InstanceContentAddQueryDto,
   InstanceContentQueryDto,
+  InstanceContentRemoveQueryDto,
   InstanceDto,
   InstanceQueryDto,
 } from '@shared/dtos/instance.dto';
@@ -83,7 +84,10 @@ export class InstanceController {
   }
 
   @Delete(':id/:contentType/:contentId')
-  async removeContents() {}
+  @Validate(InstanceContentRemoveQueryDto)
+  async removeContents(@Param() param) {
+    return instanceService.removeContents(param);
+  }
 
   @Put(':id/:contentType')
   async toggleContents() {}

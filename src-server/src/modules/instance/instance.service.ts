@@ -6,6 +6,7 @@ import {
   InstanceContentDownloadQueryDto,
   InstanceContentDto,
   InstanceContentQueryDto,
+  InstanceContentRemoveQueryDto,
   InstanceDto,
   InstanceQueryDto,
 } from '@shared/dtos/instance.dto';
@@ -220,6 +221,46 @@ export const instanceService = new (class InstanceService {
     });
   }
 
+  async removeContents(payload: InstanceContentRemoveQueryDto) {
+    const { id: instanceId, contentType, contentId } = payload;
+
+    const lock = this.getInstanceLock(instanceId, 'removeContent');
+
+    return lock.runExclusive(async () => {
+      const [instance, contentDir] = await Promise.all([
+        this.findOne(instanceId),
+        this.getContentDir(instanceId, contentType),
+      ]);
+
+      const content = instance[contentType]?.find((c) => c.id === contentId);
+      if (!content) throw new NotFoundException(`Content with id ${contentId} not found in instance ${instanceId}`);
+
+      const filePath = path.join(contentDir, content.fileName);
+      const fileDisabledPath = filePath + '.disabled';
+
+      try {
+        if (existsSync(filePath)) {
+          await rm(filePath, { force: true });
+        } else if (existsSync(fileDisabledPath)) {
+          await rm(fileDisabledPath, { force: true });
+        }
+      } catch (err: any) {
+        if (err.code !== 'ENOENT') throw err;
+      }
+
+      instance[contentType] = instance[contentType]?.filter((c) => c.id !== contentId) ?? [];
+      await this.update(instance);
+
+      return {
+        message: 'Removed successfully',
+        data: {
+          id: contentId,
+          fileName: content.fileName,
+        },
+      };
+    });
+  }
+
   async downloadContents(payload: InstanceContentDownloadQueryDto) {
     const [config, filesToDownload] = await Promise.all([appService.getConfig(), this.prepareDownloadOptions(payload)]);
 
@@ -287,7 +328,7 @@ export const instanceService = new (class InstanceService {
     return this.instanceDirCache;
   }
 
-  private async getPathByContentType(instanceId: string, type: string, worldName?: string) {
+  private async getContentDir(instanceId: string, type: string, worldName?: string) {
     const baseDir = path.join(await this.getInstanceDir(), instanceId);
 
     let fullDir: string;
@@ -317,7 +358,7 @@ export const instanceService = new (class InstanceService {
     for (const [type, contents] of Object.entries(groupedContents)) {
       if (type === INSTANCE_CONTENT_TYPE.DATAPACKS && Array.isArray(worlds) && worlds.length) {
         for (const worldName of worlds) {
-          const pathDir = await this.getPathByContentType(instanceId, type, worldName);
+          const pathDir = await this.getContentDir(instanceId, type, worldName);
 
           for (const c of contents) {
             const filePath = path.join(pathDir, c.fileName);
@@ -333,7 +374,7 @@ export const instanceService = new (class InstanceService {
           }
         }
       } else {
-        const pathDir = await this.getPathByContentType(instanceId, type);
+        const pathDir = await this.getContentDir(instanceId, type);
 
         for (const c of contents) {
           const filePath = path.join(pathDir, c.fileName);

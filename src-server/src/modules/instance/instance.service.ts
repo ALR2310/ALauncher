@@ -161,6 +161,15 @@ export const instanceService = new (class InstanceService {
       const resolveDependencies = async (id: number, gameVersion: string, parentType?: number) => {
         if (visited.has(id)) return visited.get(id);
 
+        const existingContent = Object.values(instance)
+          .flat()
+          .find((c: any) => c?.id === id) as InstanceContentDto;
+
+        if (existingContent) {
+          visited.set(id, existingContent);
+          return existingContent;
+        }
+
         const contentInfo = await curseForgeService.getMods([id]).then((res) => (res.length ? res[0] : null));
         if (!contentInfo) return null;
 
@@ -187,6 +196,7 @@ export const instanceService = new (class InstanceService {
 
         visited.set(id, instanceContent);
 
+        // Add to groupedContents since this is a new dependency
         if (!groupedContents[realType]) groupedContents[realType] = [];
         groupedContents[realType].push(instanceContent);
 
@@ -239,11 +249,8 @@ export const instanceService = new (class InstanceService {
       const fileDisabledPath = filePath + '.disabled';
 
       try {
-        if (existsSync(filePath)) {
-          await rm(filePath, { force: true });
-        } else if (existsSync(fileDisabledPath)) {
-          await rm(fileDisabledPath, { force: true });
-        }
+        await rm(filePath, { force: true });
+        await rm(fileDisabledPath, { force: true });
       } catch (err: any) {
         if (err.code !== 'ENOENT') throw err;
       }

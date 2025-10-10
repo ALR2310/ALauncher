@@ -42,6 +42,11 @@ export class InstanceController {
     return instanceService.delete(id);
   }
 
+  @Get(':id/worlds')
+  async getWorlds(@Param('id') id: string) {
+    return instanceService.getWorlds(id);
+  }
+
   @Get(':id/:contentType')
   @Validate(InstanceContentQueryDto)
   async getContents(@Param() param) {

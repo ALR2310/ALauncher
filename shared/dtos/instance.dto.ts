@@ -57,6 +57,16 @@ const instanceQuerySchema = z.object({
   sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'lastPlayed', 'version']).default('lastPlayed'),
 });
 
+const instanceWorldSchema = z.object({
+  instanceId: z.string().nullish(),
+  name: z.string(),
+  folderName: z.string(),
+  version: z.string(),
+  icon: z.string().nullish(),
+  gameType: z.number(),
+  path: z.string(),
+});
+
 const instanceContentQuerySchema = z.object({
   id: z.string(),
   contentType: z.enum(INSTANCE_CONTENT_TYPE).default(INSTANCE_CONTENT_TYPE.MODS),
@@ -82,6 +92,7 @@ const instanceContentToggleQuerySchema = instanceContentQuerySchema.extend({
 
 export class InstanceDto extends createZodDto(instanceSchema) {}
 export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
+export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}

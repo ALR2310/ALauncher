@@ -10,6 +10,7 @@ import {
   InstanceContentToggleQueryDto,
   InstanceDto,
   InstanceQueryDto,
+  InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
 import AdmZip from 'adm-zip';
 import { Mutex } from 'async-mutex';
@@ -23,6 +24,7 @@ import orderBy from 'lodash/orderBy';
 import throttle from 'lodash/throttle';
 import pLimit from 'p-limit';
 import path from 'path';
+import { parse } from 'prismarine-nbt';
 
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
@@ -129,6 +131,58 @@ export const instanceService = new (class InstanceService {
       await rm(fileDir, { recursive: true, force: true });
       return existing;
     });
+  }
+
+  async getWorlds(id: string) {
+    const worldDir = await this.getContentDir(id, INSTANCE_CONTENT_TYPE.WORLDS);
+    const dirs = await readdir(worldDir, { withFileTypes: true });
+
+    const limit = pLimit(5);
+
+    const tasks = dirs
+      .filter((dir) => dir.isDirectory())
+      .map((dir) =>
+        limit(async () => {
+          const levelDatPath = path.join(worldDir, dir.name, 'level.dat');
+          try {
+            const buffer = await readFile(levelDatPath);
+            const { parsed } = await parse(buffer);
+
+            const data: any = parsed.value.Data?.value;
+
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+              console.log(`Invalid NBT data in ${dir.name}/level.dat`);
+              return null;
+            }
+
+            const iconPath = path.join(worldDir, dir.name, 'icon.png');
+            let iconBase64: string | undefined;
+
+            if (existsSync(iconPath)) {
+              const iconBuffer = await readFile(iconPath);
+              iconBase64 = `data:image/png;base64,${iconBuffer.toString('base64')}`;
+            }
+
+            const result: InstanceWorldDto = {
+              instanceId: id,
+              name: data.LevelName?.value ?? 'Unknown',
+              folderName: dir.name,
+              version: data.Version?.value?.Name?.value ?? 'Unknown',
+              icon: iconBase64,
+              gameType: data.GameType?.value ?? null,
+              path: path.join(worldDir, dir.name),
+            };
+
+            return result;
+          } catch (err) {
+            console.log(`Failed to read world ${dir.name}/level.dat:`, err);
+            return null;
+          }
+        }),
+      );
+
+    const worlds = (await Promise.all(tasks)).filter((w): w is InstanceWorldDto => w !== null);
+    return worlds;
   }
 
   async getContents(payload: InstanceContentQueryDto) {

@@ -2,41 +2,50 @@ import { Compass, House, Library, Plus, Settings } from 'lucide-react';
 
 export default function SideBar() {
   return (
-    <div className="flex flex-col justify-between bg-base-300/80">
+    <div className="flex flex-col justify-between">
       <div>
-        <ul className="menu rounded-box">
+        <ul className="menu menu-sm rounded-box">
           <li>
-            <a className="tooltip tooltip-right py-4" data-tip="Home">
-              <House />
+            <a className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95" data-tip="Home">
+              <House size={20} />
             </a>
           </li>
           <li>
-            <a className="tooltip tooltip-right py-4" data-tip="Discover">
-              <Compass />
+            <a
+              className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95"
+              data-tip="Discover"
+            >
+              <Compass size={20} />
             </a>
           </li>
           <li>
-            <a className="tooltip tooltip-right py-4" data-tip="Library">
-              <Library />
+            <a
+              className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95"
+              data-tip="Library"
+            >
+              <Library size={20} />
             </a>
           </li>
         </ul>
 
         <div className="divider m-0 p-2"></div>
 
-        <ul className="menu rounded-box">
+        <ul className="menu menu-sm rounded-box">
           <li>
-            <a className="tooltip tooltip-right py-4" data-tip="Create">
-              <Plus />
+            <a
+              className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95"
+              data-tip="Create"
+            >
+              <Plus size={20} />
             </a>
           </li>
         </ul>
       </div>
 
-      <ul className="menu rounded-box">
+      <ul className="menu menu-sm rounded-box">
         <li>
-          <a className="tooltip tooltip-right py-4" data-tip="Setting">
-            <Settings />
+          <a className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95" data-tip="Setting">
+            <Settings size={20} />
           </a>
         </li>
       </ul>

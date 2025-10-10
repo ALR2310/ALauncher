@@ -20,22 +20,23 @@ export default function MainLayout() {
 
   useEffect(() => {
     if (isTauri && import.meta.env.MODE !== 'development') checkForUpdates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <ContainerProvider>
       <div
         id="layout"
-        className="flex flex-col bg-base-200"
+        className="flex flex-col"
         style={{ width: isTauri ? '100vw' : `${width}px`, height: isTauri ? '100vh' : `${height}px` }}
       >
         <TitleBar />
         {!isLoaded ? (
           <SplashScreen progress={progress} />
         ) : (
-          <div className="flex-1 flex">
+          <div className="flex-1 flex bg-base-200">
             <SideBar />
-            <main className="flex-1">
+            <main className="flex-1 border border-base-content/10 rounded-tl-2xl bg-base-300">
               <Outlet />
             </main>
           </div>

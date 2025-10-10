@@ -39,7 +39,7 @@ const WindowControlButton = () => {
         className="btn btn-circle btn-ghost flex items-center justify-center hover:bg-base-content/10"
         tabIndex={-1}
       >
-        <Minus />
+        <Minus size={19} />
       </button>
 
       {/* Maximize / Restore */}
@@ -52,7 +52,7 @@ const WindowControlButton = () => {
         className="btn btn-circle btn-ghost flex items-center justify-center hover:bg-base-content/10"
         tabIndex={-1}
       >
-        {isMaximized ? <Copy size={23} className="rotate-[90deg]" /> : <Square size={23} />}
+        {isMaximized ? <Copy size={18} className="rotate-[90deg]" /> : <Square size={18} />}
       </button>
 
       {/* Close */}
@@ -64,7 +64,7 @@ const WindowControlButton = () => {
         className="btn btn-circle btn-ghost flex items-center justify-center hover:bg-error"
         tabIndex={-1}
       >
-        <X />
+        <X size={19} />
       </button>
     </div>
   );
@@ -75,27 +75,27 @@ export default function TitleBar() {
     <div
       id="title-bar"
       data-tauri-drag-region
-      className="flex items-center justify-between h-16 bg-base-300 select-none"
+      className="flex items-center justify-between h-12 bg-base-200 select-none"
     >
       <div className="flex items-center h-full pl-1 space-x-4" data-tauri-drag-region>
         <div className="flex items-center h-full">
           <img src={icon} alt="title icon" className="h-full p-4" />
           <p className="font-semibold text-xl">
-            <span className="text-success">A</span>Launcher
+            <span className="text-success">A</span>L<span className="text-success">a</span>uncher
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button className="btn btn-sm btn-circle btn-soft" onClick={() => window.history.back()}>
-            <ArrowLeft />
+            <ArrowLeft size={20} />
           </button>
           <button className="btn btn-sm btn-circle btn-soft" onClick={() => window.history.forward()}>
-            <ArrowRight />
+            <ArrowRight size={20} />
           </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-end space-x-4 h-full w-[45%]">
+      <div className="flex items-center justify-end space-x-4 h-full w-[40%]">
         <div className="relative flex items-center p-2 w-full px-2 bg-base-100 rounded-box border border-base-content/10">
           <progress className="progress progress-success rounded w-full h-4" />
           <span className="absolute inset-0 flex items-center justify-center text-xs text-white">download java</span>

@@ -17,7 +17,7 @@ const ContainerProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateHeight = throttle(() => {
     const layoutEl = document.getElementById('layout');
-    const dockEl = document.getElementById('dock');
+    const dockEl = document.getElementById('title-bar');
     if (!layoutEl || !dockEl) return;
 
     const newHeight = layoutEl.offsetHeight - dockEl.offsetHeight;

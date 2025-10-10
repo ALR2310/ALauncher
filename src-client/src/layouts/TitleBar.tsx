@@ -1,0 +1,112 @@
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { ArrowLeft, ArrowRight, Copy, Minus, Square, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import icon from '~/assets/images/icon.ico';
+
+const WindowControlButton = () => {
+  const isTauri = window.isTauri;
+  const appWindow = isTauri ? getCurrentWindow() : null;
+
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  useEffect(() => {
+    if (!appWindow) return;
+
+    let cleanup: (() => void) | undefined;
+
+    (async () => {
+      setIsMaximized(await appWindow.isMaximized());
+      const unlisten = await appWindow.onResized(async () => {
+        setIsMaximized(await appWindow.isMaximized());
+      });
+      cleanup = unlisten;
+    })();
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [appWindow]);
+
+  return (
+    <div className="flex items-center gap-x-2 h-full">
+      {/* Minimize */}
+      <button
+        onClick={() => {
+          if (!appWindow) return;
+          appWindow.minimize();
+        }}
+        disabled={!isTauri}
+        className="h-full w-10 flex items-center justify-center hover:bg-base-content/5 cursor-pointer"
+        tabIndex={-1}
+      >
+        <Minus size={16} />
+      </button>
+
+      {/* Maximize / Restore */}
+      <button
+        onClick={async () => {
+          if (!appWindow) return;
+          if (isMaximized) appWindow.unmaximize();
+          else appWindow.maximize();
+        }}
+        disabled={!isTauri}
+        className="h-full w-10 flex items-center justify-center hover:bg-base-content/5 cursor-pointer"
+        tabIndex={-1}
+      >
+        {isMaximized ? <Copy size={15} className="rotate-[90deg]" /> : <Square size={15} />}
+      </button>
+
+      {/* Close */}
+      <button
+        onClick={() => {
+          if (!appWindow) return;
+          appWindow.close();
+        }}
+        disabled={!isTauri}
+        className="h-full w-10 flex items-center justify-center hover:bg-error cursor-pointer"
+        tabIndex={-1}
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
+
+export default function TitleBar() {
+  return (
+    <div
+      id="title-bar"
+      data-tauri-drag-region
+      className="flex items-center justify-between h-9 bg-base-300 select-none"
+    >
+      <div className="flex items-center h-full pl-1 space-x-4" data-tauri-drag-region>
+        <div className="flex items-center h-full">
+          <img src={icon} alt="title icon" className="h-full p-[6px]" />
+          <p className="font-semibold text-sm">
+            <span className="text-success">A</span>Launcher
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button className="btn btn-xs btn-circle btn-soft" onClick={() => window.history.back()}>
+            <ArrowLeft size={16} />
+          </button>
+          <button className="btn btn-xs btn-circle btn-soft" onClick={() => window.history.forward()}>
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-4 h-full w-[40%]">
+        <div className="relative w-full px-2 bg-base-100 rounded-box border border-base-content/10">
+          <progress className="progress progress-success rounded w-full h-3" />
+          <span className="absolute inset-0 flex items-center justify-center text-xs text-white">download java</span>
+        </div>
+
+        {/* Window Control Buttons */}
+        <WindowControlButton />
+      </div>
+    </div>
+  );
+}

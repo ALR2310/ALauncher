@@ -13,6 +13,11 @@ declare module '*.webp' {
   export default content;
 }
 
+declare module '*.ico' {
+  const content: string;
+  export default content;
+}
+
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }

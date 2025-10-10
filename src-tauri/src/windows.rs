@@ -66,10 +66,15 @@ pub fn create_main_window(app: &App) {
     let min_width = logical_width * 0.75;
     let min_height = logical_height * 0.75;
 
-    let url = WebviewUrl::External("http://localhost:2310".parse().unwrap());
+    let mut url = WebviewUrl::External("http://localhost:2310".parse().unwrap());
+
+    if node_env == "development" {
+        url = WebviewUrl::External("http://localhost:2311".parse().unwrap());
+    }
 
     WebviewWindowBuilder::new(app, "main", url)
         .title("ALauncher")
+        .decorations(false)
         .inner_size(logical_width, logical_height)
         .min_inner_size(min_width, min_height)
         .position(x, y)

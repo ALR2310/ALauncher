@@ -8,6 +8,16 @@ import {
 } from 'curseforge-api';
 import z from 'zod';
 
+const baseResponseSchema = z.object({
+  data: z.any(),
+  pagination: z.object({
+    index: z.number(),
+    pageSize: z.number(),
+    resultCount: z.number(),
+    totalCount: z.number(),
+  }),
+});
+
 const contentSchema = z.object({
   screenshots: z.array(
     z.object({
@@ -77,14 +87,8 @@ const contentSchema = z.object({
     .nullish(),
 });
 
-const contentListSchema = z.object({
-  data: z.array(contentSchema),
-  pagination: z.object({
-    index: z.number(),
-    pageSize: z.number(),
-    resultCount: z.number(),
-    totalCount: z.number(),
-  }),
+const contentResponseSchema = baseResponseSchema.extend({
+  data: contentSchema,
 });
 
 const contentQuerySchema = z.object({
@@ -129,6 +133,10 @@ const contentFileSchema = z.object({
   ),
 });
 
+const contentFileResponseSchema = baseResponseSchema.extend({
+  data: contentFileSchema,
+});
+
 const contentFileQuerySchema = z.object({
   id: z.coerce.number(),
   gameVersion: z.string().optional(),
@@ -139,7 +147,8 @@ const contentFileQuerySchema = z.object({
 });
 
 export class ContentDto extends createZodDto(contentSchema) {}
-export class ContentListDto extends createZodDto(contentListSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
+export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
 export class ContentFileDto extends createZodDto(contentFileSchema) {}
 export class ContentFileQueryDto extends createZodDto(contentFileQuerySchema) {}
+export class ContentFileResponseDto extends createZodDto(contentFileResponseSchema) {}

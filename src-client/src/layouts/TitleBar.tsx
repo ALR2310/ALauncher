@@ -79,7 +79,7 @@ export default function TitleBar() {
     >
       <div className="flex items-center h-full pl-1 space-x-4" data-tauri-drag-region>
         <div className="flex items-center h-full">
-          <img src={icon} alt="title icon" className="h-full p-4" />
+          <img src={icon} alt="title icon" className="h-full p-3" />
           <p className="font-semibold text-xl">
             <span className="text-success">A</span>L<span className="text-success">a</span>uncher
           </p>

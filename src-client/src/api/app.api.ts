@@ -2,7 +2,15 @@ import { AppConfigDto, SetConfigDto } from '@shared/dtos/app.dto';
 
 import { API, API_URL } from '.';
 
-const BASE_URL = '/app';
+const BASE_URL = 'app';
+
+export async function appStatus() {
+  return API.get(`${BASE_URL}/status`);
+}
+
+export async function appVersion() {
+  return API.get(`${BASE_URL}/version`);
+}
 
 export async function appExit() {
   return API.get(`${BASE_URL}/exit`);

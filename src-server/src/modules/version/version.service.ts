@@ -29,7 +29,7 @@ export const versionService = new (class VersionService {
       }));
   }
 
-  async findLoaders(payload: LoaderQueryDto) {
+  async findLoaders(payload: LoaderQueryDto): Promise<VersionDto[]> {
     const { version, type } = payload;
 
     const loaders = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });

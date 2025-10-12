@@ -7,6 +7,7 @@ import {
   InstanceContentDto,
   InstanceContentQueryDto,
   InstanceContentRemoveQueryDto,
+  InstanceContentRemoveResponseDto,
   InstanceContentToggleQueryDto,
   InstanceDto,
   InstanceQueryDto,
@@ -449,7 +450,7 @@ export const instanceService = new (class InstanceService {
           id: contentId,
           fileName: content.fileName,
         },
-      };
+      } as InstanceContentRemoveResponseDto;
     });
   }
 

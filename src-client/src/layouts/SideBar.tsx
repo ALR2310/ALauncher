@@ -6,13 +6,13 @@ export default function SideBar() {
       <div>
         <ul className="menu menu-sm rounded-box">
           <li>
-            <a className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95" data-tip="Home">
+            <a className="tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95" data-tip="Home">
               <House size={20} />
             </a>
           </li>
           <li>
             <a
-              className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95"
+              className="tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95"
               data-tip="Discover"
             >
               <Compass size={20} />
@@ -20,7 +20,7 @@ export default function SideBar() {
           </li>
           <li>
             <a
-              className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95"
+              className="tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95"
               data-tip="Library"
             >
               <Library size={20} />
@@ -33,7 +33,7 @@ export default function SideBar() {
         <ul className="menu menu-sm rounded-box">
           <li>
             <a
-              className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95"
+              className="tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95"
               data-tip="Create"
             >
               <Plus size={20} />
@@ -44,7 +44,7 @@ export default function SideBar() {
 
       <ul className="menu menu-sm rounded-box">
         <li>
-          <a className="tooltip tooltip-right py-4 transition-transform duration-300 hover:scale-95" data-tip="Setting">
+          <a className="tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95" data-tip="Setting">
             <Settings size={20} />
           </a>
         </li>

@@ -79,6 +79,14 @@ const instanceContentAddQuerySchema = instanceContentQuerySchema.extend({
 
 const instanceContentRemoveQuerySchema = instanceContentAddQuerySchema.omit({ worlds: true });
 
+const instanceContentRemoveResponseSchema = z.object({
+  message: z.string(),
+  data: z.object({
+    id: z.number(),
+    fileName: z.string(),
+  }),
+});
+
 const instanceContentDownloadQuerySchema = z.object({
   groupedContents: z.record(z.string(), z.array(instanceContentSchema)),
   instanceId: z.string(),
@@ -97,5 +105,6 @@ export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}
 export class InstanceContentRemoveQueryDto extends createZodDto(instanceContentRemoveQuerySchema) {}
+export class InstanceContentRemoveResponseDto extends createZodDto(instanceContentRemoveResponseSchema) {}
 export class InstanceContentToggleQueryDto extends createZodDto(instanceContentToggleQuerySchema) {}
 export class InstanceContentDownloadQueryDto extends createZodDto(instanceContentDownloadQuerySchema) {}

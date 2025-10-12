@@ -49,10 +49,10 @@ pub fn create_main_window(app: &App) {
     let screen_size = monitor.size();
 
     // default size
-    let mut desired_width_physical = 1150.0;
-    let mut desired_height_physical = 650.0;
+    let mut desired_width_physical = 1200.0;
+    let mut desired_height_physical = 700.0;
 
-    if node_env == "development" {
+    if node_env == "developments" {
         desired_width_physical = 500.0;
         desired_height_physical = 250.0;
     }

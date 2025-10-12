@@ -4,15 +4,15 @@ import { Outlet } from 'react-router';
 import { ContainerProvider } from '~/context/ContainerContext';
 import { useUpdater } from '~/hooks/app/useUpdater';
 
-import SideBar from './SideBar';
+import SideLeftBar from './SideLeftBar';
 import SplashScreen from './SplashScreen';
 import TitleBar from './TitleBar';
 
 const isTauri = window.isTauri;
 
 export default function MainLayout() {
-  const width = 1150 / window.devicePixelRatio;
-  const height = 650 / window.devicePixelRatio;
+  const width = 1200 / window.devicePixelRatio;
+  const height = 700 / window.devicePixelRatio;
 
   const { checkForUpdates, isUpdating, progress } = useUpdater();
 
@@ -35,7 +35,7 @@ export default function MainLayout() {
           <SplashScreen progress={progress} />
         ) : (
           <div className="flex-1 flex bg-base-200">
-            <SideBar />
+            <SideLeftBar />
             <main className="flex-1 border border-base-content/10 rounded-tl-2xl bg-base-300">
               <Outlet />
             </main>

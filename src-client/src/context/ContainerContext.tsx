@@ -17,12 +17,18 @@ const ContainerProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateHeight = throttle(() => {
     const layoutEl = document.getElementById('layout');
-    const dockEl = document.getElementById('title-bar');
-    if (!layoutEl || !dockEl) return;
+    const titleBarEl = document.getElementById('title-bar');
+    const sideLeftBarEl = document.getElementById('side-left-bar');
+    if (!layoutEl) return;
 
-    const newHeight = layoutEl.offsetHeight - dockEl.offsetHeight;
+    console.log('layoutEl.offsetHeight:', layoutEl.offsetHeight);
+    console.log('layoutEl.offsetWidth:', layoutEl.offsetWidth);
+
+    const newHeight = titleBarEl ? layoutEl.offsetHeight - titleBarEl.offsetHeight : layoutEl.offsetHeight;
+    const newWidth = sideLeftBarEl ? layoutEl.offsetWidth - sideLeftBarEl.offsetWidth : layoutEl.offsetWidth;
+
     setHeight(newHeight);
-    setWidth(layoutEl.offsetWidth);
+    setWidth(newWidth);
     setIsReady(true);
   }, 200);
 

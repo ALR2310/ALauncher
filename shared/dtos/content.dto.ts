@@ -88,7 +88,7 @@ const contentSchema = z.object({
 });
 
 const contentResponseSchema = baseResponseSchema.extend({
-  data: contentSchema,
+  data: z.array(contentSchema),
 });
 
 const contentQuerySchema = z.object({
@@ -134,7 +134,7 @@ const contentFileSchema = z.object({
 });
 
 const contentFileResponseSchema = baseResponseSchema.extend({
-  data: contentFileSchema,
+  data: z.array(contentFileSchema),
 });
 
 const contentFileQuerySchema = z.object({

@@ -96,10 +96,10 @@ export default function TitleBar() {
       </div>
 
       <div className="flex items-center justify-end space-x-4 h-full w-[40%]">
-        <div className="relative flex items-center p-2 w-full px-2 bg-base-100 rounded-box border border-base-content/10">
+        {/* <div className="relative flex items-center p-2 w-full px-2 bg-base-100 rounded-box border border-base-content/10">
           <progress className="progress progress-success rounded w-full h-4" />
           <span className="absolute inset-0 flex items-center justify-center text-xs text-white">download java</span>
-        </div>
+        </div> */}
 
         {/* Window Control Buttons */}
         <WindowControlButton />

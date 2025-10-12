@@ -2,7 +2,7 @@ import steveFace from '~/assets/images/steve-face.png';
 
 export default function SideRightBar() {
   return (
-    <div className="flex flex-col w-3xs p-3">
+    <div className="flex flex-col p-3 w-64 lg:w-72">
       <div className="flex gap-2 p-3 bg-base-100 rounded-xl border border-base-content/10">
         <img src={steveFace} alt="Steve Face" className="w-10 border border-base-content/30 rounded-lg" />
 

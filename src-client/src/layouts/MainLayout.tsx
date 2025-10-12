@@ -34,9 +34,9 @@ export default function MainLayout() {
         {!isLoaded ? (
           <SplashScreen progress={progress} />
         ) : (
-          <div className="flex-1 flex bg-base-200">
+          <div className="flex-1 flex bg-base-200 overflow-hidden">
             <SideLeftBar />
-            <main className="flex-1 border border-base-content/10 rounded-tl-2xl bg-base-300">
+            <main className="flex-1 border border-base-content/10 rounded-tl-2xl bg-base-300 ">
               <Outlet />
             </main>
           </div>

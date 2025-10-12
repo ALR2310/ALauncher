@@ -44,7 +44,11 @@ export default function HomePage() {
 
         <div className="grid grid-cols-2 gap-4">
           {modpack?.data.map((modpack) => (
-            <Link key={modpack.id} to={''} className="flex flex-col rounded-lg bg-base-100 overflow-hidden">
+            <Link
+              key={modpack.id}
+              to={''}
+              className="flex flex-col rounded-lg bg-base-100 overflow-hidden hover:opacity-80 transition-opacity duration-200"
+            >
               <img src={modpack.logo.url} alt={modpack.logo.title} className="object-cover w-full h-44" />
 
               <div className="space-y-3 p-4 pt-2 relative">

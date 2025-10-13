@@ -36,8 +36,8 @@ export default function SideRightBar() {
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto">
-        {data?.map((item) => (
-          <ReleaseCard data={item} />
+        {data?.map((item, idx) => (
+          <ReleaseCard key={idx} data={item} />
         ))}
       </div>
     </div>

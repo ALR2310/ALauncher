@@ -4,7 +4,11 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { ToastProvider } from './context/ToastContext';
+import DiscoverDetailPage from './features/discover/DiscoverDetailPage';
+import DiscoverPage from './features/discover/DiscoverPage';
 import HomePage from './features/home/HomePage';
+import LibraryDetailPage from './features/library/LibraryDetailPage';
+import LibraryPage from './features/library/LibraryPage';
 import MainLayout from './layouts/MainLayout';
 
 const isTauri = window.isTauri;
@@ -37,6 +41,14 @@ export default function App() {
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
+                <Route path="library" element={<LibraryPage />}>
+                  <Route index element={<LibraryPage />} />
+                  <Route path=":id" element={<LibraryDetailPage />} />
+                </Route>
+                <Route path="discover" element={<DiscoverPage />}>
+                  <Route index element={<DiscoverPage />} />
+                  <Route path=":id" element={<DiscoverDetailPage />} />
+                </Route>
               </Route>
             </Routes>
           </BrowserRouter>

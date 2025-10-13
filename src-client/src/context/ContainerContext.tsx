@@ -21,9 +21,6 @@ const ContainerProvider = ({ children }: { children: React.ReactNode }) => {
     const sideLeftBarEl = document.getElementById('side-left-bar');
     if (!layoutEl) return;
 
-    console.log('layoutEl.offsetHeight:', layoutEl.offsetHeight);
-    console.log('layoutEl.offsetWidth:', layoutEl.offsetWidth);
-
     const newHeight = titleBarEl ? layoutEl.offsetHeight - titleBarEl.offsetHeight : layoutEl.offsetHeight;
     const newWidth = sideLeftBarEl ? layoutEl.offsetWidth - sideLeftBarEl.offsetWidth : layoutEl.offsetWidth;
 

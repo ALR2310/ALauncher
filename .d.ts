@@ -23,6 +23,7 @@ interface ImportMeta {
 }
 
 interface ImportMetaEnv {
-  readonly MODE: 'development' | 'production' | 'test';
+  readonly MODE: 'development' | 'production';
   readonly VITE_PORT: string;
+  readonly VITE_ENV: 'office';
 }

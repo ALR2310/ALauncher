@@ -24,15 +24,15 @@ export default function HomePage() {
     },
   ]);
 
-  // const isLoading = result.some((r) => r.isLoading);
+  const isLoading = result.some((r) => r.isLoading);
   // const isError = result.some((r) => r.isError);
   const [modpack, mod] = result.map((r) => r.data);
 
   return (
     <div className="flex" style={{ height, width }}>
       <div className="flex-1 p-4 space-y-6 overflow-y-auto">
-        <HomeContentCard title="Discover a modpack" data={modpack?.data || []} />
-        <HomeContentCard title="Discover a mod" data={mod?.data || []} />
+        <HomeContentCard title="Discover a modpack" data={modpack?.data || []} isLoading={isLoading} loadingCount={4} />
+        <HomeContentCard title="Discover a mod" data={mod?.data || []} isLoading={isLoading} loadingCount={4} />
       </div>
 
       <SideRightBar />

@@ -21,7 +21,7 @@ export async function appGetConfig() {
 }
 
 export async function appSetConfig(payload: SetConfigDto) {
-  return API.post<AppConfigDto>(`${BASE_URL}/config`, payload);
+  return API.put<AppConfigDto>(`${BASE_URL}/config`, payload);
 }
 
 export async function appOpenFolder() {

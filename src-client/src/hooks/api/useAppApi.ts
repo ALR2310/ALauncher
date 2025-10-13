@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { appExit, appGetConfig, appOpenFolder, appSetConfig, appVersion } from '~/api';
 
@@ -24,8 +24,13 @@ export const useAppGetConfigQuery = () => {
 };
 
 export const useAppSetConfigMutation = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: appSetConfig,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appConfig'] });
+    },
   });
 };
 

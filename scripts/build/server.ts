@@ -5,6 +5,8 @@ import { build } from 'esbuild';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
+import { ENV } from '../../shared/enums/general.enum';
+
 const outfile = 'dist/data.bin';
 const target = 'node18';
 let define: Record<string, string> = {};
@@ -21,7 +23,7 @@ if (existsSync('.env')) {
 
 define['process.env.NODE_ENV'] = JSON.stringify('production');
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office;
 
 (async () => {
   try {

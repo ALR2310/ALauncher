@@ -3,12 +3,13 @@ import react from '@vitejs/plugin-react';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
+import { ENV } from '../shared/enums/general.enum';
 
 config({ quiet: true, path: resolve(__dirname, '../.env') });
 
 const host = process.env.TAURI_DEV_HOST;
 const clientPort = Number(process.env.VITE_PORT) + 1 || 2311;
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office;
 
 export default defineConfig(async () => ({
   build: {

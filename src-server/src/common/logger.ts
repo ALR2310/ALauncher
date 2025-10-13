@@ -1,3 +1,4 @@
+import { ENV } from '@shared/enums/general.enum';
 import { appendFile } from 'fs/promises';
 
 function safeStringify(obj: any): string {
@@ -33,7 +34,7 @@ export async function logger(...messages: unknown[]) {
 
   const line = `[${timestamp}]: ${text}\n`;
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office) {
     console.log(line.trimEnd());
     return;
   }

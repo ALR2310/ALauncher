@@ -1,4 +1,5 @@
 import { AppConfigDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
+import { ENV } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
 import axios from 'axios';
 import { spawn } from 'child_process';
@@ -102,7 +103,10 @@ export const appService = new (class AppService {
 
   async checkForUpdates(forceRefresh = false) {
     const currentVersion = this.getVersion().version;
-    const gitToken = process.env.NODE_ENV === 'development' ? process.env.GITHUB_TOKEN : undefined;
+    const gitToken =
+      process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office
+        ? process.env.GITHUB_TOKEN
+        : undefined;
 
     const now = Date.now();
     if (!forceRefresh && this.updateCache && this.cacheTimestamp && now - this.cacheTimestamp < this.CACHE_TTL) {

@@ -61,8 +61,15 @@ export const versionService = new (class VersionService {
   }
 
   async findNotes(): Promise<ReleaseNoteDto[]> {
-    const response = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`);
-    if (!this.noteCache.length) this.noteCache = response.data.entries;
+    if (!this.noteCache.length) {
+      const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`);
+
+      this.noteCache = data.entries.map((note: any) => ({
+        ...note,
+        image: { ...note.image, url: `${this.NOTE_API_URL.replace('/v2/', '')}${note.image.url}` },
+      }));
+    }
+
     return this.noteCache;
   }
 

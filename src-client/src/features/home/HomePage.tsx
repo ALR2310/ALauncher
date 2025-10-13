@@ -25,7 +25,6 @@ export default function HomePage() {
   ]);
 
   const isLoading = result.some((r) => r.isLoading);
-  // const isError = result.some((r) => r.isError);
   const [modpack, mod] = result.map((r) => r.data);
 
   return (

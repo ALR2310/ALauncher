@@ -95,7 +95,7 @@ export function HomeContentCard({ title, data, isLoading, loadingCount = 0 }: Ho
                 {isLoading ? (
                   <div className="skeleton w-16 h-4"></div>
                 ) : (
-                  <span className="badge badge-soft badge-sm">Modpack</span>
+                  <span className="badge badge-soft badge-sm line-clamp-1">{item.authors[0].name}</span>
                 )}
               </div>
             </div>

@@ -1,5 +1,5 @@
-import { LoaderQueryDto } from '@shared/dtos/version.dto';
-import { useQuery } from '@tanstack/react-query';
+import { LoaderQueryDto, ReleaseNoteQueryDto } from '@shared/dtos/version.dto';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { versionLoaders, versionNoteDetail, versionNotes, versionReleases } from '~/api/version.api';
 
@@ -17,10 +17,25 @@ export const useVersionLoadersQuery = (params: LoaderQueryDto) => {
   });
 };
 
-export const useVersionNotesQuery = () => {
+export const useVersionNotesQuery = (payload: ReleaseNoteQueryDto) => {
   return useQuery({
-    queryKey: ['versionNotes'],
-    queryFn: () => versionNotes(),
+    queryKey: ['versionNotes', payload],
+    queryFn: () => versionNotes(payload),
+  });
+};
+
+export const useVersionNotesInfinite = (payload: ReleaseNoteQueryDto) => {
+  return useInfiniteQuery({
+    queryKey: ['versionNotesInfinite', payload],
+    queryFn: ({ pageParam = 0 }) => versionNotes({ ...payload, index: pageParam }),
+    getNextPageParam: (lastPage) => {
+      const { index, pageSize, totalCount } = lastPage.pagination;
+      const nextIndex = index + pageSize;
+      if (nextIndex < totalCount) return nextIndex;
+      return undefined;
+    },
+    staleTime: 0,
+    initialPageParam: 0,
   });
 };
 

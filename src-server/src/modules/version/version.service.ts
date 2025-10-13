@@ -3,6 +3,8 @@ import {
   ReleaseNoteDetailQueryDto,
   ReleaseNoteDetailsDto,
   ReleaseNoteDto,
+  ReleaseNoteQueryDto,
+  ReleaseNoteResponseDto,
   VERSION_TYPE,
   VersionDto,
 } from '@shared/dtos/version.dto';
@@ -60,29 +62,47 @@ export const versionService = new (class VersionService {
     return mapped.filter((m) => m && (!type || m.loader?.type === type));
   }
 
-  async findNotes(): Promise<ReleaseNoteDto[]> {
+  async findNotes(payload: ReleaseNoteQueryDto): Promise<ReleaseNoteResponseDto> {
+    const { index = 0, pageSize = 50 } = payload;
+
     if (!this.noteCache.length) {
       const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`);
 
       this.noteCache = data.entries.map((note: any) => ({
         ...note,
-        image: { ...note.image, url: `${this.NOTE_API_URL.replace('/v2/', '')}${note.image.url}` },
+        image: {
+          ...note.image,
+          url: `${this.NOTE_API_URL.replace('/v2/', '')}${note.image.url}`,
+        },
       }));
     }
 
-    return this.noteCache;
+    const start = index;
+    const end = Math.min(index + pageSize, this.noteCache.length);
+    const sliced = this.noteCache.slice(start, end);
+
+    return {
+      data: sliced,
+      pagination: {
+        index,
+        pageSize,
+        resultCount: sliced.length,
+        totalCount: this.noteCache.length,
+      },
+    };
   }
 
   async findNoteDetails(payload: ReleaseNoteDetailQueryDto) {
     const { version } = payload;
-    if (!this.noteCache.length) await this.findNotes();
+
+    if (!this.noteCache.length) await this.findNotes({});
     const note = this.noteCache.find((note) => note.version === version);
 
     if (!note) throw new NotFoundException('Release note not found');
     const contentPath = note.contentPath;
 
-    const response = await axios.get(`${this.NOTE_API_URL}${contentPath}`);
-    const result: ReleaseNoteDetailsDto = { ...note, content: response.data.body };
+    const { data } = await axios.get(`${this.NOTE_API_URL}${contentPath}`);
+    const result: ReleaseNoteDetailsDto = { ...note, content: data.body };
     return result;
   }
 })();

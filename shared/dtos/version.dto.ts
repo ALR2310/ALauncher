@@ -1,6 +1,8 @@
 import { createZodDto } from '@shared/utils/zod.dto';
 import z from 'zod';
 
+import { baseResponseSchema } from './base.dto';
+
 export enum VERSION_TYPE {
   RELEASE = 'release',
   MODIFIED = 'modified',
@@ -23,6 +25,11 @@ const loaderQuerySchema = z.object({
   type: z.string().optional(),
 });
 
+const releaseNoteQuerySchema = z.object({
+  index: z.coerce.number().min(0).optional(),
+  pageSize: z.coerce.number().min(1).max(50).optional(),
+});
+
 const releaseNoteSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -37,6 +44,10 @@ const releaseNoteSchema = z.object({
   shortText: z.string(),
 });
 
+const releaseNoteResponseSchema = baseResponseSchema.extend({
+  data: z.array(releaseNoteSchema),
+});
+
 const releaseNoteDetailQuerySchema = z.object({
   version: z.string(),
 });
@@ -48,5 +59,7 @@ const releaseNoteDetailsSchema = releaseNoteSchema.extend({
 export class VersionDto extends createZodDto(versionSchema) {}
 export class LoaderQueryDto extends createZodDto(loaderQuerySchema) {}
 export class ReleaseNoteDto extends createZodDto(releaseNoteSchema) {}
+export class ReleaseNoteQueryDto extends createZodDto(releaseNoteQuerySchema) {}
+export class ReleaseNoteResponseDto extends createZodDto(releaseNoteResponseSchema) {}
 export class ReleaseNoteDetailQueryDto extends createZodDto(releaseNoteDetailQuerySchema) {}
 export class ReleaseNoteDetailsDto extends createZodDto(releaseNoteDetailsSchema) {}

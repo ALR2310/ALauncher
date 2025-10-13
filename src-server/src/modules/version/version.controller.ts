@@ -1,4 +1,4 @@
-import { LoaderQueryDto, ReleaseNoteDetailQueryDto } from '@shared/dtos/version.dto';
+import { LoaderQueryDto, ReleaseNoteDetailQueryDto, ReleaseNoteQueryDto } from '@shared/dtos/version.dto';
 
 import { Controller, Get, Param, Query, Validate } from '~/common/decorators';
 
@@ -18,8 +18,9 @@ export class VersionController {
   }
 
   @Get('notes')
-  async findNotes() {
-    return versionService.findNotes();
+  @Validate(ReleaseNoteQueryDto)
+  async findNotes(@Query() query: ReleaseNoteQueryDto) {
+    return versionService.findNotes(query);
   }
 
   @Get('notes/:version')

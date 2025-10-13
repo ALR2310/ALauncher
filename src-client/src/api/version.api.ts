@@ -1,4 +1,10 @@
-import { LoaderQueryDto, ReleaseNoteDetailsDto, ReleaseNoteDto, VersionDto } from '@shared/dtos/version.dto';
+import {
+  LoaderQueryDto,
+  ReleaseNoteDetailsDto,
+  ReleaseNoteQueryDto,
+  ReleaseNoteResponseDto,
+  VersionDto,
+} from '@shared/dtos/version.dto';
 
 import { API } from '.';
 
@@ -12,8 +18,8 @@ export const versionLoaders = (params: LoaderQueryDto) => {
   return API.get<VersionDto[]>(`${BASE_PATH}/loader`, params);
 };
 
-export const versionNotes = () => {
-  return API.get<ReleaseNoteDto[]>(`${BASE_PATH}/notes`);
+export const versionNotes = (params: ReleaseNoteQueryDto) => {
+  return API.get<ReleaseNoteResponseDto>(`${BASE_PATH}/notes`, params);
 };
 
 export const versionNoteDetail = (version: string) => {

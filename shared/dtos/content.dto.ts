@@ -8,15 +8,7 @@ import {
 } from 'curseforge-api';
 import z from 'zod';
 
-const baseResponseSchema = z.object({
-  data: z.any(),
-  pagination: z.object({
-    index: z.number(),
-    pageSize: z.number(),
-    resultCount: z.number(),
-    totalCount: z.number(),
-  }),
-});
+import { baseResponseSchema } from './base.dto';
 
 const contentSchema = z.object({
   screenshots: z.array(

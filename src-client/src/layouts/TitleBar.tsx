@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Copy, Minus, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import icon from '~/assets/images/icon.ico';
+import { Img } from '~/components/Img';
 
 const WindowControlButton = () => {
   const isTauri = window.isTauri;
@@ -79,7 +80,7 @@ export default function TitleBar() {
     >
       <div className="flex items-center h-full pl-1 space-x-4" data-tauri-drag-region>
         <div className="flex items-center h-full">
-          <img src={icon} alt="title icon" className="h-full p-3" />
+          <Img src={icon} alt="title icon" className="h-full p-3" />
           <p className="font-semibold text-xl">
             <span className="text-success">A</span>L<span className="text-success">a</span>uncher
           </p>

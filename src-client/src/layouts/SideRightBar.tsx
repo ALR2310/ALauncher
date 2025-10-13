@@ -1,10 +1,11 @@
 import steveFace from '~/assets/images/steve-face.png';
+import { Img } from '~/components/Img';
 
 export default function SideRightBar() {
   return (
     <div className="flex flex-col p-3 w-64 lg:w-72">
       <div className="flex gap-2 p-3 bg-base-100 rounded-xl border border-base-content/10">
-        <img src={steveFace} alt="Steve Face" className="w-10 border border-base-content/30 rounded-lg" />
+        <Img src={steveFace} alt="Steve Face" className="w-10 border border-base-content/30 rounded-lg" />
 
         <div className="flex flex-col">
           <input

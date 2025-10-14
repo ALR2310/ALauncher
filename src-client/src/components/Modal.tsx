@@ -58,7 +58,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
   ) => {
     return (
       <dialog ref={ref} className={`modal ${className}`}>
-        <div className={`modal-box p-4 ${classNameContent}`} style={{ maxWidth: width }}>
+        <div className={`modal-box p-4 ${classNameContent} outline-none`} style={{ maxWidth: width }}>
           {iconClose && (
             <form method="dialog">
               <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>

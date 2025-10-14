@@ -14,7 +14,7 @@ import { API, API_URL } from '.';
 
 const BASE_PATH = 'instances';
 
-export async function instanceFindAll(param: InstanceQueryDto) {
+export async function instanceFindAll(param?: InstanceQueryDto) {
   return API.get<InstanceDto[]>(`${BASE_PATH}`, param);
 }
 

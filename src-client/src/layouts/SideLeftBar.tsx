@@ -1,7 +1,12 @@
 import { Compass, House, Library, Plus, Settings } from 'lucide-react';
+import { useRef } from 'react';
 import { NavLink } from 'react-router';
 
+import LibraryModal from './LibraryModal';
+
 export default function SideLeftBar() {
+  const modalRef = useRef<HTMLDialogElement>(null!);
+
   return (
     <div id="side-left-bar" className="flex flex-col justify-between">
       <div>
@@ -52,17 +57,13 @@ export default function SideLeftBar() {
 
         <ul className="menu menu-sm rounded-box">
           <li>
-            <NavLink
-              to="/create"
-              className={({ isActive }) =>
-                `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
-                  isActive ? 'bg-success/10 text-success' : ''
-                }`
-              }
+            <a
+              className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
               data-tip="Create"
+              onClick={() => modalRef.current.showModal()}
             >
               <Plus size={20} />
-            </NavLink>
+            </a>
           </li>
         </ul>
       </div>
@@ -82,6 +83,8 @@ export default function SideLeftBar() {
           </NavLink>
         </li>
       </ul>
+
+      <LibraryModal ref={modalRef} />
     </div>
   );
 }

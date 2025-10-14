@@ -101,6 +101,9 @@ export const instanceService = new (class InstanceService {
   async create(instance: InstanceDto) {
     const lock = this.getInstanceLock(instance.id);
 
+    const existing = await this.findOne(instance.id).catch(() => null);
+    if (existing) throw new BadRequestException(`Instance already exists`);
+
     return lock.runExclusive(async () => {
       const fileDir = path.join(await this.getInstanceDir(), instance.id);
       const filePath = path.join(fileDir, this.FILE_NAME);
@@ -228,7 +231,7 @@ export const instanceService = new (class InstanceService {
         authenticator: auth,
         loader: {
           path: '.',
-          type: instance.loader?.type,
+          type: instance.loader ? CurseForgeModLoaderType[instance.loader.type] : undefined,
           build: instance.loader?.version ?? 'latest',
           enable: !!instance.loader,
         },
@@ -361,8 +364,7 @@ export const instanceService = new (class InstanceService {
         const mappedType = contentInfo.classId ? categoryMap.idToText[contentInfo.classId] : undefined;
         const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? contentType);
 
-        const loader =
-          realType === 'mods' && instance.loader?.type ? CurseForgeModLoaderType[instance.loader.type] : undefined;
+        const loader = realType === 'mods' ? instance.loader?.type : undefined;
 
         const contentFile = await contentService
           .findFiles({ id: id, gameVersion, modLoaderType: loader })

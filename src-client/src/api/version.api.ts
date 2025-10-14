@@ -11,11 +11,11 @@ import { API } from '.';
 const BASE_PATH = 'versions';
 
 export const versionReleases = () => {
-  return API.get<VersionDto[]>(`${BASE_PATH}/release`);
+  return API.get<VersionDto[]>(`${BASE_PATH}/releases`);
 };
 
 export const versionLoaders = (params: LoaderQueryDto) => {
-  return API.get<VersionDto[]>(`${BASE_PATH}/loader`, params);
+  return API.get<VersionDto[]>(`${BASE_PATH}/loaders`, params);
 };
 
 export const versionNotes = (params: ReleaseNoteQueryDto) => {

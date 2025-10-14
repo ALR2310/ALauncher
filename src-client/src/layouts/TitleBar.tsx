@@ -76,7 +76,7 @@ export default function TitleBar() {
     <div
       id="title-bar"
       data-tauri-drag-region
-      className="flex items-center justify-between h-12 bg-base-200 select-none"
+      className="flex items-center justify-between h-12 bg-base-200 select-none cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-center h-full pl-1 space-x-4" data-tauri-drag-region>
         <div className="flex items-center h-full">
@@ -96,7 +96,7 @@ export default function TitleBar() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end space-x-4 h-full w-[40%]">
+      <div className="flex items-center justify-end space-x-4 h-full">
         {/* <div className="relative flex items-center p-2 w-full px-2 bg-base-100 rounded-box border border-base-content/10">
           <progress className="progress progress-success rounded w-full h-4" />
           <span className="absolute inset-0 flex items-center justify-center text-xs text-white">download java</span>

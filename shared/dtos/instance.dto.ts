@@ -40,7 +40,7 @@ const instanceSchema = z.object({
   version: z.string(),
   loader: z
     .object({
-      type: z.enum(Object.keys(CurseForgeModLoaderType)),
+      type: z.coerce.number().enum(CurseForgeModLoaderType),
       version: z.string(),
     })
     .nullish(),

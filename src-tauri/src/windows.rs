@@ -26,6 +26,7 @@ fn spawn_runtime_process<P: AsRef<Path>>(runtime_path: P, data_path: P) {
 
 pub fn create_main_window(app: &App) {
     let node_env = env::var("NODE_ENV").unwrap_or_else(|_| "production".into());
+    let vite_env = env::var("VITE_ENV").unwrap_or_else(|_| "production".into());
 
     let exe_dir = env::current_exe()
         .ok()
@@ -52,7 +53,7 @@ pub fn create_main_window(app: &App) {
     let mut desired_width_physical = 1200.0;
     let mut desired_height_physical = 700.0;
 
-    if node_env == "office" {
+    if vite_env == "office" {
         desired_width_physical = 500.0;
         desired_height_physical = 250.0;
     }
@@ -68,7 +69,7 @@ pub fn create_main_window(app: &App) {
 
     let mut url = WebviewUrl::External("http://localhost:2310".parse().unwrap());
 
-    if node_env == "development" || node_env == "office" {
+    if node_env == "development" {
         url = WebviewUrl::External("http://localhost:2311".parse().unwrap());
     }
 

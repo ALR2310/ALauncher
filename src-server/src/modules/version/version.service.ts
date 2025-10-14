@@ -36,30 +36,30 @@ export const versionService = new (class VersionService {
 
     const loaders = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });
 
-    const mapped = loaders.flatMap((loader) => {
-      const loaderType = CurseForgeModLoaderType[loader.type];
-      if (!loaderType) return [];
+    return loaders
+      .filter((l) => !type || l.type === type)
+      .map((loader) => {
+        const enumType = CurseForgeModLoaderType[loader.type];
+        if (!enumType) return null;
 
-      const lowerType = loaderType.toLowerCase();
-      let loaderVersion = loader.name.toLowerCase().replace(`${lowerType}-`, '');
+        const lowerType = enumType.toLowerCase();
+        const lowerGame = loader.gameVersion.toLowerCase();
 
-      if (loaderVersion.endsWith(`-${loader.gameVersion.toLowerCase()}`)) {
-        loaderVersion = loaderVersion.replace(`-${loader.gameVersion.toLowerCase()}`, '');
-      }
+        let loaderVersion = loader.name.toLowerCase();
+        loaderVersion = loaderVersion.replace(`${lowerType}-`, '');
+        loaderVersion = loaderVersion.replace(`-${lowerGame}`, '');
 
-      const displayName = `${capitalize(loaderType)} ${loaderVersion.replace(/-/g, ' ')}`;
-
-      return [
-        {
-          name: displayName,
+        return {
+          name: `${capitalize(enumType)} ${loaderVersion.replace(/-/g, ' ')}`,
           type: VERSION_TYPE.MODIFIED,
           version: loader.gameVersion,
-          loader: { type: lowerType, version: loaderVersion },
-        },
-      ];
-    });
-
-    return mapped.filter((m) => m && (!type || m.loader?.type === type));
+          loader: {
+            type: lowerType,
+            version: loaderVersion,
+          },
+        } as VersionDto;
+      })
+      .filter((x): x is VersionDto => x !== null);
   }
 
   async findNotes(payload: ReleaseNoteQueryDto): Promise<ReleaseNoteResponseDto> {

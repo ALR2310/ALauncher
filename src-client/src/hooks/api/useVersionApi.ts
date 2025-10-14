@@ -14,6 +14,7 @@ export const useVersionLoadersQuery = (params: LoaderQueryDto) => {
   return useQuery({
     queryKey: ['versionLoaders', params],
     queryFn: () => versionLoaders(params),
+    enabled: !!params.version,
   });
 };
 

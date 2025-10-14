@@ -3,7 +3,7 @@ import { readFile } from 'fs/promises';
 import { Context, Next } from 'hono';
 
 let cached: string | null = null;
-const isDev = process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office;
+const isDev = process.env.NODE_ENV === ENV.Development;
 
 export const renderGUI = async (c: Context, next: Next) => {
   const isApi = c.req.path.startsWith('/api');

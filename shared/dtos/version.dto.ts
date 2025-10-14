@@ -1,4 +1,5 @@
 import { createZodDto } from '@shared/utils/zod.dto';
+import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
 import { baseResponseSchema } from './base.dto';
@@ -22,7 +23,7 @@ const versionSchema = z.object({
 
 const loaderQuerySchema = z.object({
   version: z.string().optional(),
-  type: z.string().optional(),
+  type: z.coerce.number().enum(CurseForgeModLoaderType).optional(),
 });
 
 const releaseNoteQuerySchema = z.object({

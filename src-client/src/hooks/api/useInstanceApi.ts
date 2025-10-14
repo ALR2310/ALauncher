@@ -18,7 +18,7 @@ import {
 
 import { toast } from '../app/useToast';
 
-export function useInstancesQuery(param: InstanceQueryDto) {
+export function useInstancesQuery(param?: InstanceQueryDto) {
   return useQuery({
     queryKey: ['instances', param],
     queryFn: () => instanceFindAll(param),

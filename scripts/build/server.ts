@@ -23,7 +23,7 @@ if (existsSync('.env')) {
 
 define['process.env.NODE_ENV'] = JSON.stringify('production');
 
-const isDev = process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office;
+const isDev = process.env.NODE_ENV === ENV.Development;
 
 (async () => {
   try {

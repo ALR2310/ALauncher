@@ -34,7 +34,7 @@ export async function logger(...messages: unknown[]) {
 
   const line = `[${timestamp}]: ${text}\n`;
 
-  if (process.env.NODE_ENV === ENV.Development || process.env.NODE_ENV === ENV.Office) {
+  if (process.env.NODE_ENV === ENV.Development) {
     console.log(line.trimEnd());
     return;
   }

@@ -7,6 +7,7 @@ import { ToastProvider } from './context/ToastContext';
 import DiscoverDetailPage from './features/discover/DiscoverDetailPage';
 import DiscoverPage from './features/discover/DiscoverPage';
 import HomePage from './features/home/HomePage';
+import LibraryLayout from './features/library/layouts/LibraryLayout';
 import LibraryDetailPage from './features/library/LibraryDetailPage';
 import LibraryPage from './features/library/LibraryPage';
 import MainLayout from './layouts/MainLayout';
@@ -41,7 +42,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
-                <Route path="library">
+                <Route path="library" element={<LibraryLayout />}>
                   <Route index element={<LibraryPage />} />
                   <Route path=":id" element={<LibraryDetailPage />} />
                 </Route>

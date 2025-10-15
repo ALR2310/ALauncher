@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Copy, Minus, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import icon from '~/assets/images/icon.ico';
-import { Img } from '~/components/Img';
+import Img from '~/components/Img';
 
 const WindowControlButton = () => {
   const isTauri = window.isTauri;

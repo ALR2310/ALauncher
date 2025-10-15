@@ -8,7 +8,7 @@ import fabricLogo from '~/assets/images/logos/fabric.png';
 import forgeLogo from '~/assets/images/logos/forge.jpg';
 import neoForgeLogo from '~/assets/images/logos/neoforge.png';
 import quiltLogo from '~/assets/images/logos/quilt.png';
-import { Img } from '~/components/Img';
+import Img from '~/components/Img';
 import Modal from '~/components/Modal';
 import Select from '~/components/Select';
 import {

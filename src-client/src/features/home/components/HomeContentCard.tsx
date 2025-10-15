@@ -3,7 +3,7 @@ import { abbreviateNumber } from '@shared/utils/general.utils';
 import { ChevronRight, Download, FileArchive } from 'lucide-react';
 import { Link } from 'react-router';
 
-import { Img } from '~/components/Img';
+import Img from '~/components/Img';
 
 interface HomeContentCardProps {
   title: string;

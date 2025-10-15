@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 
 import steveFace from '~/assets/images/steve-face.png';
-import { Img } from '~/components/Img';
+import Img from '~/components/Img';
 import { useAppGetConfigQuery, useAppSetConfigMutation } from '~/hooks/api/useAppApi';
 import { useVersionNotesInfinite } from '~/hooks/api/useVersionApi';
 
@@ -36,7 +36,6 @@ export default function SideRightBar() {
 
   useEffect(() => {
     if (!configInit.current && config?.auth.username !== undefined) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUsername(config.auth.username);
       configInit.current = true;
     }

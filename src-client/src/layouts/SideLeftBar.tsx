@@ -1,11 +1,14 @@
-import { Compass, House, Library, Plus, Settings } from 'lucide-react';
+import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
 import { useRef } from 'react';
-import { NavLink } from 'react-router';
+import { Link, NavLink } from 'react-router';
+
+import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 import LibraryModal from './LibraryModal';
 
 export default function SideLeftBar() {
   const modalRef = useRef<HTMLDialogElement>(null!);
+  const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
 
   return (
     <div id="side-left-bar" className="flex flex-col justify-between">
@@ -56,6 +59,18 @@ export default function SideLeftBar() {
         <div className="divider m-0 p-2" />
 
         <ul className="menu menu-sm rounded-box">
+          {instances && instances.length && (
+            <li>
+              <Link
+                to={`/library/${instances[0].id}`}
+                className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
+                data-tip={instances[0].name}
+              >
+                <Box size={20} />
+              </Link>
+            </li>
+          )}
+
           <li>
             <a
               className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
@@ -70,17 +85,12 @@ export default function SideLeftBar() {
 
       <ul className="menu menu-sm rounded-box">
         <li>
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
-                isActive ? 'bg-success/10 text-success' : ''
-              }`
-            }
+          <a
+            className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
             data-tip="Setting"
           >
             <Settings size={20} />
-          </NavLink>
+          </a>
         </li>
       </ul>
 

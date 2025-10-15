@@ -1,5 +1,5 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { ArrowLeft, ArrowRight, Copy, Minus, Square, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, Minus, Search, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import icon from '~/assets/images/icon.ico';
@@ -76,12 +76,12 @@ export default function TitleBar() {
     <div
       id="title-bar"
       data-tauri-drag-region
-      className="flex items-center justify-between h-12 bg-base-200 select-none cursor-grab active:cursor-grabbing"
+      className="relative flex items-center justify-between h-12 bg-base-200 select-none cursor-grab active:cursor-grabbing"
     >
-      <div className="flex items-center h-full pl-1 space-x-4" data-tauri-drag-region>
+      <div className="flex items-center h-full pl-1 space-x-4">
         <div className="flex items-center h-full">
-          <Img src={icon} alt="title icon" className="h-full p-3" />
-          <p className="font-semibold text-xl">
+          <Img src={icon} alt="title icon" className="h-full p-3" data-tauri-drag-region />
+          <p className="font-semibold text-xl" data-tauri-drag-region>
             <span className="text-success">A</span>L<span className="text-success">a</span>uncher
           </p>
         </div>
@@ -96,12 +96,14 @@ export default function TitleBar() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end space-x-4 h-full">
-        {/* <div className="relative flex items-center p-2 w-full px-2 bg-base-100 rounded-box border border-base-content/10">
-          <progress className="progress progress-success rounded w-full h-4" />
-          <span className="absolute inset-0 flex items-center justify-center text-xs text-white">download java</span>
-        </div> */}
+      <div className="absolute left-1/2 -translate-x-1/2">
+        <label className="input input-sm w-72 rounded-2xl flex items-center">
+          <Search size={20} className='text-base-content/60'/>
+          <input type="text" className="grow" placeholder="Enter the keyword..." />
+        </label>
+      </div>
 
+      <div className="flex items-center justify-end space-x-4 h-full">
         {/* Window Control Buttons */}
         <WindowControlButton />
       </div>

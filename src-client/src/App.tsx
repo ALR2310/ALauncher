@@ -41,11 +41,11 @@ export default function App() {
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
-                <Route path="library" element={<LibraryPage />}>
+                <Route path="library">
                   <Route index element={<LibraryPage />} />
                   <Route path=":id" element={<LibraryDetailPage />} />
                 </Route>
-                <Route path="discover" element={<DiscoverPage />}>
+                <Route path="discover">
                   <Route index element={<DiscoverPage />} />
                   <Route path=":id" element={<DiscoverDetailPage />} />
                 </Route>

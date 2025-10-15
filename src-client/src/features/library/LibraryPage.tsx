@@ -30,9 +30,9 @@ export default function LibraryPage() {
 
           return (
             <Link
-              to={''}
+              to={`/library/${instance.id}`}
               key={instance.id}
-              className="relative group h-52 overflow-hidden bg-base-100"
+              className="relative group h-52 overflow-hidden bg-base-100 rounded-xl"
               tabIndex={0}
               style={{
                 backgroundImage: `url(${import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo} )`,

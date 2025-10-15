@@ -8,7 +8,7 @@ export default function LibraryLayout() {
 
   return (
     <div className="flex" style={{ height, width }}>
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         <Outlet />
       </div>
 

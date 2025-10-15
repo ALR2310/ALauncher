@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
+import Progress from '~/components/Progress';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 export default function LibraryPage() {
@@ -20,7 +21,7 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="h-full grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto p-4">
+    <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto p-4">
       {instances?.map((instance) => {
         const isRunning = instanceActive === instance.id;
 
@@ -47,11 +48,8 @@ export default function LibraryPage() {
               <p className="font-semibold">{instance.name}</p>
               <div className="h-10 w-full">
                 {isRunning ? (
-                  <button className="btn btn-ghost w-full px-0 relative" onClick={() => console.log('stop')}>
-                    <progress className="progress progress-success w-full h-full" />
-                    <div className="flex flex-col justify-center items-center absolute text-base-content text-center inset-0">
-                      <p>Download {instance.name}</p>
-                    </div>
+                  <button className="btn btn-ghost w-full px-0 " onClick={() => console.log('stop')}>
+                    <Progress className="h-full w-full" text={`Download ${instance.name}`} />
                   </button>
                 ) : (
                   <button

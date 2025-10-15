@@ -54,7 +54,7 @@ export const contentService = new (class ContentService {
           const gameVersion = instance.version;
 
           const latestMatch = item.latestFilesIndexes.find(
-            (f) => f.gameVersion === gameVersion && f.modLoader === CurseForgeModLoaderType[loaderType],
+            (f) => f.gameVersion === gameVersion && f.modLoader === loaderType,
           );
           const installContent = installedContentsMap.get(item.id);
 

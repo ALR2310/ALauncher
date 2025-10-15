@@ -4,6 +4,7 @@ import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen } from 'luci
 import { useParams } from 'react-router';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
+import DataTable from '~/components/DataTable';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
@@ -71,14 +72,41 @@ export default function LibraryDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex-1 flex flex-col gap-1">
-          <div className="tabs tabs-border">
-            <input type="radio" name="my_tabs_1" className="tab" aria-label="Tab 1" />
-            <input type="radio" name="my_tabs_1" className="tab" aria-label="Tab 2" defaultChecked />
-            <input type="radio" name="my_tabs_1" className="tab" aria-label="Tab 3" />
+        <div className="h-full flex-1 flex flex-col gap-1">
+          <div className="tabs tabs-border flex-nowrap overflow-x-auto">
+            <input type="radio" name="content_type" className="tab" aria-label="Mods" defaultChecked />
+            <input type="radio" name="content_type" className="tab" aria-label="Resource Packs" />
+            <input type="radio" name="content_type" className="tab" aria-label="Shader Packs" />
+            <input type="radio" name="content_type" className="tab" aria-label="Data Packs" />
+            <input type="radio" name="content_type" className="tab" aria-label="Worlds" />
           </div>
 
-          <div className="flex-1 bg-base-100 rounded-xl"></div>
+          <DataTable
+            className="flex-1 bg-base-100 rounded-xl overflow-auto"
+            columns={[
+              { key: 'name', title: 'Name', sortable: true },
+              { key: 'age', title: 'Age', sortable: true },
+              { key: 'address', title: 'Address', sortable: true },
+              { key: 'phone', title: 'Phone', sortable: true },
+            ]}
+            data={[
+              { name: 'John Doe', age: 29, address: '123 Main St', phone: '555-1234' },
+              { name: 'Jane Smith', age: 34, address: '456 Oak Ave', phone: '555-5678' },
+              { name: 'Sam Johnson', age: 42, address: '789 Pine Rd', phone: '555-8765' },
+              { name: 'Alice Brown', age: 27, address: '321 Maple St', phone: '555-4321' },
+              { name: 'Bob White', age: 36, address: '654 Cedar Ave', phone: '555-6789' },
+
+              { name: 'Carol Green', age: 31, address: '987 Birch Rd', phone: '555-9876' },
+              { name: 'David Black', age: 45, address: '147 Spruce St', phone: '555-2468' },
+              { name: 'Jane Smith', age: 34, address: '456 Oak Ave', phone: '555-5678' },
+              { name: 'Sam Johnson', age: 42, address: '789 Pine Rd', phone: '555-8765' },
+              { name: 'Alice Brown', age: 27, address: '321 Maple St', phone: '555-4321' },
+              { name: 'Bob White', age: 36, address: '654 Cedar Ave', phone: '555-6789' },
+              { name: 'Carol Green', age: 31, address: '987 Birch Rd', phone: '555-9876' },
+              { name: 'David Black', age: 45, address: '147 Spruce St', phone: '555-2468' },
+            ]}
+            onSortChange={(key, dir) => console.log('Sort changed:', key, dir)}
+          />
         </div>
       </div>
     );

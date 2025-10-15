@@ -64,8 +64,8 @@ pub fn create_main_window(app: &App) {
     let x = (screen_size.width as f64 / scale_factor - logical_width) / 2.0;
     let y = (screen_size.height as f64 / scale_factor - logical_height) / 2.0;
 
-    let min_width = logical_width * 0.75;
-    let min_height = logical_height * 0.75;
+    let min_width = logical_width * 0.80;
+    let min_height = logical_height * 0.80;
 
     let mut url = WebviewUrl::External("http://localhost:2310".parse().unwrap());
 

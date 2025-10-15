@@ -15,7 +15,7 @@ const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
       <img src={data.image.url} className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative p-3 text-base-content space-y-2">
-        <p className="font-semibold">{data.title}</p>
+        <p className="text-lg font-semibold">{data.title}</p>
         <p className="opacity-90 line-clamp-4">{data.shortText}</p>
       </div>
     </Link>
@@ -58,7 +58,7 @@ export default function SideRightBar() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
-    <div className="p-3 w-64 lg:w-72 space-y-4 overflow-y-auto " id="release-scroll">
+    <div className="py-3 px-1 w-72 lg:w-80 space-y-4 overflow-y-auto " id="release-scroll">
       <div className="flex gap-2 p-3 bg-base-100 rounded-xl border border-base-content/10">
         <Img
           src={steveFace}

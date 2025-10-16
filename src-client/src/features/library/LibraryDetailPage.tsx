@@ -17,9 +17,9 @@ export default function LibraryDetailPage() {
 
   if (instance)
     return (
-      <div className="flex-1 flex flex-col p-4 space-y-4">
+      <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">
         {/* Header */}
-        <div className="flex gap-4 rounded-xl bg-base-100 border border-base-content/20 p-3">
+        <div className="flex gap-4 rounded-xl bg-base-100 border border-base-content/10 p-3">
           <Img src={instanceLogo} alt={instance.name} className="w-16 h-16 object-cover" />
           <div className="flex-1 flex flex-col justify-between">
             <div className="flex w-full justify-between">
@@ -72,7 +72,7 @@ export default function LibraryDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="h-full flex-1 flex flex-col gap-1">
+        <div className="flex-1 flex flex-col min-h-0 gap-1">
           <div className="tabs tabs-border flex-nowrap overflow-x-auto">
             <input type="radio" name="content_type" className="tab" aria-label="Mods" defaultChecked />
             <input type="radio" name="content_type" className="tab" aria-label="Resource Packs" />
@@ -82,7 +82,7 @@ export default function LibraryDetailPage() {
           </div>
 
           <DataTable
-            className="flex-1 bg-base-100 rounded-xl overflow-auto"
+            className="flex-1 bg-base-100 rounded-xl"
             columns={[
               { key: 'name', title: 'Name', sortable: true },
               { key: 'age', title: 'Age', sortable: true },
@@ -95,7 +95,6 @@ export default function LibraryDetailPage() {
               { name: 'Sam Johnson', age: 42, address: '789 Pine Rd', phone: '555-8765' },
               { name: 'Alice Brown', age: 27, address: '321 Maple St', phone: '555-4321' },
               { name: 'Bob White', age: 36, address: '654 Cedar Ave', phone: '555-6789' },
-
               { name: 'Carol Green', age: 31, address: '987 Birch Rd', phone: '555-9876' },
               { name: 'David Black', age: 45, address: '147 Spruce St', phone: '555-2468' },
               { name: 'Jane Smith', age: 34, address: '456 Oak Ave', phone: '555-5678' },

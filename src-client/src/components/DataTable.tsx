@@ -79,7 +79,7 @@ export default function DataTable<T>({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative overflow-auto ${className}`}>
       <table className={`table table-pin-rows ${type === 'zebra' ? 'table-zebra' : ''}`}>
         <thead>
           <tr>

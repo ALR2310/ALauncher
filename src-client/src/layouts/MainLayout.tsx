@@ -27,7 +27,7 @@ export default function MainLayout() {
     <ContainerProvider>
       <div
         id="layout"
-        className="flex flex-col"
+        className="flex flex-col min-h-0"
         style={{ width: isTauri ? '100vw' : `${width}px`, height: isTauri ? '100vh' : `${height}px` }}
       >
         <TitleBar />

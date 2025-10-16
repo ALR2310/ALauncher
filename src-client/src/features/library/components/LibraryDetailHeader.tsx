@@ -15,9 +15,9 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
   const isRunning = false;
 
   return (
-    <div className="flex rounded-xl bg-base-100 border border-base-content/10 overflow-hidden">
+    <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10 overflow-hidden">
       <Img src={instanceLogo} alt={data.name} className="w-28 h-24 object-cover" />
-      <div className="flex-1 flex flex-col justify-between p-3">
+      <div className="flex-1 flex flex-col justify-between">
         <div className="flex w-full justify-between">
           <p className="text-xl font-bold">{data.name}</p>
 
@@ -45,6 +45,8 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
             </div>
           </div>
         </div>
+
+        <div className="divider m-0"></div>
 
         {isRunning ? (
           <Progress className="w-full h-5" />

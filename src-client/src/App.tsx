@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
+import { LibraryModalProvider } from './context/LibraryModalContext';
 import { ToastProvider } from './context/ToastContext';
 import DiscoverDetailPage from './features/discover/DiscoverDetailPage';
 import DiscoverPage from './features/discover/DiscoverPage';
@@ -38,21 +39,23 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <ConfirmProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<MainLayout />}>
-                <Route index element={<HomePage />} />
-                <Route path="library" element={<LibraryLayout />}>
-                  <Route index element={<LibraryPage />} />
-                  <Route path=":id" element={<LibraryDetailPage />} />
+          <LibraryModalProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<MainLayout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="library" element={<LibraryLayout />}>
+                    <Route index element={<LibraryPage />} />
+                    <Route path=":id" element={<LibraryDetailPage />} />
+                  </Route>
+                  <Route path="discover">
+                    <Route index element={<DiscoverPage />} />
+                    <Route path=":id" element={<DiscoverDetailPage />} />
+                  </Route>
                 </Route>
-                <Route path="discover">
-                  <Route index element={<DiscoverPage />} />
-                  <Route path=":id" element={<DiscoverDetailPage />} />
-                </Route>
-              </Route>
-            </Routes>
-          </BrowserRouter>
+              </Routes>
+            </BrowserRouter>
+          </LibraryModalProvider>
         </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>

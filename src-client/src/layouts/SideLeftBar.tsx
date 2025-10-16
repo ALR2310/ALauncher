@@ -1,13 +1,11 @@
 import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
-import { useRef } from 'react';
 import { Link, NavLink } from 'react-router';
 
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
-
-import LibraryModal from './LibraryModal';
+import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
 export default function SideLeftBar() {
-  const modalRef = useRef<HTMLDialogElement>(null!);
+  const { open } = useLibraryModal();
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
 
   return (
@@ -75,7 +73,7 @@ export default function SideLeftBar() {
             <a
               className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
               data-tip="Create"
-              onClick={() => modalRef.current.showModal()}
+              onClick={() => open()}
             >
               <Plus size={20} />
             </a>
@@ -93,8 +91,6 @@ export default function SideLeftBar() {
           </a>
         </li>
       </ul>
-
-      <LibraryModal ref={modalRef} />
     </div>
   );
 }

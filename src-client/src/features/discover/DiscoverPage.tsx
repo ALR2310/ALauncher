@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { useContentsInfinite } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
@@ -7,15 +8,32 @@ import ContentCard from './components/ContentCard';
 
 export default function DiscoverPage() {
   const { height, width } = useContainer();
-  const { data: contents } = useContentsInfinite({
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const { data, isFetchingNextPage, hasNextPage, fetchNextPage } = useContentsInfinite({
     pageSize: 20,
   });
 
-  const allContents = contents?.pages.flatMap((page) => page.data) ?? [];
+  const allContents = data?.pages.flatMap((page) => page.data) ?? [];
+
+  useEffect(() => {
+    if (!loaderRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
+      },
+      { root: document.querySelector('#content-scroll'), rootMargin: '0px 0px 400px 0px', threshold: 0.1 },
+    );
+
+    const current = loaderRef.current;
+    observer.observe(current);
+    return () => observer.unobserve(current);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <div className="flex" style={{ height, width }}>
-      <div className="flex-1 flex flex-col min-h-0 p-4 pe-1 gap-4 overflow-auto">
+      <div className="flex-1 flex flex-col min-h-0 p-4 pe-1 gap-4">
         <div className="flex gap-4">
           <select className="select w-38">
             <option value="1">Featured</option>
@@ -39,10 +57,14 @@ export default function DiscoverPage() {
           </select>
         </div>
 
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 overflow-auto" id="content-scroll">
           {allContents.map((content) => (
             <ContentCard key={content.id} data={content} />
           ))}
+
+          <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
+            {isFetchingNextPage ? 'Loading...' : hasNextPage ? 'Load more' : ''}
+          </div>
         </div>
       </div>
 

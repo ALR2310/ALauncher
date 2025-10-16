@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, Settings } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface ColumnSetting {
   enabled?: boolean;
@@ -28,6 +28,7 @@ interface DataTableProps<T> {
   onSortChange?: (key: string, dir: SortDir) => void;
   onRowClick?: (row: T, index: number) => void;
   columnSetting?: ColumnSetting;
+  emptyState?: React.ReactNode;
 }
 
 export default function DataTable<T>({
@@ -41,6 +42,7 @@ export default function DataTable<T>({
   onSortChange,
   onRowClick,
   columnSetting,
+  emptyState = 'No contents found',
 }: DataTableProps<T>) {
   const [visibleKeys, setVisibleKeys] = useState<string[]>(
     columns.filter((c) => c.show !== false).map((c) => c.key as string),
@@ -55,28 +57,39 @@ export default function DataTable<T>({
     setSortState((prev) => ({ ...prev, dir: sortDir ?? prev.dir }));
   }, [sortDir]);
 
-  const toggleColumn = (key: string) => {
+  const toggleColumn = useCallback((key: string) => {
     setVisibleKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
-  };
+  }, []);
 
-  const handleSort = (col: Column<T>) => {
-    if (!col.sortable) return;
+  const handleSort = useCallback(
+    (col: Column<T>) => {
+      if (!col.sortable) return;
 
-    setSortState((prev) => {
-      const colKey = String(col.key);
-      const isSameCol = prev.key === colKey;
-      const firstDirOnNewCol: SortDir = (sortDir ?? 'asc') === 'asc' ? 'desc' : 'asc';
-      const nextDir: SortDir = isSameCol ? (prev.dir === 'asc' ? 'desc' : 'asc') : firstDirOnNewCol;
-      onSortChange?.(colKey, nextDir);
-      return { key: colKey, dir: nextDir };
-    });
-  };
+      setSortState((prev) => {
+        const colKey = String(col.key);
+        const isSameCol = prev.key === colKey;
+        const firstDirOnNewCol: SortDir = (sortDir ?? 'asc') === 'asc' ? 'desc' : 'asc';
+        const nextDir: SortDir = isSameCol ? (prev.dir === 'asc' ? 'desc' : 'asc') : firstDirOnNewCol;
+        onSortChange?.(colKey, nextDir);
+        return { key: colKey, dir: nextDir };
+      });
+    },
+    [onSortChange, sortDir],
+  );
 
   const getSortIcon = (col: Column<T>) => {
-    if (!col.sortable) return null;
-    if (sortState.key !== col.key || !sortState.dir) return <ArrowUpDown size={14} />;
-    return sortState.dir === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
+    return sortState.key === col.key ? (
+      sortState.dir === 'asc' ? (
+        <ArrowUp size={14} className="text-success" />
+      ) : (
+        <ArrowDown size={14} className="text-success" />
+      )
+    ) : (
+      <ArrowUpDown size={14} />
+    );
   };
+
+  const loadingRows = useMemo(() => Array.from({ length: loadingCount }), [loadingCount]);
 
   return (
     <div className={`relative overflow-auto ${className}`}>
@@ -97,14 +110,13 @@ export default function DataTable<T>({
             ))}
           </tr>
         </thead>
-
         <tbody>
           {isLoading ? (
-            Array.from({ length: loadingCount }).map((_, idx) => (
-              <tr key={`loading-${idx}`} className="animate-pulse">
+            loadingRows.map((_, idx) => (
+              <tr key={`loading-${idx}`}>
                 {visibleCols.map((_, j) => (
                   <td key={j}>
-                    <div className="h-4 bg-base-300 rounded w-3/4"></div>
+                    <div className="skeleton h-5 w-full"></div>
                   </td>
                 ))}
               </tr>
@@ -113,7 +125,7 @@ export default function DataTable<T>({
             data.map((row, rowIdx) => (
               <tr
                 key={rowIdx}
-                className={onRowClick ? 'cursor-pointer hover:bg-base-200' : ''}
+                className={`hover:bg-base-300 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
                 onClick={() => onRowClick?.(row, rowIdx)}
               >
                 {visibleCols.map((col, colIdx) => {
@@ -129,7 +141,7 @@ export default function DataTable<T>({
           ) : (
             <tr>
               <td colSpan={visibleCols.length} className="text-center opacity-70 py-6">
-                No contents found. Install now
+                {emptyState}
               </td>
             </tr>
           )}
@@ -138,12 +150,12 @@ export default function DataTable<T>({
 
       {columnSetting?.enabled !== false && (
         <div
-          className={`absolute dropdown ${columnSetting?.className ? columnSetting.className : 'dropdown-end'} right-2 top-2`}
+          className={`absolute dropdown z-10 ${columnSetting?.className ? columnSetting.className : 'dropdown-end'} right-2 top-2`}
         >
           <button className="btn btn-sm btn-soft btn-circle">
             <Settings size={16} />
           </button>
-          <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 min-w-38 shadow mt-3">
+          <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 min-w-38 max-h-60 shadow mt-3">
             {columns.map((col, idx) => (
               <li key={idx}>
                 <a className="flex">

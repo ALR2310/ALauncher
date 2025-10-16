@@ -89,6 +89,8 @@ export default function LibraryDetailPage() {
               { key: 'address', title: 'Address', sortable: true },
               { key: 'phone', title: 'Phone', sortable: true },
             ]}
+            isLoading={true}
+            loadingCount={6}
             data={[
               { name: 'John Doe', age: 29, address: '123 Main St', phone: '555-1234' },
               { name: 'Jane Smith', age: 34, address: '456 Oak Ave', phone: '555-5678' },

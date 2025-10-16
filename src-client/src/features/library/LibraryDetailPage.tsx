@@ -73,8 +73,8 @@ export default function LibraryDetailPage() {
 
         {/* Tabs */}
         <div className="flex-1 flex flex-col min-h-0 gap-1">
-          <div className="tabs tabs-border flex-nowrap overflow-x-auto">
-            <input type="radio" name="content_type" className="tab" aria-label="Mods" defaultChecked />
+          <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
+            <input type="radio" name="content_type" className="tab tab-success!" aria-label="Mods" defaultChecked />
             <input type="radio" name="content_type" className="tab" aria-label="Resource Packs" />
             <input type="radio" name="content_type" className="tab" aria-label="Shader Packs" />
             <input type="radio" name="content_type" className="tab" aria-label="Data Packs" />

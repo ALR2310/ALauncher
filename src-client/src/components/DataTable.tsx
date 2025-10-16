@@ -78,6 +78,8 @@ export default function DataTable<T>({
   );
 
   const getSortIcon = (col: Column<T>) => {
+    if (!col.sortable) return null;
+
     return sortState.key === col.key ? (
       sortState.dir === 'asc' ? (
         <ArrowUp size={14} className="text-success" />

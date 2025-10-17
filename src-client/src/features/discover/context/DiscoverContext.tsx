@@ -4,10 +4,11 @@ import { useSearchParams } from 'react-router';
 import { createContext } from 'use-context-selector';
 
 import { ROUTES } from '~/constants/routes';
+import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 
 interface DiscoverContextType {
   // State
-  instance: string | null;
+  instance: string | undefined;
   sortField: number;
   searchFilter: string;
   categoryType: number;
@@ -16,7 +17,7 @@ interface DiscoverContextType {
   categoryIds: Set<number>;
 
   // Setters
-  setInstance: Dispatch<SetStateAction<string | null>>;
+  setInstance: Dispatch<SetStateAction<string | undefined>>;
   setSortField: Dispatch<SetStateAction<number>>;
   setSearchFilter: Dispatch<SetStateAction<string>>;
   setCategoryType: Dispatch<SetStateAction<number>>;
@@ -31,7 +32,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   const debounceRef = useRef<number>(null!);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [instance, setInstance] = useState<string | null>(searchParams.get('instance'));
+  const [instance, setInstance] = useState<string | undefined>(searchParams.get('instance') || undefined);
   const [sortField, setSortField] = useState(Number(searchParams.get('sortField')) || SORT_FIELD.Featured);
   const [searchFilter, setSearchFilter] = useState(searchParams.get('searchFilter') || '');
   const [categoryType, setCategoryType] = useState(Number(searchParams.get('categoryType')) || CATEGORY_CLASS.Mods);
@@ -45,6 +46,15 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       return new Set();
     }
   });
+
+  const { data: versions } = useVersionReleasesQuery();
+
+  // Set default game version
+  useEffect(() => {
+    if (gameVersion) return;
+    if (!versions || !versions.length) return;
+    setGameVersion(versions[0].version);
+  }, [gameVersion, versions]);
 
   // Sync to URL
   useEffect(() => {

@@ -64,6 +64,13 @@ function MenuItem({ node }: { node: CategoryNode }) {
 
 export default function DiscoverFilterBar() {
   const categoryType = useContextSelector(DiscoverContext, (v) => v.categoryType);
+  const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
+  const gameVersion = useContextSelector(DiscoverContext, (v) => v.gameVersion);
+  const setGameVersion = useContextSelector(DiscoverContext, (v) => v.setGameVersion);
+  const loaderType = useContextSelector(DiscoverContext, (v) => v.loaderType);
+  const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
+  const setCategoryIds = useContextSelector(DiscoverContext, (v) => v.setCategoryIds);
+
   const { data: categories } = useCategoryQuery({ classId: categoryType });
   const { data: versions } = useVersionReleasesQuery();
 
@@ -76,7 +83,14 @@ export default function DiscoverFilterBar() {
     <div className="flex flex-col gap-4 w-64 bg-base-200">
       <div className="flex px-3 pt-3">
         <span className="label flex-1/3">Type</span>
-        <select className="select flex-2/3">
+        <select
+          className="select flex-2/3"
+          value={categoryType}
+          onChange={(e) => {
+            setCategoryType(Number(e.target.value));
+            setCategoryIds(new Set());
+          }}
+        >
           {Object.entries(CATEGORY_CLASS).map(([key, value]) => (
             <option key={value} value={value} className="text-nowrap">
               {key}
@@ -87,7 +101,7 @@ export default function DiscoverFilterBar() {
 
       <div className="flex px-3">
         <span className="label flex-1/3">Version</span>
-        <select className="select flex-2/3">
+        <select className="select flex-2/3" value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
           {versions?.map((version) => (
             <option key={version.version} value={version.version}>
               {version.version}
@@ -98,12 +112,19 @@ export default function DiscoverFilterBar() {
 
       <div className="flex px-3">
         <span className="label flex-1/3">Loader</span>
-        <select className="select flex-2/3">
-          {Object.entries(MOD_LOADER).map(([key, value]) => (
-            <option key={value} value={value}>
-              {key}
-            </option>
-          ))}
+        <select
+          className="select flex-2/3"
+          value={loaderType}
+          onChange={(e) => setLoaderType(Number(e.target.value))}
+        >
+          {Object.entries(MOD_LOADER).map(([key, value]) => {
+            const label = value === MOD_LOADER.Any ? 'All' : key;
+            return (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            );
+          })}
         </select>
       </div>
 

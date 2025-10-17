@@ -6,13 +6,15 @@ import { ROUTES } from './constants/routes';
 import { ConfirmProvider } from './context/ConfirmContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
 import { ToastProvider } from './context/ToastContext';
-import DiscoverDetailPage from './features/discover/DiscoverDetailPage';
-import DiscoverPage from './features/discover/DiscoverPage';
+import DiscoverDescription from './features/discover/DiscoverDescription';
+import DiscoverFiles from './features/discover/DiscoverFiles';
+import DiscoverGallery from './features/discover/DiscoverGallery';
+import DiscoverList from './features/discover/DiscoverList';
 import DiscoverLayout from './features/discover/layouts/DiscoverLayout';
-import HomePage from './features/home/HomePage';
+import HomeView from './features/home/HomeView';
 import LibraryLayout from './features/library/layouts/LibraryLayout';
-import LibraryDetailPage from './features/library/LibraryDetailPage';
-import LibraryPage from './features/library/LibraryPage';
+import LibraryDetail from './features/library/LibraryDetail';
+import LibraryList from './features/library/LibraryList';
 import MainLayout from './layouts/MainLayout';
 
 const isTauri = window.isTauri;
@@ -45,14 +47,18 @@ export default function App() {
             <BrowserRouter>
               <Routes>
                 <Route path={ROUTES.ROOT} element={<MainLayout />}>
-                  <Route index element={<HomePage />} />
+                  <Route index element={<HomeView />} />
                   <Route path={ROUTES.LIBRARY} element={<LibraryLayout />}>
-                    <Route index element={<LibraryPage />} />
-                    <Route path=":id" element={<LibraryDetailPage />} />
+                    <Route index element={<LibraryList />} />
+                    <Route path=":id" element={<LibraryDetail />} />
                   </Route>
                   <Route path={ROUTES.DISCOVER} element={<DiscoverLayout />}>
-                    <Route index element={<DiscoverPage />} />
-                    <Route path=":id" element={<DiscoverDetailPage />} />
+                    <Route index element={<DiscoverList />} />
+                    <Route path=":id">
+                      <Route index element={<DiscoverDescription />} />
+                      <Route path="gallery" element={<DiscoverGallery />} />
+                      <Route path="files" element={<DiscoverFiles />} />
+                    </Route>
                   </Route>
                 </Route>
               </Routes>

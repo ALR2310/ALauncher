@@ -6,7 +6,7 @@ import InfoPanel from '~/layouts/InfoPanel';
 
 import { HomeContentCard } from './components/HomeContentCard';
 
-export default function HomePage() {
+export default function HomeView() {
   const { height, width } = useContainer();
 
   const result = useContentsQueries([

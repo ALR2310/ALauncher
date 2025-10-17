@@ -6,7 +6,7 @@ import { useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 
 import LibraryDetailHeader from './components/LibraryDetailHeader';
 
-export default function LibraryDetailPage() {
+export default function LibraryDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: instance } = useInstanceOneQuery(id!);
 

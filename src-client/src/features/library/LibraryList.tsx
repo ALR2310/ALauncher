@@ -8,7 +8,7 @@ import Progress from '~/components/Progress';
 import { ROUTES } from '~/constants/routes';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
-export default function LibraryPage() {
+export default function LibraryList() {
   const { data: instances } = useInstancesQuery();
 
   const [instanceActive, setInstanceActive] = useState<string | null>(null);

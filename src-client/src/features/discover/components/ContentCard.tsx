@@ -2,6 +2,7 @@ import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto } from '@shared/dtos/content.dto';
 import { abbreviateNumber } from '@shared/utils/general.utils';
 import { CalendarDays, Download, Gamepad2, HardDrive } from 'lucide-react';
+import { memo } from 'react';
 import { Link } from 'react-router';
 
 import Img from '~/components/Img';
@@ -11,7 +12,7 @@ interface ContentCardProps {
   data: ContentDto;
 }
 
-export default function ContentCard({ data }: ContentCardProps) {
+function ContentCard({ data }: ContentCardProps) {
   return (
     <div key={data.id} className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">
       <Link to={ROUTES.DISCOVER_DETAIL(data.slug)} className="flex justify-center items-center w-24 h-24">
@@ -85,3 +86,5 @@ export default function ContentCard({ data }: ContentCardProps) {
     </div>
   );
 }
+
+export default memo(ContentCard);

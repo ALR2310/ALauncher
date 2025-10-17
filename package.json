@@ -6,6 +6,7 @@
     "dev": "concurrently \"yarn dev:client\" \"yarn dev:server\"",
     "dev:client": "cd src-client && vite --host",
     "dev:server": "cd src-server && tsx watch --clear-screen=false --inspect src/index.ts",
+    "preview": "yarn build:client && concurrently \"vite preview\" \"yarn dev:server\"",
     "tauri": "tauri",
     "update": "npm-check-updates -u",
     "build": "tsx scripts/build/index.ts",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@hono/node-server": "^1.19.5",
     "@tanstack/react-query": "^5.90.3",
+    "@tanstack/react-virtual": "^3.13.12",
     "@tauri-apps/api": "^2.8.0",
     "adm-zip": "^0.5.16",
     "async-mutex": "^0.5.0",

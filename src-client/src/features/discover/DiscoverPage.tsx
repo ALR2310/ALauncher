@@ -1,7 +1,8 @@
 import { SORT_FIELD } from '@shared/constants/curseforge.const';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { CurseForgeSortOrder } from 'curseforge-api';
 import { Search } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import { useContentsInfinite } from '~/hooks/api/useContentApi';
@@ -16,7 +17,7 @@ const LoadingCount = Array.from({ length: 10 });
 
 export default function DiscoverPage() {
   const { height, width } = useContainer();
-  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const scrollElementRef = useRef<HTMLDivElement | null>(null);
 
   const sortField = useContextSelector(DiscoverContext, (v) => v.sortField);
   const setSortField = useContextSelector(DiscoverContext, (v) => v.setSortField);
@@ -42,29 +43,28 @@ export default function DiscoverPage() {
 
   const allContents = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data?.pages]);
 
-  const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const virtualizer = useVirtualizer({
+    count: allContents.length,
+    getScrollElement: () => scrollElementRef.current,
+    estimateSize: () => 120,
+    gap: 16,
+    overscan: 5,
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
 
   useEffect(() => {
-    if (!loaderRef.current) return;
+    if (!virtualItems.length) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting) {
-          handleLoadMore();
-        }
-      },
-      { root: document.querySelector('#content-scroll'), rootMargin: '0px 0px 400px 0px', threshold: 0.1 },
-    );
+    const lastItem = virtualItems[virtualItems.length - 1];
 
-    const current = loaderRef.current;
-    observer.observe(current);
-    return () => observer.unobserve(current);
-  }, [handleLoadMore]);
+    if (!lastItem) return;
+
+    if (lastItem.index >= allContents.length - 3 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [virtualItems, allContents.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <div className="flex" style={{ height, width }}>
@@ -89,14 +89,67 @@ export default function DiscoverPage() {
           </label>
         </div>
 
-        <div className="flex-1 space-y-4 overflow-auto" id="content-scroll">
-          {isLoading
-            ? LoadingCount.map((_, idx) => <ContentCardSkeleton key={idx} />)
-            : allContents.map((content) => <ContentCard key={content.id} data={content} />)}
+        <div className="flex-1 overflow-auto" id="content-scroll" ref={scrollElementRef}>
+          {isLoading ? (
+            <div className="space-y-4">
+              {LoadingCount.map((_, idx) => (
+                <ContentCardSkeleton key={idx} />
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {virtualItems.map((virtualItem) => {
+                const content = allContents[virtualItem.index];
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${virtualItem.size}px`,
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <ContentCard data={content} />
+                  </div>
+                );
+              })}
 
-          <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
-            {isFetchingNextPage ? 'Loading...' : hasNextPage ? 'Load more' : 'No content found.'}
-          </div>
+              {isFetchingNextPage && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: `${virtualizer.getTotalSize()}px`,
+                    left: 0,
+                    width: '100%',
+                    padding: '12px 0',
+                    textAlign: 'center',
+                    fontSize: '0.875rem',
+                    opacity: 0.7,
+                  }}
+                >
+                  Loading more...
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isLoading && !hasNextPage && allContents.length > 0 && (
+            <div className="py-3 text-center text-sm opacity-70">End of results</div>
+          )}
+
+          {!isLoading && allContents.length === 0 && (
+            <div className="py-3 text-center text-sm opacity-70">No content found.</div>
+          )}
         </div>
       </div>
 

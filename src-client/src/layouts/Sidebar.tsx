@@ -5,7 +5,7 @@ import { ROUTES } from '~/constants/routes';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
-export default function SideLeftBar() {
+export default function Sidebar() {
   const { open } = useLibraryModal();
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
 

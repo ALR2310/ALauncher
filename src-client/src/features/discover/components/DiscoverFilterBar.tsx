@@ -4,7 +4,7 @@ import { useContextSelector } from 'use-context-selector';
 
 import { useCategoryQuery } from '~/hooks/api/useCategoryApi';
 import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
-import { buildCategoryTree, CategoryNode } from '~/utils/Discover.utils';
+import { buildCategoryTree, CategoryNode } from '~/utils/discover.utils';
 
 import { DiscoverContext } from '../context/DiscoverContext';
 

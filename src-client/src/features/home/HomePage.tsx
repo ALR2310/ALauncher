@@ -2,7 +2,7 @@ import { CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-a
 
 import { useContentsQueries } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
-import SideRightBar from '~/layouts/SideRightBar';
+import InfoPanel from '~/layouts/InfoPanel';
 
 import { HomeContentCard } from './components/HomeContentCard';
 
@@ -34,7 +34,7 @@ export default function HomePage() {
         <HomeContentCard title="Discover a mod" data={mod?.data || []} isLoading={isLoading} loadingCount={4} />
       </div>
 
-      <SideRightBar />
+      <InfoPanel />
     </div>
   );
 }

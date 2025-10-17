@@ -4,7 +4,7 @@ import { Outlet } from 'react-router';
 import { ContainerProvider } from '~/context/ContainerContext';
 import { useUpdater } from '~/hooks/app/useUpdater';
 
-import SideLeftBar from './SideLeftBar';
+import Sidebar from './Sidebar';
 import SplashScreen from './SplashScreen';
 import TitleBar from './TitleBar';
 
@@ -35,7 +35,7 @@ export default function MainLayout() {
           <SplashScreen progress={progress} />
         ) : (
           <div className="flex-1 flex bg-base-200 overflow-hidden">
-            <SideLeftBar />
+            <Sidebar />
             <main className="flex-1 border border-base-content/10 rounded-tl-2xl bg-base-300 ">
               <Outlet />
             </main>

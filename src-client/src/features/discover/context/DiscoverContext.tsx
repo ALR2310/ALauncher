@@ -61,7 +61,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
     clearTimeout(debounceRef.current);
 
     debounceRef.current = window.setTimeout(() => {
-      if (!location.pathname.startsWith(ROUTES.DISCOVER)) return;
+      if (location.pathname !== ROUTES.DISCOVER) return;
 
       const params: Record<string, string> = {};
       if (sortField) params['sortField'] = String(sortField);

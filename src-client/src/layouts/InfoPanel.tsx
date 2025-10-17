@@ -22,7 +22,7 @@ const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
   );
 };
 
-export default function SideRightBar() {
+export default function InfoPanel() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useVersionNotesInfinite({ pageSize: 10 });
   const { data: config } = useAppGetConfigQuery();

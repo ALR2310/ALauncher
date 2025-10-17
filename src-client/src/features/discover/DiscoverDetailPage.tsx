@@ -1,7 +1,7 @@
+import { useContainer } from '~/hooks/app/useContainer';
+
 export default function DiscoverDetailPage() {
-  return (
-    <div>
-      <h1>Discover Detail Page</h1>
-    </div>
-  );
+  const { height, width } = useContainer();
+
+  return <div className="flex" style={{ height, width }}></div>;
 }

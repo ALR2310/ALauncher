@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router';
 
 import { useContainer } from '~/hooks/app/useContainer';
-import SideRightBar from '~/layouts/SideRightBar';
+import InfoPanel from '~/layouts/InfoPanel';
 
 export default function LibraryLayout() {
   const { height, width } = useContainer();
@@ -12,7 +12,7 @@ export default function LibraryLayout() {
         <Outlet />
       </div>
 
-      <SideRightBar />
+      <InfoPanel />
     </div>
   );
 }

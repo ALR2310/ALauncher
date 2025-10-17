@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
+import { ROUTES } from '~/constants/routes';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 export default function LibraryPage() {
@@ -28,7 +29,7 @@ export default function LibraryPage() {
 
           return (
             <Link
-              to={`/library/${instance.id}`}
+              to={ROUTES.LIBRARY_DETAIL(instance.id)}
               key={instance.id}
               className="relative group h-52 overflow-hidden bg-base-100 rounded-xl"
               tabIndex={0}

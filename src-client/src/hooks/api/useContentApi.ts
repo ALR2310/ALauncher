@@ -31,7 +31,6 @@ export function useContentsInfinite(params: ContentQueryDto) {
       if (nextIndex < totalCount) return nextIndex;
       return undefined;
     },
-    staleTime: 0,
     initialPageParam: 0,
   });
 }

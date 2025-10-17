@@ -5,6 +5,7 @@ import { CalendarDays, Download, Gamepad2, HardDrive } from 'lucide-react';
 import { Link } from 'react-router';
 
 import Img from '~/components/Img';
+import { ROUTES } from '~/constants/routes';
 
 interface ContentCardProps {
   data: ContentDto;
@@ -12,17 +13,17 @@ interface ContentCardProps {
 
 export default function ContentCard({ data }: ContentCardProps) {
   return (
-    <Link to={''} key={data.id} className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">
-      <div className="flex justify-center items-center w-24 h-24">
+    <div key={data.id} className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">
+      <Link to={ROUTES.DISCOVER_DETAIL(data.slug)} className="flex justify-center items-center w-24 h-24">
         <Img src={data.logo.thumbnailUrl} alt={data.logo.title} className="w-full h-full object-cover" />
-      </div>
+      </Link>
 
       <div className="flex-1 justify-between">
         <div className="flex">
           <div className="flex-4/5 space-y-1">
             <div className="flex w-[90%]">
               <Link
-                to={`/discover/${data.slug}`}
+                to={ROUTES.DISCOVER_DETAIL(data.slug)}
                 className="text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
               >
                 {data.name}
@@ -31,7 +32,7 @@ export default function ContentCard({ data }: ContentCardProps) {
               <div className="divider divider-horizontal"></div>
 
               <Link
-                to={`/discover/${data.authors[0]?.id}`}
+                to={ROUTES.DISCOVER_DETAIL(String(data.authors[0]?.id))}
                 className="text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
               >
                 {data.authors[0]?.name}
@@ -81,6 +82,6 @@ export default function ContentCard({ data }: ContentCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import { ChevronRight, Download, FileArchive } from 'lucide-react';
 import { Link } from 'react-router';
 
 import Img from '~/components/Img';
+import { ROUTES } from '~/constants/routes';
 
 interface HomeContentCardProps {
   title: string;
@@ -20,7 +21,7 @@ export function HomeContentCard({ title, data, isLoading, loadingCount = 0 }: Ho
       <div className="flex">
         <div className="flex items-center group">
           <Link
-            to=""
+            to={ROUTES.DISCOVER}
             className="leading-2 text-xl font-semibold relative after:content-[''] after:absolute after:left-0 after:top-[12px] after:w-0 after:h-[2px] after:bg-success after:transition-all after:duration-300 group-hover:after:w-full"
           >
             {title}
@@ -37,7 +38,7 @@ export function HomeContentCard({ title, data, isLoading, loadingCount = 0 }: Ho
         {displayData.map((item, idx) => (
           <Link
             key={idx}
-            to={''}
+            to={item ? ROUTES.DISCOVER_DETAIL(item.slug) : ''}
             className="flex flex-col rounded-lg bg-base-100 border border-base-content/10 shadow overflow-hidden hover:opacity-80 transition-opacity duration-200"
           >
             <div className="relative w-full h-[165px]">

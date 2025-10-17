@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router';
 
 import DataTable from '~/components/DataTable';
+import { ROUTES } from '~/constants/routes';
 import { useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 
 import LibraryDetailHeader from './components/LibraryDetailHeader';
@@ -42,7 +43,7 @@ export default function LibraryDetailPage() {
             emptyState={
               <>
                 No contents found.{' '}
-                <Link to={'/discover'} className="link hover:link-success">
+                <Link to={ROUTES.DISCOVER} className="link hover:link-success">
                   Install now
                 </Link>
               </>

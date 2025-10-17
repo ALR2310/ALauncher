@@ -1,3 +1,4 @@
+import { SORT_FIELD } from '@shared/constants/curseforge.const';
 import { Search } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
@@ -5,6 +6,7 @@ import { useContentsInfinite } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
 
 import ContentCard from './components/ContentCard';
+import DiscoverFilterBar from './components/DiscoverFilterBar';
 
 export default function DiscoverPage() {
   const { height, width } = useContainer();
@@ -36,25 +38,17 @@ export default function DiscoverPage() {
       <div className="flex-1 flex flex-col min-h-0 p-4 pe-1 gap-4">
         <div className="flex gap-4">
           <select className="select w-38">
-            <option value="1">Featured</option>
-            <option value="2">Popularity</option>
-            <option value="3">Last Updated</option>
-            <option value="4">Name</option>
-            <option value="5">Author</option>
-            <option value="6">Total Downloads</option>
-            <option value="11">Released Date</option>
-            <option value="12">Rating</option>
+            {Object.entries(SORT_FIELD).map(([key, value]) => (
+              <option key={value} value={value}>
+                {key}
+              </option>
+            ))}
           </select>
 
-          <label className="input flex-1">
+          <label className="input">
             <Search size={20} className="rotate-90 text-base-content/60" />
             <input type="search" required placeholder="Search..." />
           </label>
-
-          <select className="select w-32">
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
         </div>
 
         <div className="flex-1 space-y-4 overflow-auto" id="content-scroll">
@@ -69,7 +63,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Filter */}
-      <div className="w-64"></div>
+      <DiscoverFilterBar />
     </div>
   );
 }

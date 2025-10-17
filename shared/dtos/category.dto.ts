@@ -47,11 +47,11 @@ export const categoryMap = {
     4559: 'mc-addons',
     5: 'bukkit-plugins',
   },
-};
+} as const;
 
 const categoryQuerySchema = z.object({
   classId: z.coerce.number().optional(),
-  classesOnly: z.coerce.boolean().optional().default(false),
+  classesOnly: z.coerce.boolean().optional(),
 });
 
 export class CategoryQueryDto extends createZodDto(categoryQuerySchema) {}

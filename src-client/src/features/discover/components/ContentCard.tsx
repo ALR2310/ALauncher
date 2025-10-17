@@ -22,23 +22,12 @@ function ContentCard({ data }: ContentCardProps) {
       <div className="flex-1 justify-between">
         <div className="flex">
           <div className="flex-4/5 space-y-1">
-            <div className="flex w-[90%]">
-              <Link
-                to={ROUTES.DISCOVER_DETAIL(data.slug)}
-                className="text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
-              >
-                {data.name}
-              </Link>
-
-              <div className="divider divider-horizontal"></div>
-
-              <Link
-                to={ROUTES.DISCOVER_DETAIL(String(data.authors[0]?.id))}
-                className="text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
-              >
-                {data.authors[0]?.name}
-              </Link>
-            </div>
+            <Link
+              to={ROUTES.DISCOVER_DETAIL(data.slug)}
+              className="flex w-[90%] text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
+            >
+              {data.name}
+            </Link>
 
             <div className="text-sm text-base-content/50 line-clamp-1 w-[90%]">{data.summary}</div>
           </div>

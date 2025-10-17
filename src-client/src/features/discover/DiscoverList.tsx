@@ -74,7 +74,7 @@ export default function DiscoverList() {
           ))}
         </select>
 
-        <label className="input">
+        <label className="input w-[50%]">
           <Search size={20} className="text-base-content/60" />
           <input
             type="search"

@@ -98,8 +98,8 @@ export default function TitleBar() {
         </div>
       </div>
 
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <label className="input input-sm w-72 rounded-2xl flex items-center">
+      <div className="w-[35%] absolute left-1/2 -translate-x-1/2">
+        <label className="input input-sm w-full rounded-2xl flex items-center">
           <Search size={20} className="text-base-content/60" />
           <input type="text" className="grow" placeholder="Enter the keyword..." />
         </label>

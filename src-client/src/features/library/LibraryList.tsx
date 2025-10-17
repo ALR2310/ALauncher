@@ -23,7 +23,7 @@ export default function LibraryList() {
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-3 lg:grid-cols-5 gap-6">
         {instances?.map((instance) => {
           const isRunning = instanceActive === instance.id;
 
@@ -31,7 +31,7 @@ export default function LibraryList() {
             <Link
               to={ROUTES.LIBRARY_DETAIL(instance.id)}
               key={instance.id}
-              className="relative group h-52 overflow-hidden bg-base-100 rounded-xl"
+              className="relative group h-60 overflow-hidden bg-base-100 rounded-xl"
               tabIndex={0}
               style={{
                 backgroundImage: `url(${import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo} )`,

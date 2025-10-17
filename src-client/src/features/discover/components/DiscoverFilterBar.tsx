@@ -80,7 +80,7 @@ export default function DiscoverFilterBar() {
   }, [categories, categoryType]);
 
   return (
-    <div className="flex flex-col gap-4 w-64 bg-base-200">
+    <div className="flex flex-col gap-4 w-64 lg:w-80 bg-base-200">
       <div className="flex px-3 pt-3">
         <span className="label flex-1/3">Type</span>
         <select

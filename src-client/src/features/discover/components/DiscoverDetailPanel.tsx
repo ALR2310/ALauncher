@@ -1,3 +1,3 @@
 export default function DiscoverDetailPanel() {
-  return <div></div>;
+  return <div className="w-64 bg-base-200"></div>;
 }

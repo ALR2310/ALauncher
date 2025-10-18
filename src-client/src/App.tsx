@@ -10,7 +10,7 @@ import DiscoverDescription from './features/discover/DiscoverDescription';
 import DiscoverFiles from './features/discover/DiscoverFiles';
 import DiscoverGallery from './features/discover/DiscoverGallery';
 import DiscoverList from './features/discover/DiscoverList';
-import DiscoverLayout from './features/discover/layouts/DiscoverLayout';
+import DiscoverDetailLayout from './features/discover/layouts/DiscoverDetailLayout';
 import HomeView from './features/home/HomeView';
 import LibraryLayout from './features/library/layouts/LibraryLayout';
 import LibraryDetail from './features/library/LibraryDetail';
@@ -52,9 +52,9 @@ export default function App() {
                     <Route index element={<LibraryList />} />
                     <Route path=":id" element={<LibraryDetail />} />
                   </Route>
-                  <Route path={ROUTES.DISCOVER} element={<DiscoverLayout />}>
+                  <Route path={ROUTES.DISCOVER}>
                     <Route index element={<DiscoverList />} />
-                    <Route path=":id">
+                    <Route path=":id" element={<DiscoverDetailLayout />}>
                       <Route index element={<DiscoverDescription />} />
                       <Route path="gallery" element={<DiscoverGallery />} />
                       <Route path="files" element={<DiscoverFiles />} />

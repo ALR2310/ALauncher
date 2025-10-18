@@ -54,7 +54,7 @@ export default function App() {
                   </Route>
                   <Route path={ROUTES.DISCOVER}>
                     <Route index element={<DiscoverList />} />
-                    <Route path=":id" element={<DiscoverDetailLayout />}>
+                    <Route path=":slug" element={<DiscoverDetailLayout />}>
                       <Route index element={<DiscoverDescription />} />
                       <Route path="gallery" element={<DiscoverGallery />} />
                       <Route path="files" element={<DiscoverFiles />} />

@@ -12,7 +12,7 @@ import { useVersionNotesInfinite } from '~/hooks/api/useVersionApi';
 const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
   return (
     <Link to={''} className="relative block rounded-xl overflow-hidden border border-base-content/10">
-      <img src={data.image.url} className="absolute inset-0 w-full h-full object-cover" />
+      <Img src={data.image.url} className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative p-3 text-base-content space-y-2">
         <p className="text-lg font-semibold">{data.title}</p>

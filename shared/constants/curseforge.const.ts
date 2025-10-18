@@ -1,3 +1,5 @@
+import { invertObject } from '@shared/utils/general.utils';
+
 export const SORT_FIELD = {
   Featured: 1,
   Popularity: 2,
@@ -34,3 +36,5 @@ export const CATEGORY_CLASS = {
   Addons: 4559,
   'Bukkit Plugins': 5,
 } as const;
+
+export const CATEGORY_CLASS_REVERSED = invertObject(CATEGORY_CLASS);

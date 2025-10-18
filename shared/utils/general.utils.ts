@@ -56,3 +56,7 @@ export function compareVersion(a: string, b: string): number {
 
   return 0;
 }
+
+export function invertObject<T extends Record<string, string | number>>(obj: T): { [K in keyof T as `${T[K]}`]: K } {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k])) as any;
+}

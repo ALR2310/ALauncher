@@ -15,45 +15,41 @@ export default function DiscoverDetailLayout() {
   const location = useLocation();
   const { height, width } = useContainer();
   const { slug } = useParams<{ slug: string }>();
-  const { data: content } = useContentDetailQuery({ slug: slug! });
+  const { data } = useContentDetailQuery({ slug: slug! });
 
   const currentPath = location.pathname;
   const isGalleryTab = currentPath.endsWith('/gallery');
   const isFilesTab = currentPath.endsWith('/files');
   const isDescriptionTab = !isGalleryTab && !isFilesTab;
 
-  if (content) {
+  if (data) {
     return (
       <div className="flex" style={{ height, width }}>
         <div className="flex-1 flex flex-col min-h-0 gap-3 p-4">
           {/* Header */}
           <div className="flex gap-3">
-            <Img src={content.logo.url} alt={content.logo.title} className="w-[70px] h-[70px] object-cover" />
+            <Img src={data.logo.url} alt={data.logo.title} className="w-[70px] h-[70px] object-cover" />
 
             <div className="flex-1 flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">{content.name}</h2>
+              <h2 className="text-lg font-semibold">{data.name}</h2>
               <div className="flex items-center gap-2">
                 <span>By</span>
                 <div className="badge badge-soft px-2">
-                  <Img
-                    src={content.authors[0].avatarUrl}
-                    alt={content.authors[0].name}
-                    className="w-4 h-4 rounded-full"
-                  />
-                  <span>{content.authors[0].name}</span>
+                  <Img src={data.authors[0].avatarUrl} alt={data.authors[0].name} className="w-4 h-4 rounded-full" />
+                  <span>{data.authors[0].name}</span>
                 </div>
 
                 <div className="divider divider-horizontal mx-2"></div>
 
-                {content.classId && (
-                  <button className="btn btn-xs btn-outline">{CATEGORY_CLASS_REVERSED[content.classId]}</button>
+                {data.classId && (
+                  <button className="btn btn-xs btn-outline">{CATEGORY_CLASS_REVERSED[data.classId]}</button>
                 )}
               </div>
             </div>
           </div>
 
           {/* Summary */}
-          <p className="text-base-content/70">{content.summary}</p>
+          <p className="text-base-content/70">{data.summary}</p>
 
           {/* Tabs */}
           <div className="flex-1 flex flex-col min-h-0 gap-1">
@@ -78,11 +74,11 @@ export default function DiscoverDetailLayout() {
                 type="radio"
                 name="discover_detail"
                 className="tab"
-                aria-label={`Gallery (${content.screenshots.length})`}
+                aria-label={`Gallery (${data.screenshots.length})`}
                 checked={isGalleryTab}
                 onChange={() => navigate(ROUTES.DISCOVER_DETAIL_GALLERY(slug!), { relative: 'path' })}
               />
-              {Object.entries(content.links ?? {}).map(([key, value]) => {
+              {Object.entries(data.links ?? {}).map(([key, value]) => {
                 if (!value) return null;
                 const label = key.replace(/Url$/, '');
 
@@ -95,7 +91,7 @@ export default function DiscoverDetailLayout() {
               })}
             </div>
 
-            <div className="flex-1 bg-base-100 rounded-xl">
+            <div className="flex-1 bg-base-100 rounded-xl overflow-auto">
               <Outlet />
             </div>
           </div>

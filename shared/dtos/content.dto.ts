@@ -105,6 +105,11 @@ const contentQuerySchema = z.object({
   pageSize: z.coerce.number().max(50).optional(),
 });
 
+const contentDetailQuerySchema = z.object({
+  slug: z.string(),
+  instance: z.string().optional(),
+});
+
 const contentFileSchema = z.object({
   id: z.number(),
   contentId: z.number(),
@@ -141,6 +146,7 @@ const contentFileQuerySchema = z.object({
 export class ContentDto extends createZodDto(contentSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
 export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
+export class ContentDetailQueryDto extends createZodDto(contentDetailQuerySchema) {}
 export class ContentFileDto extends createZodDto(contentFileSchema) {}
 export class ContentFileQueryDto extends createZodDto(contentFileQuerySchema) {}
 export class ContentFileResponseDto extends createZodDto(contentFileResponseSchema) {}

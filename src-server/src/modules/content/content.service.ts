@@ -1,4 +1,10 @@
-import { ContentDto, ContentFileDto, ContentFileQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
+import {
+  ContentDetailQueryDto,
+  ContentDto,
+  ContentFileDto,
+  ContentFileQueryDto,
+  ContentQueryDto,
+} from '@shared/dtos/content.dto';
 import { INSTANCE_CONTENT_STATUS, INSTANCE_CONTENT_TYPE, InstanceContentDto } from '@shared/dtos/instance.dto';
 import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
 import {
@@ -106,6 +112,21 @@ export const contentService = new (class ContentService {
     } catch (err) {
       throw new BadRequestException('Failed to get contents');
     }
+  }
+
+  async findOne(payload: ContentDetailQueryDto) {
+    const { slug } = payload;
+    const content = await this.findAll({ slug }).then((res) => res.data[0]);
+
+    if (!content) {
+      throw new BadRequestException('Content not found');
+    }
+
+    const description = await curseForgeService.getModDescription(content.id);
+
+    const result: ContentDto = { ...content, description };
+
+    return result;
   }
 
   async findFiles(payload: ContentFileQueryDto) {

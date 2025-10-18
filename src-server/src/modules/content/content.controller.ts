@@ -1,4 +1,4 @@
-import { ContentFileQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
+import { ContentDetailQueryDto, ContentFileQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
 
 import { Controller, Get, Param, Query, Validate } from '~/common/decorators';
 
@@ -10,6 +10,12 @@ export class ContentController {
   @Validate(ContentQueryDto)
   async findAll(@Query() query: ContentQueryDto) {
     return contentService.findAll(query);
+  }
+
+  @Get(':slug')
+  @Validate(ContentDetailQueryDto)
+  async findOne(@Param('slug') slug, @Query() query) {
+    return contentService.findOne({ slug, ...query });
   }
 
   @Get(':id/files')

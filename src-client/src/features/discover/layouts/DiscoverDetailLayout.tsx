@@ -5,19 +5,17 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 
 import Img from '~/components/Img';
 import { ROUTES } from '~/constants/routes';
-import { useContentsQuery } from '~/hooks/api/useContentApi';
+import { useContentDetailQuery } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
 
-import DiscoverDetailPanel from '../components/DiscoverDetailPanel';
+import DiscoverDetailPanel from './DiscoverDetailPanel';
 
 export default function DiscoverDetailLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { height, width } = useContainer();
   const { slug } = useParams<{ slug: string }>();
-  const { data } = useContentsQuery({ slug });
-
-  const content = data?.data[0];
+  const { data: content } = useContentDetailQuery({ slug: slug! });
 
   const currentPath = location.pathname;
   const isGalleryTab = currentPath.endsWith('/gallery');

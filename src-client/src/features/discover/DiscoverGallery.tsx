@@ -1,4 +1,4 @@
-import { Images } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Images } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 
@@ -31,25 +31,36 @@ export default function DiscoverGallery() {
   const next = () => setActiveIndex((i) => (i + 1) % screenshots.length);
 
   return !screenshots.length ? (
-    <div className="text-center py-8">
-      <Images size={40} className="mx-auto text-base-content/50 mb-4" />
-      <h3 className="text-lg font-semibold mb-2">Gallery</h3>
-      <p className="text-base-content/70">This mod does not have any images yet.</p>
+    <div className="text-center py-12 px-4">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-base-200 mb-4">
+        <Images size={36} className="text-base-content/40" />
+      </div>
+      <h3 className="text-xl font-bold mb-2">No Images Available</h3>
+      <p className="text-base-content/60 text-sm">This mod doesn't have any screenshots yet.</p>
     </div>
   ) : (
     <>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-3">
         {screenshots.map((s, idx) => (
           <button
             key={s.url + idx}
-            className="relative group overflow-hidden cursor-pointer"
+            className="relative group overflow-hidden rounded-lg border border-base-300 hover:border-success transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-success cursor-pointer"
             onClick={() => openAt(idx)}
             aria-label={`Open image ${idx + 1}`}
           >
-            <img src={s.thumbnailUrl} alt={s.title} className="w-full h-40 object-contain bg-base-200" loading="lazy" />
-            {/* Info */}
-            <div className="absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-3 transform transition-transform duration-300 translate-y-[calc(100%-0px)] group-hover:translate-y-0 group-focus:translate-y-0">
-              <p className="font-semibold">{s.title}</p>
+            <div className="aspect-video bg-base-200 relative overflow-hidden">
+              <img
+                src={s.thumbnailUrl}
+                alt={s.title}
+                className="w-full h-full object-cover transition-opacity duration-300"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-base-300/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-base-300 to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+              <p className="font-semibold text-sm text-base-content line-clamp-2">{s.title}</p>
+              <p className="text-xs text-base-content/60 mt-1">Click to view full size</p>
             </div>
           </button>
         ))}
@@ -63,30 +74,61 @@ export default function DiscoverGallery() {
         backdropClose={true}
         iconClose={true}
         width="95vw"
-        classNameContent="p-2 max-h-[80vh] overflow-hidden"
+        classNameContent="p-4 flex flex-col max-h-[85vh]"
       >
         {screenshots[activeIndex] && (
-          <div className="relative flex items-center justify-center mt-2">
-            <img
-              src={screenshots[activeIndex].url}
-              alt={screenshots[activeIndex].title}
-              className="w-auto h-auto max-w-[90vw] max-h-[52]px object-contain rounded-box"
-            />
+          <div className="flex flex-col gap-4 flex-1 min-h-0">
+            <div className="relative flex items-center justify-center bg-base-200 rounded-lg overflow-hidden flex-1 min-h-0">
+              <img
+                src={screenshots[activeIndex].url}
+                alt={screenshots[activeIndex].title}
+                className="max-w-full max-h-full object-contain"
+              />
+
+              {screenshots.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-4 top-1/2 -translate-y-1/2 btn btn-circle btn-success hover:scale-110 transition-transform"
+                    onClick={prev}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button
+                    className="absolute right-4 top-1/2 -translate-y-1/2 btn btn-circle btn-success hover:scale-110 transition-transform"
+                    onClick={next}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 badge badge-lg badge-neutral gap-2">
+                    <span className="font-semibold">{activeIndex + 1}</span>
+                    <span className="opacity-60">/</span>
+                    <span className="opacity-60">{screenshots.length}</span>
+                  </div>
+                </>
+              )}
+            </div>
+
             {screenshots.length > 1 && (
-              <div className="absolute inset-0 flex items-center justify-between px-2">
-                <button className="btn btn-circle btn-ghost" onClick={prev} aria-label="Previous image">
-                  <i className="fa-regular fa-chevron-left text-xl"></i>
-                </button>
-                <button className="btn btn-circle btn-ghost" onClick={next} aria-label="Next image">
-                  <i className="fa-regular fa-chevron-right text-xl"></i>
-                </button>
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar flex-shrink-0">
+                {screenshots.map((s, idx) => (
+                  <button
+                    key={s.url + idx}
+                    onClick={() => setActiveIndex(idx)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                      idx === activeIndex
+                        ? 'border-success scale-105 shadow-lg'
+                        : 'border-base-300 hover:border-success/50 opacity-60 hover:opacity-100'
+                    }`}
+                    aria-label={`Go to image ${idx + 1}`}
+                  >
+                    <img src={s.thumbnailUrl} alt={s.title} className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             )}
-          </div>
-        )}
-        {screenshots.length > 1 && (
-          <div className="text-center text-xs mt-2">
-            {activeIndex + 1} / {screenshots.length}
           </div>
         )}
       </Modal>

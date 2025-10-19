@@ -1,3 +1,5 @@
+import { MOD_LOADER } from '@shared/constants/curseforge.const';
+
 export interface CategoryNode {
   id: number;
   name: string;
@@ -24,4 +26,18 @@ export function buildCategoryTree(categories: any[], rootParentId: number): Cate
   }
 
   return roots;
+}
+
+export function splitVersionsAndLoaders(arr: string[]) {
+  const loaderKeys = Object.keys(MOD_LOADER);
+
+  const loaders: string[] = [];
+  const versions: string[] = [];
+
+  for (const v of arr) {
+    if (loaderKeys.includes(v)) loaders.push(v);
+    else versions.push(v);
+  }
+
+  return { versions, loaders };
 }

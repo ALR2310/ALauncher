@@ -1,6 +1,6 @@
 import { CATEGORY_CLASS_REVERSED } from '@shared/constants/curseforge.const';
 import { capitalize } from '@shared/utils/general.utils';
-import { ExternalLink } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 
 import Img from '~/components/Img';
@@ -46,10 +46,13 @@ export default function DiscoverDetailLayout() {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Summary */}
-          <p className="text-base-content/70">{data.summary}</p>
+            <div className="p-4 w-44">
+              <button className="btn btn-block btn-success text-center">
+                <Download size={16} /> Install
+              </button>
+            </div>
+          </div>
 
           {/* Tabs */}
           <div className="flex-1 flex flex-col min-h-0 gap-1">

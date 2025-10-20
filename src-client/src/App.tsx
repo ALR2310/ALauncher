@@ -1,8 +1,8 @@
+import { ROUTES } from '@shared/constants/routes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
-import { ROUTES } from './constants/routes';
 import { ConfirmProvider } from './context/ConfirmContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
 import { ToastProvider } from './context/ToastContext';
@@ -46,18 +46,18 @@ export default function App() {
           <LibraryModalProvider>
             <BrowserRouter>
               <Routes>
-                <Route path={ROUTES.ROOT} element={<MainLayout />}>
+                <Route path={ROUTES.root} element={<MainLayout />}>
                   <Route index element={<HomeView />} />
-                  <Route path={ROUTES.LIBRARY} element={<LibraryLayout />}>
+                  <Route path={ROUTES.library.path} element={<LibraryLayout />}>
                     <Route index element={<LibraryList />} />
-                    <Route path=":id" element={<LibraryDetail />} />
+                    <Route path={ROUTES.library.detail(':id')} element={<LibraryDetail />} />
                   </Route>
-                  <Route path={ROUTES.DISCOVER}>
+                  <Route path={ROUTES.discover.path}>
                     <Route index element={<DiscoverList />} />
-                    <Route path=":slug" element={<DiscoverDetailLayout />}>
+                    <Route path={ROUTES.discover.detail(':slug')} element={<DiscoverDetailLayout />}>
                       <Route index element={<DiscoverDescription />} />
-                      <Route path="gallery" element={<DiscoverGallery />} />
-                      <Route path="files" element={<DiscoverFiles />} />
+                      <Route path={ROUTES.discover.gallery(':slug')} element={<DiscoverGallery />} />
+                      <Route path={ROUTES.discover.files(':slug')} element={<DiscoverFiles />} />
                     </Route>
                   </Route>
                 </Route>

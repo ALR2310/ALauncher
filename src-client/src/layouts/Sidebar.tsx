@@ -1,7 +1,7 @@
+import { ROUTES } from '@shared/constants/routes';
 import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
 import { Link, NavLink } from 'react-router';
 
-import { ROUTES } from '~/constants/routes';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
@@ -15,7 +15,7 @@ export default function Sidebar() {
         <ul className="menu menu-sm rounded-box">
           <li>
             <NavLink
-              to={ROUTES.HOME}
+              to={ROUTES.home.path}
               end
               className={({ isActive }) =>
                 `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
@@ -29,7 +29,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to={ROUTES.DISCOVER}
+              to={ROUTES.discover.path}
               className={({ isActive }) =>
                 `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
                   isActive ? 'bg-success/10 text-success' : ''
@@ -42,7 +42,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to={ROUTES.LIBRARY}
+              to={ROUTES.library.path}
               className={({ isActive }) =>
                 `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
                   isActive ? 'bg-success/10 text-success' : ''
@@ -61,7 +61,7 @@ export default function Sidebar() {
           {instances && instances.length && (
             <li>
               <Link
-                to={ROUTES.LIBRARY_DETAIL(instances[0].id)}
+                to={ROUTES.library.detail(instances[0].id)}
                 className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
                 data-tip={instances[0].name}
               >

@@ -1,3 +1,4 @@
+import { ROUTES } from '@shared/constants/routes';
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto } from '@shared/dtos/content.dto';
 import { abbreviateNumber } from '@shared/utils/general.utils';
@@ -6,7 +7,6 @@ import { memo } from 'react';
 import { Link } from 'react-router';
 
 import Img from '~/components/Img';
-import { ROUTES } from '~/constants/routes';
 
 interface ContentCardProps {
   data: ContentDto;
@@ -15,7 +15,7 @@ interface ContentCardProps {
 function ContentCard({ data }: ContentCardProps) {
   return (
     <div key={data.id} className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">
-      <Link to={ROUTES.DISCOVER_DETAIL(data.slug)} className="flex justify-center items-center w-24 h-24">
+      <Link to={ROUTES.discover.detail(data.slug)} className="flex justify-center items-center w-24 h-24">
         <Img src={data.logo.thumbnailUrl} alt={data.logo.title} className="w-full h-full object-cover" />
       </Link>
 
@@ -23,7 +23,7 @@ function ContentCard({ data }: ContentCardProps) {
         <div className="flex">
           <div className="flex-4/5 space-y-1">
             <Link
-              to={ROUTES.DISCOVER_DETAIL(data.slug)}
+              to={ROUTES.discover.detail(data.slug)}
               className="flex w-[90%] text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
             >
               {data.name}

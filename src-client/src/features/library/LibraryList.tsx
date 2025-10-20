@@ -1,3 +1,4 @@
+import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { Gamepad2 } from 'lucide-react';
 import { useState } from 'react';
@@ -5,7 +6,6 @@ import { Link } from 'react-router';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
-import { ROUTES } from '~/constants/routes';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 export default function LibraryList() {
@@ -29,7 +29,7 @@ export default function LibraryList() {
 
           return (
             <Link
-              to={ROUTES.LIBRARY_DETAIL(instance.id)}
+              to={ROUTES.library.detail(instance.id)}
               key={instance.id}
               className="relative group h-60 overflow-hidden bg-base-100 rounded-xl"
               tabIndex={0}

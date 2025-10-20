@@ -1,10 +1,10 @@
 import { CATEGORY_CLASS_REVERSED } from '@shared/constants/curseforge.const';
+import { ROUTES } from '@shared/constants/routes';
 import { capitalize } from '@shared/utils/general.utils';
 import { Download, ExternalLink } from 'lucide-react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 
 import Img from '~/components/Img';
-import { ROUTES } from '~/constants/routes';
 import { useContentDetailQuery } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
 
@@ -63,7 +63,7 @@ export default function DiscoverDetailLayout() {
                 className="tab"
                 aria-label="Description"
                 checked={isDescriptionTab}
-                onChange={() => navigate(ROUTES.DISCOVER_DETAIL(slug!), { relative: 'path' })}
+                onChange={() => navigate(ROUTES.discover.detail(slug!), { relative: 'path' })}
               />
               <input
                 type="radio"
@@ -71,7 +71,7 @@ export default function DiscoverDetailLayout() {
                 className="tab"
                 aria-label="Files"
                 checked={isFilesTab}
-                onChange={() => navigate(ROUTES.DISCOVER_DETAIL_FILES(slug!), { relative: 'path' })}
+                onChange={() => navigate(ROUTES.discover.files(slug!), { relative: 'path' })}
               />
               <input
                 type="radio"
@@ -79,7 +79,7 @@ export default function DiscoverDetailLayout() {
                 className="tab"
                 aria-label={`Gallery (${data.screenshots.length})`}
                 checked={isGalleryTab}
-                onChange={() => navigate(ROUTES.DISCOVER_DETAIL_GALLERY(slug!), { relative: 'path' })}
+                onChange={() => navigate(ROUTES.discover.gallery(slug!), { relative: 'path' })}
               />
               {Object.entries(data.links ?? {}).map(([key, value]) => {
                 if (!value) return null;

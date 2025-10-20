@@ -10,58 +10,76 @@ import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 import { DiscoverContext } from './context/DiscoverContext';
 
 export default function DiscoverFiles() {
+  const contentId = useContextSelector(DiscoverContext, ({ contentId }) => contentId);
   const [gameVersion, setGameVersion] = useState(useContextSelector(DiscoverContext, ({ gameVersion }) => gameVersion));
   const [loaderType, setLoaderType] = useState(useContextSelector(DiscoverContext, ({ loaderType }) => loaderType));
-  const contentId = useContextSelector(DiscoverContext, ({ contentId }) => contentId);
   const [allowAlphaFile, setAllowAlphaFile] = useContextSelector(
     DiscoverContext,
     ({ allowAlphaFile, setAllowAlphaFile }) => [allowAlphaFile, setAllowAlphaFile],
   );
+  const [pageSizeFile, setPageSizeFile] = useContextSelector(DiscoverContext, ({ pageSizeFile, setPageSizeFile }) => [
+    pageSizeFile,
+    setPageSizeFile,
+  ]);
 
   const { data: versions } = useVersionReleasesQuery();
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useContentFilesInfinite({
     gameVersion,
     modLoaderType: loaderType === 0 ? undefined : loaderType,
     id: contentId!,
-    pageSize: 20,
+    pageSize: pageSizeFile,
   });
 
   const fileData = useMemo(() => {
     if (!data) return [];
-    return data.pages.flatMap((page) => page.data);
-  }, [data]);
+    const allFiles = data.pages.flatMap((page) => page.data);
+
+    if (!allowAlphaFile) {
+      return allFiles.filter((file) => file.releaseType !== 'Alpha');
+    }
+
+    return allFiles;
+  }, [data, allowAlphaFile]);
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-4 bg-base-300">
-      <div className="flex gap-2 py-2">
-        <select className="select w-32" value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
-          {versions?.map((version) => (
-            <option key={version.version} value={version.version}>
-              {version.version}
-            </option>
-          ))}
-        </select>
-
-        <select className="select w-32" value={loaderType} onChange={(e) => setLoaderType(Number(e.target.value))}>
-          {Object.entries(MOD_LOADER).map(([key, value]) => {
-            const label = value === MOD_LOADER.Any ? 'All' : key;
-            return (
-              <option key={value} value={value}>
-                {label}
+      <div className="flex gap-2 py-2 justify-between">
+        <div className="flex gap-2">
+          <select className="select w-32" value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
+            {versions?.map((version) => (
+              <option key={version.version} value={version.version}>
+                {version.version}
               </option>
-            );
-          })}
-        </select>
+            ))}
+          </select>
 
-        <label className="label">
-          <input
-            type="checkbox"
-            className="toggle checked:toggle-success"
-            checked={allowAlphaFile}
-            onChange={(e) => setAllowAlphaFile(e.target.checked)}
-          />
-          show alpha files
-        </label>
+          <select className="select w-32" value={loaderType} onChange={(e) => setLoaderType(Number(e.target.value))}>
+            {Object.entries(MOD_LOADER).map(([key, value]) => {
+              const label = value === MOD_LOADER.Any ? 'All' : key;
+              return (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              );
+            })}
+          </select>
+
+          <label className="label">
+            <input
+              type="checkbox"
+              className="toggle checked:toggle-success"
+              checked={allowAlphaFile}
+              onChange={(e) => setAllowAlphaFile(e.target.checked)}
+            />
+            show alpha files
+          </label>
+        </div>
+
+        <select className="select w-16" value={pageSizeFile} onChange={(e) => setPageSizeFile(Number(e.target.value))}>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
       </div>
 
       <DataTable
@@ -74,7 +92,7 @@ export default function DiscoverFiles() {
             render: (v) => (
               <button
                 className={`btn btn-xs btn-outline ${
-                  v === 'Release' ? 'btn-success' : v === 'Beta' ? 'btn-warning' : 'btn-secondary'
+                  v === 'Release' ? 'btn-success' : v === 'Beta' ? 'btn-secondary' : 'btn-warning'
                 }`}
               >
                 {{ Alpha: 'A', Beta: 'B', Release: 'R' }[v]}

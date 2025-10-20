@@ -17,7 +17,7 @@ interface DiscoverContextType {
   loaderType: number;
   categoryIds: Set<number>;
   allowAlphaFile: boolean;
-
+  pageSizeFile: number;
   // Setters
   setContentId: Dispatch<SetStateAction<number | null>>;
   setInstanceId: Dispatch<SetStateAction<string | undefined>>;
@@ -28,6 +28,7 @@ interface DiscoverContextType {
   setLoaderType: Dispatch<SetStateAction<number>>;
   setCategoryIds: Dispatch<SetStateAction<Set<number>>>;
   setAllowAlphaFile: Dispatch<SetStateAction<boolean>>;
+  setPageSizeFile: Dispatch<SetStateAction<number>>;
 }
 
 const DiscoverContext = createContext<DiscoverContextType>(null!);
@@ -54,6 +55,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   });
   // State for files filtering
   const [allowAlphaFile, setAllowAlphaFile] = useState<boolean>(true);
+  const [pageSizeFile, setPageSizeFile] = useState<number>(20);
 
   const { data: versions } = useVersionReleasesQuery();
 
@@ -96,6 +98,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       categoryIds,
       instanceId,
       allowAlphaFile,
+      pageSizeFile,
       setContentId,
       setSortField,
       setSearchFilter,
@@ -105,6 +108,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       setCategoryIds,
       setInstanceId,
       setAllowAlphaFile,
+      setPageSizeFile,
     }),
     [
       contentId,
@@ -116,6 +120,8 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       categoryIds,
       instanceId,
       allowAlphaFile,
+      pageSizeFile,
+      setPageSizeFile,
     ],
   );
 

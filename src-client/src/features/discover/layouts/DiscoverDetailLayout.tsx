@@ -2,12 +2,15 @@ import { CATEGORY_CLASS_REVERSED } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
 import { capitalize } from '@shared/utils/general.utils';
 import { Download, ExternalLink } from 'lucide-react';
+import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
 
 import Img from '~/components/Img';
 import { useContentDetailQuery } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
 
+import { DiscoverContext } from '../context/DiscoverContext';
 import DiscoverDetailPanel from './DiscoverDetailPanel';
 
 export default function DiscoverDetailLayout() {
@@ -16,16 +19,22 @@ export default function DiscoverDetailLayout() {
   const { height, width } = useContainer();
   const { slug } = useParams<{ slug: string }>();
   const { data, isLoading } = useContentDetailQuery({ slug: slug! });
+  const setContentId = useContextSelector(DiscoverContext, (v) => v.setContentId);
 
   const currentPath = location.pathname;
   const isGalleryTab = currentPath.endsWith('/gallery');
   const isFilesTab = currentPath.endsWith('/files');
   const isDescriptionTab = !isGalleryTab && !isFilesTab;
 
+  // Set current content ID in context
+  useEffect(() => {
+    if (isLoading || !data) return;
+    setContentId(data.id);
+  }, [data, isLoading, setContentId]);
+
   return (
     <div className="flex" style={{ height, width }}>
       <div className="flex-1 flex flex-col min-h-0 gap-3 p-4">
-        {/* Header */}
         {isLoading ? (
           <div className="skeleton w-full h-20"></div>
         ) : (

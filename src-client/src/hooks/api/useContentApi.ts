@@ -54,6 +54,7 @@ export function useContentFilesInfinite(params: ContentFileQueryDto) {
       if (nextIndex < totalCount) return nextIndex;
       return undefined;
     },
+    enabled: !!params.id,
     staleTime: 0,
     initialPageParam: 0,
   });

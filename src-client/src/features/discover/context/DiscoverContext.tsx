@@ -8,22 +8,26 @@ import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 
 interface DiscoverContextType {
   // State
-  instance: string | undefined;
+  contentId: number | null;
+  instanceId: string | undefined;
   sortField: number;
   searchFilter: string;
   categoryType: number;
   gameVersion: string;
   loaderType: number;
   categoryIds: Set<number>;
+  allowAlphaFile: boolean;
 
   // Setters
-  setInstance: Dispatch<SetStateAction<string | undefined>>;
+  setContentId: Dispatch<SetStateAction<number | null>>;
+  setInstanceId: Dispatch<SetStateAction<string | undefined>>;
   setSortField: Dispatch<SetStateAction<number>>;
   setSearchFilter: Dispatch<SetStateAction<string>>;
   setCategoryType: Dispatch<SetStateAction<number>>;
   setGameVersion: Dispatch<SetStateAction<string>>;
   setLoaderType: Dispatch<SetStateAction<number>>;
   setCategoryIds: Dispatch<SetStateAction<Set<number>>>;
+  setAllowAlphaFile: Dispatch<SetStateAction<boolean>>;
 }
 
 const DiscoverContext = createContext<DiscoverContextType>(null!);
@@ -32,7 +36,9 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   const debounceRef = useRef<number>(null!);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [instance, setInstance] = useState<string | undefined>(searchParams.get('instance') || undefined);
+  // Global state for discover filtering
+  const [contentId, setContentId] = useState<number | null>(null);
+  const [instanceId, setInstanceId] = useState<string | undefined>(searchParams.get('instance') || undefined);
   const [sortField, setSortField] = useState(Number(searchParams.get('sortField')) || SORT_FIELD.Featured);
   const [searchFilter, setSearchFilter] = useState(searchParams.get('searchFilter') || '');
   const [categoryType, setCategoryType] = useState(Number(searchParams.get('categoryType')) || CATEGORY_CLASS.Mods);
@@ -46,6 +52,8 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       return new Set();
     }
   });
+  // State for files filtering
+  const [allowAlphaFile, setAllowAlphaFile] = useState<boolean>(true);
 
   const { data: versions } = useVersionReleasesQuery();
 
@@ -70,31 +78,45 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       if (gameVersion) params['gameVersion'] = gameVersion;
       if (loaderType) params['loaderType'] = String(loaderType);
       if (categoryIds.size) params['categoryIds'] = JSON.stringify(Array.from(categoryIds));
-      if (instance) params['instance'] = instance;
+      if (instanceId) params['instance'] = instanceId;
       setSearchParams(params);
     }, 300);
 
     return () => clearTimeout(debounceRef.current);
-  }, [categoryIds, categoryType, gameVersion, instance, loaderType, searchFilter, setSearchParams, sortField]);
+  }, [categoryIds, categoryType, gameVersion, instanceId, loaderType, searchFilter, setSearchParams, sortField]);
 
   const value = useMemo<DiscoverContextType>(
     () => ({
+      contentId,
       sortField,
       searchFilter,
       categoryType,
       gameVersion,
       loaderType,
       categoryIds,
-      instance,
+      instanceId,
+      allowAlphaFile,
+      setContentId,
       setSortField,
       setSearchFilter,
       setCategoryType,
       setGameVersion,
       setLoaderType,
       setCategoryIds,
-      setInstance,
+      setInstanceId,
+      setAllowAlphaFile,
     }),
-    [sortField, searchFilter, categoryType, gameVersion, loaderType, categoryIds, instance],
+    [
+      contentId,
+      sortField,
+      searchFilter,
+      categoryType,
+      gameVersion,
+      loaderType,
+      categoryIds,
+      instanceId,
+      allowAlphaFile,
+    ],
   );
 
   return <DiscoverContext.Provider value={value}>{children}</DiscoverContext.Provider>;

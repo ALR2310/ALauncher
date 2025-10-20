@@ -1,5 +1,13 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, Settings } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+const tableSizeMap = {
+  xs: 'table-xs',
+  sm: 'table-sm',
+  md: 'table-md',
+  lg: 'table-lg',
+  xl: 'table-xl',
+} as const;
 
 interface ColumnSetting {
   enabled?: boolean;
@@ -20,6 +28,7 @@ interface Column<T> {
 interface DataTableProps<T> {
   className?: string;
   type?: 'default' | 'zebra';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   columns: Column<T>[];
   data?: T[];
   sortDir?: SortDir;
@@ -29,11 +38,14 @@ interface DataTableProps<T> {
   onRowClick?: (row: T, index: number) => void;
   columnSetting?: ColumnSetting;
   emptyState?: React.ReactNode;
+  onReachEnd?: () => void;
+  observerRootMargin?: string;
 }
 
 export default function DataTable<T>({
   className = '',
   type = 'default',
+  size = 'md',
   columns,
   data = [],
   sortDir = 'asc',
@@ -43,7 +55,11 @@ export default function DataTable<T>({
   onRowClick,
   columnSetting,
   emptyState = 'No contents found',
+  onReachEnd,
+  observerRootMargin,
 }: DataTableProps<T>) {
+  const sentinelRef = useRef<HTMLTableRowElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [visibleKeys, setVisibleKeys] = useState<string[]>(
     columns.filter((c) => c.show !== false).map((c) => c.key as string),
   );
@@ -93,9 +109,33 @@ export default function DataTable<T>({
 
   const loadingRows = useMemo(() => Array.from({ length: loadingCount }), [loadingCount]);
 
+  useEffect(() => {
+    if (!onReachEnd || !sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoading) {
+          onReachEnd();
+        }
+      },
+      {
+        root: containerRef.current,
+        rootMargin: observerRootMargin ?? '100px',
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(sentinelRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [onReachEnd, isLoading, observerRootMargin]);
+
   return (
-    <div className={`relative overflow-auto ${className}`}>
-      <table className={`table table-pin-rows ${type === 'zebra' ? 'table-zebra' : ''}`}>
+    <div ref={containerRef} className={`relative overflow-auto ${className}`}>
+      <table className={`table ${tableSizeMap[size]} table-pin-rows ${type === 'zebra' ? 'table-zebra' : ''}`}>
         <thead>
           <tr>
             {visibleCols.map((col, idx) => (
@@ -112,6 +152,7 @@ export default function DataTable<T>({
             ))}
           </tr>
         </thead>
+
         <tbody>
           {isLoading ? (
             loadingRows.map((_, idx) => (
@@ -145,6 +186,11 @@ export default function DataTable<T>({
               <td colSpan={visibleCols.length} className="text-center opacity-70 py-6">
                 {emptyState}
               </td>
+            </tr>
+          )}
+          {onReachEnd && !isLoading && data.length > 0 && (
+            <tr ref={sentinelRef} className="h-0">
+              <td colSpan={visibleCols.length} className="h-0 p-0 border-0"></td>
             </tr>
           )}
         </tbody>

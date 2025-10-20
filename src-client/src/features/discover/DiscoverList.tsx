@@ -27,7 +27,7 @@ export default function DiscoverList() {
   const categoryType = useContextSelector(DiscoverContext, (v) => v.categoryType);
   const gameVersion = useContextSelector(DiscoverContext, (v) => v.gameVersion);
   const loaderType = useContextSelector(DiscoverContext, (v) => v.loaderType);
-  const instance = useContextSelector(DiscoverContext, (v) => v.instance);
+  const instance = useContextSelector(DiscoverContext, (v) => v.instanceId);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useContentsInfinite({
     instance,

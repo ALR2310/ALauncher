@@ -33,6 +33,6 @@ class DiscoverRoutes extends RouteBuilder {
 export const ROUTES = {
   root: '/',
   home: new RouteBuilder('/'),
-  library: new LibraryRoutes('library'),
-  discover: new DiscoverRoutes('discover'),
+  library: new LibraryRoutes('/library'),
+  discover: new DiscoverRoutes('/discover'),
 };

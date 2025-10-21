@@ -15,11 +15,13 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
   const isRunning = false;
 
   return (
-    <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10 overflow-hidden">
+    <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
       <Img src={instanceLogo} alt={data.name} className="w-28 h-24 object-cover" />
       <div className="flex-1 flex flex-col justify-between">
         <div className="flex w-full justify-between">
-          <p className="text-xl font-bold">{data.name}</p>
+          <div className="flex-1">
+            <p className="line-clamp-2 text-xl font-bold w-[80%]">{data.name}</p>
+          </div>
 
           <div className="flex gap-2">
             <button className="btn btn-success w-28">Play</button>

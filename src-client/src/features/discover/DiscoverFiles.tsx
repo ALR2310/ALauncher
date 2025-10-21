@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import DataTable, { Column } from '~/components/DataTable';
+import Tooltip from '~/components/Tooltip';
 import { useContentFilesInfinite } from '~/hooks/api/useContentApi';
 import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 
@@ -75,19 +76,20 @@ export default function DiscoverFiles() {
           if (!v || v.length === 0) return null;
           const remaining = v.length - 1;
           return (
-            <div className={`tooltip`}>
-              <span>
-                {v[0]}
-                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
-              </span>
-              {remaining > 0 && (
-                <div className="tooltip-content">
-                  {v.slice(1).map((version, idx) => (
+            <Tooltip
+              content={
+                <div className="flex flex-col gap-1">
+                  {v.map((version, idx) => (
                     <div key={idx}>{version}</div>
                   ))}
                 </div>
-              )}
-            </div>
+              }
+            >
+              <span className="cursor-help">
+                {v[0]}
+                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
+              </span>
+            </Tooltip>
           );
         },
       },
@@ -98,19 +100,20 @@ export default function DiscoverFiles() {
           if (!v || v.length === 0) return null;
           const remaining = v.length - 1;
           return (
-            <div className={`tooltip`}>
-              <span>
-                {v[0]}
-                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
-              </span>
-              {remaining > 0 && (
-                <div className="tooltip-content">
-                  {v.slice(1).map((loader, idx) => (
+            <Tooltip
+              content={
+                <div className="flex flex-col gap-1">
+                  {v.map((loader, idx) => (
                     <div key={idx}>{loader}</div>
                   ))}
                 </div>
-              )}
-            </div>
+              }
+            >
+              <span className="cursor-help">
+                {v[0]}
+                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
+              </span>
+            </Tooltip>
           );
         },
       },

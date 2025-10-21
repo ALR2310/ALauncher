@@ -88,9 +88,9 @@ export class InstanceController {
     });
   }
 
-  @Get(':id/stop')
-  async stop(@Param('id') id: string) {
-    return instanceService.stop(id);
+  @Get(':id/cancel')
+  async cancel(@Param('id') id: string) {
+    return instanceService.cancel(id);
   }
 
   @Get(':id/download')

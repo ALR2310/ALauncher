@@ -43,8 +43,8 @@ export function instanceLaunch(id: string) {
   return new EventSource(url);
 }
 
-export async function instanceStop(id: string) {
-  return API.get(`${BASE_PATH}/${id}/stop`);
+export async function instanceCancel(id: string) {
+  return API.get(`${BASE_PATH}/${id}/cancel`);
 }
 
 export async function instanceDownload(id: string) {

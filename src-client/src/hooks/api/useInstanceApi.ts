@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   instanceAddContent,
+  instanceCancel,
   instanceCreate,
   instanceDelete,
   instanceFindAll,
@@ -11,7 +12,6 @@ import {
   instanceFindWorlds,
   instanceLaunch,
   instanceRemoveContent,
-  instanceStop,
   instanceToggleContent,
   instanceUpdate,
 } from '~/api/instance.api';
@@ -66,73 +66,97 @@ export function useInstanceLaunchSSE() {
   const [estimated, setEstimated] = useState('');
   const [extract, setExtract] = useState('');
   const [patch, setPatch] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const launchEvtRef = useRef<EventSource | null>(null);
 
-  const launch = useCallback((id: string) => {
-    if (launchEvtRef.current) return;
-    launchEvtRef.current = instanceLaunch(id);
+  const cleanupConnection = useCallback(() => {
+    if (launchEvtRef.current) {
+      launchEvtRef.current.close();
+      launchEvtRef.current = null;
+    }
+  }, []);
 
-    setIsDownloading(false);
-    setProgress(undefined);
-    setLogs([]);
-    setSpeed('');
-    setEstimated('');
-    setExtract('');
-    setPatch('');
+  const launch = useCallback(
+    (id: string) => {
+      if (launchEvtRef.current) return;
 
-    launchEvtRef.current.addEventListener('progress', (e: MessageEvent) => setProgress(Number(e.data)));
-    launchEvtRef.current.addEventListener('log', (e: MessageEvent) => {
-      setLogs((prev) => [...prev.slice(-499), e.data]);
+      // Reset state
+      setIsRunning(true);
+      setIsDownloading(true);
+      setProgress(undefined);
+      setLogs([]);
+      setSpeed('');
+      setEstimated('');
+      setExtract('');
+      setPatch('');
+
+      launchEvtRef.current = instanceLaunch(id);
+
+      launchEvtRef.current.addEventListener('progress', (e: MessageEvent) => setProgress(Number(e.data)));
+      launchEvtRef.current.addEventListener('log', (e: MessageEvent) => {
+        setLogs((prev) => [...prev.slice(-499), e.data]);
+        setIsDownloading(false);
+        setProgress(undefined);
+      });
+      launchEvtRef.current.addEventListener('speed', (e: MessageEvent) => setSpeed(e.data));
+      launchEvtRef.current.addEventListener('estimated', (e: MessageEvent) => setEstimated(e.data));
+      launchEvtRef.current.addEventListener('extract', (e: MessageEvent) => setExtract(e.data));
+      launchEvtRef.current.addEventListener('patch', (e: MessageEvent) => setPatch(e.data));
+      launchEvtRef.current.addEventListener('close', () => {
+        setIsDownloading(false);
+        setIsRunning(false);
+        cleanupConnection();
+      });
+      launchEvtRef.current.addEventListener('cancelled', () => {
+        setIsDownloading(false);
+        setIsRunning(false);
+        cleanupConnection();
+      });
+      launchEvtRef.current.addEventListener('error', (e) => {
+        console.error('Launch SSE error', e);
+        setIsDownloading(false);
+        setIsRunning(false);
+        cleanupConnection();
+      });
+    },
+    [cleanupConnection],
+  );
+
+  const cancel = useCallback(
+    (id: string) => {
+      instanceCancel(id);
       setIsDownloading(false);
       setProgress(undefined);
-    });
-    launchEvtRef.current.addEventListener('speed', (e: MessageEvent) => setSpeed(e.data));
-    launchEvtRef.current.addEventListener('estimated', (e: MessageEvent) => setEstimated(e.data));
-    launchEvtRef.current.addEventListener('extract', (e: MessageEvent) => setExtract(e.data));
-    launchEvtRef.current.addEventListener('patch', (e: MessageEvent) => setPatch(e.data));
-    launchEvtRef.current.addEventListener('close', () => {
-      setIsDownloading(false);
-      launchEvtRef.current?.close();
-      launchEvtRef.current = null;
-    });
-    launchEvtRef.current?.addEventListener('cancelled', () => {
-      setIsDownloading(false);
-      launchEvtRef.current?.close();
-      launchEvtRef.current = null;
-    });
-    launchEvtRef.current?.addEventListener('error', (e) => {
-      console.error('Launch SSE error', e);
-      setIsDownloading(false);
-      launchEvtRef.current?.close();
-      launchEvtRef.current = null;
-    });
-  }, []);
-
-  const cancel = useCallback((id: string) => {
-    instanceStop(id);
-
-    setIsDownloading(false);
-    setProgress(undefined);
-    setLogs((prev) => [...prev, 'Launch cancelled.']);
-    setSpeed('');
-    setEstimated('');
-    setExtract('');
-    setPatch('');
-
-    launchEvtRef.current?.close();
-    launchEvtRef.current = null;
-  }, []);
+      setLogs((prev) => [...prev, 'Launch cancelled.']);
+      setSpeed('');
+      setEstimated('');
+      setExtract('');
+      setPatch('');
+      cleanupConnection();
+    },
+    [cleanupConnection],
+  );
 
   useEffect(() => {
     return () => {
-      launchEvtRef.current?.close();
-      launchEvtRef.current = null;
+      cleanupConnection();
     };
-  }, []);
+  }, [cleanupConnection]);
 
-  return { launch, cancel, isDownloading, progress, logs, speed, estimated, extract, patch };
+  return {
+    launch,
+    cancel,
+    isDownloading,
+    progress,
+    logs,
+    speed,
+    estimated,
+    extract,
+    patch,
+    isRunning,
+  };
 }
 
 export function useInstanceAddContentSSE() {

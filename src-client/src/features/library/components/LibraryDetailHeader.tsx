@@ -2,17 +2,21 @@ import { InstanceDto } from '@shared/dtos/instance.dto';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
 import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen } from 'lucide-react';
+import { memo } from 'react';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
+import { useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
+import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto;
 }
 
-export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) {
-  const isRunning = false;
+const LibraryDetailHeader = memo(({ data }: LibraryDetailHeaderProps) => {
+  const { launch, cancel, isRunning, progress } = useInstanceLaunchSSE();
+  const { open } = useLibraryModal();
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
@@ -24,7 +28,9 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
           </div>
 
           <div className="flex gap-2">
-            <button className="btn btn-success w-28">Play</button>
+            <button className="btn btn-success w-28" onClick={() => (isRunning ? cancel(data.id) : launch(data.id))}>
+              {isRunning ? 'Cancel' : 'Play'}
+            </button>
 
             <div className="dropdown dropdown-end">
               <button className="btn btn-soft btn-circle">
@@ -32,16 +38,16 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
               </button>
               <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 w-38 shadow mt-3">
                 <li>
-                  <a>
+                  <button onClick={() => {}}>
                     <FolderOpen size={16} />
                     Open folder
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a>
-                    <SquarePen size={16} />
+                  <button>
+                    <SquarePen size={16} onClick={() => open(data.id)} />
                     Edit instance
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -51,7 +57,7 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
         <div className="divider m-0"></div>
 
         {isRunning ? (
-          <Progress className="w-full h-5" />
+          <Progress className="w-full h-5" value={progress} text={`${progress ?? 0}%`} />
         ) : (
           <div className="flex gap-1 items-center text-sm text-base-content/70">
             <Gamepad2 size={20} />
@@ -70,4 +76,6 @@ export default function LibraryDetailHeader({ data }: LibraryDetailHeaderProps) 
       </div>
     </div>
   );
-}
+});
+
+export default LibraryDetailHeader;

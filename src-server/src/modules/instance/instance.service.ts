@@ -306,7 +306,7 @@ export const instanceService = new (class InstanceService {
     }
   }
 
-  async stop(id: string) {
+  async cancel(id: string) {
     try {
       this.instanceLaunch.get(id)?.cancel();
       this.launchCleanup(id);

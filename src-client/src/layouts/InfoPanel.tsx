@@ -58,7 +58,7 @@ export default function InfoPanel() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
-    <div className="py-3 px-1 w-72 lg:w-80 space-y-4 overflow-y-auto " id="release-scroll">
+    <div className="flex flex-col min-h-0 py-3 px-1 w-72 lg:w-80 space-y-4">
       <div className="flex gap-2 p-3 bg-base-100 rounded-xl border border-base-content/10">
         <Img
           src={steveFace}
@@ -85,12 +85,16 @@ export default function InfoPanel() {
         </div>
       </div>
 
-      {notes.map((item, idx) => (
-        <ReleaseCard key={idx} data={item} />
-      ))}
+      <div className="divider"></div>
 
-      <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
-        {isFetchingNextPage ? 'Loading...' : hasNextPage ? 'Load more' : ''}
+      <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar">
+        {notes.map((item, idx) => (
+          <ReleaseCard key={idx} data={item} />
+        ))}
+
+        <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
+          {isFetchingNextPage ? 'Loading...' : hasNextPage ? 'Load more' : ''}
+        </div>
       </div>
     </div>
   );

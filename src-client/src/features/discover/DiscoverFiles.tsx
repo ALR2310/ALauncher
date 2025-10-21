@@ -75,11 +75,16 @@ export default function DiscoverFiles() {
         render: (v: string[], _row) => {
           if (!v || v.length === 0) return null;
           const remaining = v.length - 1;
+          
+          if (remaining === 0) {
+            return <span>{v[0]}</span>;
+          }
+          
           return (
             <Tooltip
               content={
                 <div className="flex flex-col gap-1">
-                  {v.map((version, idx) => (
+                  {v.slice(1).map((version, idx) => (
                     <div key={idx}>{version}</div>
                   ))}
                 </div>
@@ -87,7 +92,7 @@ export default function DiscoverFiles() {
             >
               <span className="cursor-help">
                 {v[0]}
-                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
+                <span className="text-base-content/60"> +{remaining}</span>
               </span>
             </Tooltip>
           );
@@ -99,11 +104,16 @@ export default function DiscoverFiles() {
         render: (v: string[], _row) => {
           if (!v || v.length === 0) return null;
           const remaining = v.length - 1;
+          
+          if (remaining === 0) {
+            return <span>{v[0]}</span>;
+          }
+          
           return (
             <Tooltip
               content={
                 <div className="flex flex-col gap-1">
-                  {v.map((loader, idx) => (
+                  {v.slice(1).map((loader, idx) => (
                     <div key={idx}>{loader}</div>
                   ))}
                 </div>
@@ -111,7 +121,7 @@ export default function DiscoverFiles() {
             >
               <span className="cursor-help">
                 {v[0]}
-                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
+                <span className="text-base-content/60"> +{remaining}</span>
               </span>
             </Tooltip>
           );

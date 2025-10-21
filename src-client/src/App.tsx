@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { ConfirmProvider } from './context/ConfirmContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
 import { ToastProvider } from './context/ToastContext';
+import { TooltipProvider } from './context/TooltipContext';
 import DiscoverDescription from './features/discover/DiscoverDescription';
 import DiscoverFiles from './features/discover/DiscoverFiles';
 import DiscoverGallery from './features/discover/DiscoverGallery';
@@ -44,25 +45,27 @@ export default function App() {
       <ToastProvider>
         <ConfirmProvider>
           <LibraryModalProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path={ROUTES.root} element={<MainLayout />}>
-                  <Route index element={<HomeView />} />
-                  <Route path={ROUTES.library.path} element={<LibraryLayout />}>
-                    <Route index element={<LibraryList />} />
-                    <Route path={ROUTES.library.detail(':id')} element={<LibraryDetail />} />
-                  </Route>
-                  <Route path={ROUTES.discover.path}>
-                    <Route index element={<DiscoverList />} />
-                    <Route path={ROUTES.discover.detail(':slug')} element={<DiscoverDetailLayout />}>
-                      <Route index element={<DiscoverDescription />} />
-                      <Route path={ROUTES.discover.gallery(':slug')} element={<DiscoverGallery />} />
-                      <Route path={ROUTES.discover.files(':slug')} element={<DiscoverFiles />} />
+            <TooltipProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path={ROUTES.root} element={<MainLayout />}>
+                    <Route index element={<HomeView />} />
+                    <Route path={ROUTES.library.path} element={<LibraryLayout />}>
+                      <Route index element={<LibraryList />} />
+                      <Route path={ROUTES.library.detail(':id')} element={<LibraryDetail />} />
+                    </Route>
+                    <Route path={ROUTES.discover.path}>
+                      <Route index element={<DiscoverList />} />
+                      <Route path={ROUTES.discover.detail(':slug')} element={<DiscoverDetailLayout />}>
+                        <Route index element={<DiscoverDescription />} />
+                        <Route path={ROUTES.discover.gallery(':slug')} element={<DiscoverGallery />} />
+                        <Route path={ROUTES.discover.files(':slug')} element={<DiscoverFiles />} />
+                      </Route>
                     </Route>
                   </Route>
-                </Route>
-              </Routes>
-            </BrowserRouter>
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
           </LibraryModalProvider>
         </ConfirmProvider>
       </ToastProvider>

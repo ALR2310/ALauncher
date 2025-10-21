@@ -1,6 +1,6 @@
 import { ROUTES } from '@shared/constants/routes';
 import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
-import { Link, NavLink } from 'react-router';
+import { Link, NavLink, useParams } from 'react-router';
 
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useLibraryModal } from '~/hooks/app/useLibraryModal';
@@ -8,6 +8,7 @@ import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 export default function Sidebar() {
   const { open } = useLibraryModal();
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
+  const { id } = useParams();
 
   return (
     <div id="side-left-bar" className="flex flex-col justify-between">
@@ -45,7 +46,7 @@ export default function Sidebar() {
               to={ROUTES.library.path}
               className={({ isActive }) =>
                 `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
-                  isActive ? 'bg-success/10 text-success' : ''
+                  isActive && instances?.[0].id !== id ? 'bg-success/10 text-success' : ''
                 }`
               }
               data-tip="Library"
@@ -62,7 +63,9 @@ export default function Sidebar() {
             <li>
               <Link
                 to={ROUTES.library.detail(instances[0].id)}
-                className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
+                className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
+                  id === instances[0].id ? 'bg-success/10 text-success' : ''
+                }`}
                 data-tip={instances[0].name}
               >
                 <Box size={20} />

@@ -24,7 +24,7 @@ function ContentCard({ data }: ContentCardProps) {
           <div className="flex-4/5 space-y-1">
             <Link
               to={ROUTES.discover.detail(data.slug)}
-              className="flex w-[90%] text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
+              className="w-[90%] text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
             >
               {data.name}
             </Link>

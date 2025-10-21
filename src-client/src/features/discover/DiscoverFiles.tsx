@@ -1,9 +1,10 @@
 import { MOD_LOADER } from '@shared/constants/curseforge.const';
+import { ContentFileDto } from '@shared/dtos/content.dto';
 import { FileSearch } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
-import DataTable from '~/components/DataTable';
+import DataTable, { Column } from '~/components/DataTable';
 import { useContentFilesInfinite } from '~/hooks/api/useContentApi';
 import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 
@@ -40,6 +41,87 @@ export default function DiscoverFiles() {
 
     return allFiles;
   }, [data, allowAlphaFile]);
+
+  const tableColumns = useMemo<Column<ContentFileDto>[]>(
+    () => [
+      {
+        key: 'releaseType',
+        title: 'Type',
+        render: (v) => (
+          <button
+            className={`btn btn-xs btn-outline ${
+              v === 'Release' ? 'btn-success' : v === 'Beta' ? 'btn-secondary' : 'btn-warning'
+            }`}
+          >
+            {{ Alpha: 'A', Beta: 'B', Release: 'R' }[v]}
+          </button>
+        ),
+      },
+      { key: 'fileName', title: 'File Name' },
+      {
+        key: 'fileDate',
+        title: 'Uploaded',
+        render: (v, row) => (
+          <div className="text-center">
+            <p>{new Date(v).toLocaleDateString()}</p>
+            <p className="text-base-content/60">{row.fileSize}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'gameVersions',
+        title: 'Versions',
+        render: (v: string[], _row) => {
+          if (!v || v.length === 0) return null;
+          const remaining = v.length - 1;
+          return (
+            <div className={`tooltip`}>
+              <span>
+                {v[0]}
+                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
+              </span>
+              {remaining > 0 && (
+                <div className="tooltip-content">
+                  {v.slice(1).map((version, idx) => (
+                    <div key={idx}>{version}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        key: 'modLoaders',
+        title: 'Loaders',
+        render: (v: string[], _row) => {
+          if (!v || v.length === 0) return null;
+          const remaining = v.length - 1;
+          return (
+            <div className={`tooltip`}>
+              <span>
+                {v[0]}
+                {remaining > 0 && <span className="text-base-content/60"> +{remaining}</span>}
+              </span>
+              {remaining > 0 && (
+                <div className="tooltip-content">
+                  {v.slice(1).map((loader, idx) => (
+                    <div key={idx}>{loader}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        key: 'actions',
+        title: '',
+        render: () => <button className="btn btn-soft btn-sm btn-success ">Install</button>,
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-4 bg-base-300">
@@ -85,38 +167,7 @@ export default function DiscoverFiles() {
       <DataTable
         className="flex-1 bg-base-100 rounded-xl"
         size="sm"
-        columns={[
-          {
-            key: 'releaseType',
-            title: 'Type',
-            render: (v) => (
-              <button
-                className={`btn btn-xs btn-outline ${
-                  v === 'Release' ? 'btn-success' : v === 'Beta' ? 'btn-secondary' : 'btn-warning'
-                }`}
-              >
-                {{ Alpha: 'A', Beta: 'B', Release: 'R' }[v]}
-              </button>
-            ),
-          },
-          { key: 'fileName', title: 'File Name' },
-          {
-            key: 'fileDate',
-            title: 'Uploaded',
-            render: (v, row) => (
-              <div className="text-center">
-                <p>{new Date(v).toLocaleDateString()}</p>
-                <p className="text-base-content/60">{row.fileSize}</p>
-              </div>
-            ),
-          },
-          { key: 'gameVersions', title: 'Game Versions' },
-          {
-            key: 'actions',
-            title: '',
-            render: () => <button className="btn btn-soft btn-sm btn-success ">Install</button>,
-          },
-        ]}
+        columns={tableColumns}
         data={fileData}
         isLoading={isLoading}
         columnSetting={{ enabled: false }}

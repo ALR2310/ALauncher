@@ -55,6 +55,7 @@ const contentSchema = z.object({
     url: z.string(),
   }),
   gameVersions: z.array(z.string()),
+  modLoaders: z.array(z.string()),
   dateCreated: z.date(),
   dateModified: z.date(),
   dateReleased: z.date(),
@@ -122,6 +123,7 @@ const contentFileSchema = z.object({
   downloadCount: z.number(),
   downloadUrl: z.url(),
   gameVersions: z.array(z.string()),
+  modLoaders: z.array(z.string()),
   dependencies: z.array(
     z.object({
       modId: z.number(),

@@ -4,6 +4,8 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { ENV } from '../shared/enums/general.enum';
+import { analyzer } from 'vite-bundle-analyzer';
+
 
 config({ quiet: true, path: resolve('..', '.env') });
 
@@ -53,5 +55,5 @@ export default defineConfig(async () => ({
     },
   },
   clearScreen: false,
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), analyzer()],
 }));

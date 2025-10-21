@@ -32,6 +32,46 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <ConfirmProvider>
+          <LibraryModalProvider>
+            <TooltipProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </TooltipProvider>
+          </LibraryModalProvider>
+        </ConfirmProvider>
+      </ToastProvider>
+    </QueryClientProvider>
+  );
+};
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path={ROUTES.root} element={<MainLayout />}>
+          <Route index element={<HomeView />} />
+          <Route path={ROUTES.library.path} element={<LibraryLayout />}>
+            <Route index element={<LibraryList />} />
+            <Route path={ROUTES.library.detail(':id')} element={<LibraryDetail />} />
+          </Route>
+          <Route path={ROUTES.discover.path}>
+            <Route index element={<DiscoverList />} />
+            <Route path={ROUTES.discover.detail(':slug')} element={<DiscoverDetailLayout />}>
+              <Route index element={<DiscoverDescription />} />
+              <Route path={ROUTES.discover.gallery(':slug')} element={<DiscoverGallery />} />
+              <Route path={ROUTES.discover.files(':slug')} element={<DiscoverFiles />} />
+            </Route>
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
 export default function App() {
   useEffect(() => {
     if (isTauri) {
@@ -42,36 +82,8 @@ export default function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <LibraryModalProvider>
-            <TooltipProvider>
-              <ThemeProvider>
-                <BrowserRouter>
-                  <Routes>
-                    <Route path={ROUTES.root} element={<MainLayout />}>
-                      <Route index element={<HomeView />} />
-                      <Route path={ROUTES.library.path} element={<LibraryLayout />}>
-                        <Route index element={<LibraryList />} />
-                        <Route path={ROUTES.library.detail(':id')} element={<LibraryDetail />} />
-                      </Route>
-                      <Route path={ROUTES.discover.path}>
-                        <Route index element={<DiscoverList />} />
-                        <Route path={ROUTES.discover.detail(':slug')} element={<DiscoverDetailLayout />}>
-                          <Route index element={<DiscoverDescription />} />
-                          <Route path={ROUTES.discover.gallery(':slug')} element={<DiscoverGallery />} />
-                          <Route path={ROUTES.discover.files(':slug')} element={<DiscoverFiles />} />
-                        </Route>
-                      </Route>
-                    </Route>
-                  </Routes>
-                </BrowserRouter>
-              </ThemeProvider>
-            </TooltipProvider>
-          </LibraryModalProvider>
-        </ConfirmProvider>
-      </ToastProvider>
-    </QueryClientProvider>
+    <AppProvider>
+      <AppRoutes />
+    </AppProvider>
   );
 }

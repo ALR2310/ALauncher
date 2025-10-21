@@ -55,5 +55,8 @@ export default defineConfig(async () => ({
     },
   },
   clearScreen: false,
-  plugins: [react(), tailwindcss(), analyzer()],
+  plugins: [react(), tailwindcss(), analyzer({
+    openAnalyzer: false,
+    analyzerMode: 'static',
+  })],
 }));

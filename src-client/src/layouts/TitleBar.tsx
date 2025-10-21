@@ -1,11 +1,13 @@
 import { ROUTES } from '@shared/constants/routes';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { ArrowLeft, ArrowRight, Copy, Minus, Search, Square, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, Minus, Search, Square, SwatchBook, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
 import icon from '~/assets/images/icon.ico';
 import Img from '~/components/Img';
+import { THEME } from '~/context/ThemeContext';
+import { useTheme } from '~/hooks/app/useTheme';
 
 const WindowControlButton = () => {
   const isTauri = window.isTauri;
@@ -55,7 +57,7 @@ const WindowControlButton = () => {
         className="btn btn-circle btn-ghost flex items-center justify-center hover:bg-base-content/10"
         tabIndex={-1}
       >
-        {isMaximized ? <Copy size={18} className="rotate-[90deg]" /> : <Square size={18} />}
+        {isMaximized ? <Copy size={18} className="rotate-90" /> : <Square size={18} />}
       </button>
 
       {/* Close */}
@@ -69,6 +71,37 @@ const WindowControlButton = () => {
       >
         <X size={19} />
       </button>
+    </div>
+  );
+};
+
+const ThemeControlSelector = () => {
+  const { theme, setTheme } = useTheme();
+
+  const themes = Object.values(THEME);
+
+  return (
+    <div className="dropdown dropdown-center">
+      <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
+        <SwatchBook size={20} />
+      </div>
+      <ul tabIndex={-1} className="dropdown-content bg-base-300 rounded-box z-10 w-36 p-2 shadow-lg space-y-2">
+        {themes.map((t) => (
+          <li key={t}>
+            <label className="flex gap-2 cursor-pointer items-center text-sm capitalize">
+              <input
+                type="radio"
+                name="theme-radios"
+                className="radio radio-sm theme-controller checked:radio-success"
+                value={t}
+                checked={theme === t}
+                onChange={() => setTheme(t)}
+              />
+              {t}
+            </label>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
@@ -106,7 +139,8 @@ export default function TitleBar() {
       </div>
 
       <div className="flex items-center justify-end space-x-4 h-full">
-        {/* Window Control Buttons */}
+        <ThemeControlSelector />
+
         <WindowControlButton />
       </div>
     </div>

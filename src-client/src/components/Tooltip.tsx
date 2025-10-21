@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'motion/react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -63,21 +62,20 @@ export default function Tooltip({ content, children, className = '', placement =
   };
 
   useEffect(() => {
-    if (isVisible) {
-      updatePosition();
+    // Always update position, even when not visible
+    updatePosition();
 
-      // Update position on scroll or resize
-      const handleUpdate = () => updatePosition();
-      window.addEventListener('scroll', handleUpdate, true);
-      window.addEventListener('resize', handleUpdate);
+    // Update position on scroll or resize
+    const handleUpdate = () => updatePosition();
+    window.addEventListener('scroll', handleUpdate, true);
+    window.addEventListener('resize', handleUpdate);
 
-      return () => {
-        window.removeEventListener('scroll', handleUpdate, true);
-        window.removeEventListener('resize', handleUpdate);
-      };
-    }
+    return () => {
+      window.removeEventListener('scroll', handleUpdate, true);
+      window.removeEventListener('resize', handleUpdate);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isVisible]);
+  }, [isVisible, placement, offset]);
 
   const handleMouseEnter = () => {
     setIsVisible(true);
@@ -99,24 +97,20 @@ export default function Tooltip({ content, children, className = '', placement =
       </div>
 
       {createPortal(
-        <AnimatePresence>
-          {isVisible && (
-            <motion.div
-              ref={tooltipRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="fixed z-9999 tooltip tooltip-open pointer-events-none"
-              style={{
-                top: `${position.top}px`,
-                left: `${position.left}px`,
-              }}
-            >
-              <div className="tooltip-content">{content}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
+        <div
+          ref={tooltipRef}
+          className="fixed z-9999 tooltip tooltip-open pointer-events-none"
+          style={{
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? 'scale(1)' : 'scale(0.95)',
+            transition: 'opacity 150ms ease-out, transform 150ms ease-out',
+            visibility: isVisible ? 'visible' : 'hidden',
+          }}
+        >
+          <div className="tooltip-content">{content}</div>
+        </div>,
         document.body,
       )}
     </>

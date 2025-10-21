@@ -85,6 +85,7 @@ const ToastProvider = ({ children }: { children: ReactNode }) => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
       });
     } else {
+      // eslint-disable-next-line react-hooks/immutability
       setTimeout(() => removeToast(id), toast.duration || 3000);
     }
   }, []);

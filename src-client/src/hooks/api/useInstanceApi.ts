@@ -1,4 +1,9 @@
-import { InstanceContentAddQueryDto, InstanceContentRemoveQueryDto, InstanceQueryDto } from '@shared/dtos/instance.dto';
+import {
+  InstanceContentAddQueryDto,
+  InstanceContentQueryDto,
+  InstanceContentRemoveQueryDto,
+  InstanceQueryDto,
+} from '@shared/dtos/instance.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -10,6 +15,7 @@ import {
   instanceFindAll,
   instanceFindOne,
   instanceFindWorlds,
+  instanceGetContents,
   instanceLaunch,
   instanceRemoveContent,
   instanceToggleContent,
@@ -158,6 +164,14 @@ export function useInstanceLaunchSSE() {
     patch,
     isRunning,
   };
+}
+
+export function useInstanceGetContentsQuery(params: InstanceContentQueryDto) {
+  return useQuery({
+    queryKey: ['contents', params],
+    queryFn: () => instanceGetContents(params),
+    enabled: !!params.id && !!params.contentType,
+  });
 }
 
 export function useInstanceAddContentSSE() {

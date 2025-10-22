@@ -54,7 +54,7 @@ export async function instanceDownload(id: string) {
 
 export async function instanceGetContents(params: InstanceContentQueryDto) {
   const { id, contentType } = params;
-  return API.get<ContentResponseDto[]>(`${BASE_PATH}/${id}/${contentType}`);
+  return API.get<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`);
 }
 
 export function instanceAddContent(params: InstanceContentAddQueryDto) {
@@ -70,5 +70,5 @@ export async function instanceRemoveContent(params: InstanceContentRemoveQueryDt
 
 export async function instanceToggleContent(params: InstanceContentToggleQueryDto) {
   const { id, contentType, ...rest } = params;
-  return API.put<ContentResponseDto[]>(`${BASE_PATH}/${id}/${contentType}`, rest);
+  return API.put<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`, rest);
 }

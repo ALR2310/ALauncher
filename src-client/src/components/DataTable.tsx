@@ -185,9 +185,9 @@ export default function DataTable<T>({
                 className={`${col.className ?? ''} ${col.sortable ? 'cursor-pointer select-none' : ''}`}
                 onClick={() => handleSort(col)}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex w-full items-center gap-1">
                   {getSortIcon(col)}
-                  <span>{col.title}</span>
+                  <span className="flex-1">{col.title}</span>
                 </div>
               </th>
             ))}

@@ -48,7 +48,7 @@ export const instanceService = new (class InstanceService {
     const { sortBy, sortDir } = payload;
 
     const instanceDir = await this.getInstanceDir();
-    const dirs = (await readdir(instanceDir, { withFileTypes: true })).filter((d) => d.isDirectory());
+    const dirs = (await readdir(instanceDir, { withFileTypes: true }).catch(() => [])).filter((d) => d.isDirectory());
 
     const limiter = pLimit(5);
 
@@ -506,7 +506,9 @@ export const instanceService = new (class InstanceService {
   }
 
   private async getInstanceDir() {
-    if (!this.instanceDirCache) this.instanceDirCache = (await appService.getConfig()).minecraft.gameDir;
+    if (!this.instanceDirCache) {
+      this.instanceDirCache = path.join((await appService.getConfig()).minecraft.gameDir, 'versions');
+    }
     return this.instanceDirCache;
   }
 

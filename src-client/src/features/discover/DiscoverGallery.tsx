@@ -55,10 +55,10 @@ export default function DiscoverGallery() {
                 className="w-full h-full object-cover transition-opacity duration-300"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-base-300/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-base-300/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-base-300 to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-base-300 to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
               <p className="font-semibold text-sm text-base-content line-clamp-2">{s.title}</p>
               <p className="text-xs text-base-content/60 mt-1">Click to view full size</p>
             </div>
@@ -112,12 +112,12 @@ export default function DiscoverGallery() {
             </div>
 
             {screenshots.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar flex-shrink-0">
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar shrink-0">
                 {screenshots.map((s, idx) => (
                   <button
                     key={s.url + idx}
                     onClick={() => setActiveIndex(idx)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                    className={`shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                       idx === activeIndex
                         ? 'border-success scale-105 shadow-lg'
                         : 'border-base-300 hover:border-success/50 opacity-60 hover:opacity-100'

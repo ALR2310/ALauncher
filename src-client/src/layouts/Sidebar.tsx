@@ -46,7 +46,7 @@ export default function Sidebar() {
               to={ROUTES.library.path}
               className={({ isActive }) =>
                 `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
-                  isActive && instances?.[0].id !== id ? 'bg-success/10 text-success' : ''
+                  isActive && instances?.[0]?.id !== id ? 'bg-success/10 text-success' : ''
                 }`
               }
               data-tip="Library"
@@ -59,7 +59,7 @@ export default function Sidebar() {
         <div className="divider m-0 p-2" />
 
         <ul className="menu menu-sm rounded-box">
-          {instances && instances.length && (
+          {instances && instances.length > 0 && (
             <li>
               <Link
                 to={ROUTES.library.detail(instances[0].id)}

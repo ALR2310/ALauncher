@@ -84,7 +84,7 @@ export default function DataTable<T>({
   loadingCount = 5,
   onSortChange,
   onRowClick,
-  columnSetting,
+  columnSetting = { enabled: false },
   emptyState = 'No contents found',
   onReachEnd,
   observerRootMargin,

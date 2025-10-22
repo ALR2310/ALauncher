@@ -12,7 +12,7 @@ import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
 
 interface LibraryDetailHeaderProps {
-  data: InstanceDto;
+  data: InstanceDto | undefined;
   isLoading?: boolean;
 }
 
@@ -25,7 +25,7 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
       {isLoading ? (
         <div className="skeleton w-28 h-24"></div>
       ) : (
-        <Img src={instanceLogo} alt={data.name} className="w-28 h-24 object-cover" />
+        <Img src={instanceLogo} alt={data?.name} className="w-28 h-24 object-cover" />
       )}
 
       <div className="flex-1 flex flex-col justify-between">
@@ -34,12 +34,21 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
             {isLoading ? (
               <div className="skeleton h-5 w-[80%]" />
             ) : (
-              <p className="line-clamp-2 text-xl font-bold w-[80%]">{data.name}</p>
+              <p className="line-clamp-2 text-xl font-bold w-[80%]">{data?.name}</p>
             )}
           </div>
 
           <div className="flex gap-2">
-            <button className="btn btn-success w-28" onClick={() => (isRunning ? cancel(data.id) : launch(data.id))}>
+            <button
+              className="btn btn-success w-28"
+              onClick={() => {
+                if (isRunning && data?.id) {
+                  cancel(data.id);
+                } else if (data?.id) {
+                  launch(data.id);
+                }
+              }}
+            >
               {isRunning ? 'Cancel' : 'Play'}
             </button>
 
@@ -55,7 +64,7 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => instanceModal.open(data.id)}>
+                  <button onClick={() => instanceModal.open(data?.id)}>
                     <SquarePen size={16} />
                     Edit instance
                   </button>
@@ -79,14 +88,14 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
           <div className="flex gap-1 items-center text-sm text-base-content/70">
             <Gamepad2 size={20} />
             <p>
-              {data.loader ? CurseForgeModLoaderType[data.loader.type] : 'Release'} - {data.version}
+              {data?.loader ? CurseForgeModLoaderType[data.loader.type] : 'Release'} - {data?.version}
             </p>
 
             <div className="divider divider-horizontal mx-3"></div>
 
             <History size={20} />
             <p>
-              {data.lastPlayed ? formatDistanceToNow(new Date(data.lastPlayed), { addSuffix: true }) : 'Never played'}
+              {data?.lastPlayed ? formatDistanceToNow(new Date(data.lastPlayed), { addSuffix: true }) : 'Never played'}
             </p>
           </div>
         )}

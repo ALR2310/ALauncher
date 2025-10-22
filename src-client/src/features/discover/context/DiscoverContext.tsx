@@ -81,7 +81,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       if (loaderType) params['loaderType'] = String(loaderType);
       if (categoryIds.size) params['categoryIds'] = JSON.stringify(Array.from(categoryIds));
       if (instanceId) params['instance'] = instanceId;
-      setSearchParams(params);
+      setSearchParams(params, { replace: true });
     }, 300);
 
     return () => clearTimeout(debounceRef.current);

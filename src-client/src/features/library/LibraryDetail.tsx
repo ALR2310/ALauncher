@@ -1,44 +1,66 @@
 import { ROUTES } from '@shared/constants/routes';
+import { InstanceContentDto } from '@shared/dtos/instance.dto';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
-import DataTable from '~/components/DataTable';
+import DataTable, { Column } from '~/components/DataTable';
 import { useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 
 import LibraryDetailHeader from './components/LibraryDetailHeader';
 
+const tabs = [
+  { key: 'mods', title: 'Mods', checked: true },
+  { key: 'resourcepacks', title: 'Resource Packs' },
+  { key: 'shaderpacks', title: 'Shader Packs' },
+  { key: 'datapacks', title: 'Data Packs' },
+  { key: 'worlds', title: 'Worlds' },
+];
+
 export default function LibraryDetail() {
   const { id } = useParams<{ id: string }>();
-  const { data: instance } = useInstanceOneQuery(id!);
+  const [tab, setTab] = useState('mods');
+  const { data: instance, isLoading } = useInstanceOneQuery(id!);
+
+  const tableColumns = useMemo<Column<InstanceContentDto>[]>(
+    () => [
+      { key: 'id', title: '', toggleable: false },
+      { key: 'name', title: 'Additional utilities', sortable: true, toggleable: false },
+      { key: 'author', title: 'Author', sortable: true },
+      { key: 'activity', title: 'Activity', sortable: true },
+      { key: 'status', title: 'Status' },
+      { key: '', title: '', toggleable: false },
+    ],
+    [],
+  );
 
   if (instance)
     return (
       <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">
         {/* Header */}
-        <LibraryDetailHeader data={instance} />
+        <LibraryDetailHeader data={instance} isLoading={isLoading} />
 
         {/* Tabs */}
         <div className="flex-1 flex flex-col min-h-0 gap-1">
           <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
-            <input type="radio" name="content_type" className="tab tab-success!" aria-label="Mods" defaultChecked />
-            <input type="radio" name="content_type" className="tab" aria-label="Resource Packs" />
-            <input type="radio" name="content_type" className="tab" aria-label="Shader Packs" />
-            <input type="radio" name="content_type" className="tab" aria-label="Data Packs" />
-            <input type="radio" name="content_type" className="tab" aria-label="Worlds" />
+            {tabs.map((tab) => (
+              <input
+                key={tab.key}
+                type="radio"
+                name="content_type"
+                className={`tab`}
+                aria-label={tab.title}
+                onChange={() => setTab(tab.key)}
+                defaultChecked={tab.checked}
+              />
+            ))}
           </div>
 
           <DataTable
             className="flex-1 bg-base-100 rounded-xl"
-            columns={[
-              { key: 'id', title: '' },
-              { key: 'name', title: 'Additional utilities', sortable: true },
-              { key: 'author', title: 'Author', sortable: true },
-              { key: 'activity', title: 'Activity', sortable: true },
-              { key: 'status', title: 'Status' },
-              { key: '', title: '' },
-            ]}
-            isLoading={false}
+            columns={tableColumns}
+            isLoading={isLoading}
             loadingCount={6}
-            data={[]}
+            data={instance[tab]}
             onSortChange={(key, dir) => console.log('Sort changed:', key, dir)}
             emptyState={
               <>

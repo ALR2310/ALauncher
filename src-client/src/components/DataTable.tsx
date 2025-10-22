@@ -21,6 +21,7 @@ export interface Column<T> {
   title: React.ReactNode;
   show?: boolean;
   sortable?: boolean;
+  toggleable?: boolean;
   className?: string;
   render?: (value: any, row: T, index: number) => React.ReactNode;
 }
@@ -233,21 +234,23 @@ export default function DataTable<T>({
           {isDropdownOpen && (
             <ul
               tabIndex={-1}
-              className="dropdown-content menu bg-base-200 rounded-box z-1 min-w-38 max-h-60 shadow mt-3"
+              className="dropdown-content menu flex-nowrap overflow-auto bg-base-200 rounded-box z-1 min-w-38 max-h-60 shadow mt-3"
             >
-              {columns.map((col, idx) => (
-                <li key={idx}>
-                  <label className="flex items-center gap-2 cursor-pointer p-2">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm checked:checkbox-success"
-                      checked={visibleKeys.includes(String(col.key))}
-                      onChange={() => toggleColumn(String(col.key))}
-                    />
-                    <span>{col.title}</span>
-                  </label>
-                </li>
-              ))}
+              {columns
+                .filter((col) => col.toggleable !== false && col.key && col.title)
+                .map((col, idx) => (
+                  <li key={idx}>
+                    <label className="flex items-center gap-2 cursor-pointer p-2">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm checked:checkbox-success"
+                        checked={visibleKeys.includes(String(col.key))}
+                        onChange={() => toggleColumn(String(col.key))}
+                      />
+                      <span>{col.title}</span>
+                    </label>
+                  </li>
+                ))}
             </ul>
           )}
         </div>

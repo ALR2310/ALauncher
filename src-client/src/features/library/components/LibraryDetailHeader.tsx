@@ -13,19 +13,29 @@ import { useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto;
+  isLoading?: boolean;
 }
 
-const LibraryDetailHeader = memo(({ data }: LibraryDetailHeaderProps) => {
+const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
   const { launch, cancel, isRunning, progress, estimated, speed } = useInstanceLaunchSSE();
   const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
-      <Img src={instanceLogo} alt={data.name} className="w-28 h-24 object-cover" />
+      {isLoading ? (
+        <div className="skeleton w-28 h-24"></div>
+      ) : (
+        <Img src={instanceLogo} alt={data.name} className="w-28 h-24 object-cover" />
+      )}
+
       <div className="flex-1 flex flex-col justify-between">
         <div className="flex w-full justify-between">
           <div className="flex-1">
-            <p className="line-clamp-2 text-xl font-bold w-[80%]">{data.name}</p>
+            {isLoading ? (
+              <div className="skeleton h-5 w-[80%]" />
+            ) : (
+              <p className="line-clamp-2 text-xl font-bold w-[80%]">{data.name}</p>
+            )}
           </div>
 
           <div className="flex gap-2">
@@ -57,7 +67,9 @@ const LibraryDetailHeader = memo(({ data }: LibraryDetailHeaderProps) => {
 
         <div className="divider m-0"></div>
 
-        {isRunning ? (
+        {isLoading ? (
+          <div className="skeleton w-full h-5"></div>
+        ) : isRunning ? (
           <Progress
             className="w-full h-5"
             value={progress}

@@ -28,9 +28,11 @@ export default function LibraryDetail() {
   const setGameVersion = useContextSelector(DiscoverContext, (v) => v.setGameVersion);
   const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
   const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
+  const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
 
   useEffect(() => {
     if (instance) {
+      setInstanceId(instance.id);
       setGameVersion(instance.version);
       setCategoryType(tabs.find((t) => t.key === tab)?.value ?? CATEGORY_CLASS.Mods);
       setLoaderType(instance.loader ? instance.loader.type : 0);

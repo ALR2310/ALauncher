@@ -1,7 +1,9 @@
 import { ROUTES } from '@shared/constants/routes';
 import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
 import { Link, NavLink, useParams } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
 
+import { DiscoverContext } from '~/features/discover/context/DiscoverContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
@@ -9,6 +11,7 @@ export default function Sidebar() {
   const { open } = useLibraryModal();
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
   const { id } = useParams();
+  const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
 
   return (
     <div id="side-left-bar" className="flex flex-col justify-between">
@@ -31,6 +34,7 @@ export default function Sidebar() {
           <li>
             <NavLink
               to={ROUTES.discover.path}
+              onClick={() => setInstanceId(undefined)}
               className={({ isActive }) =>
                 `tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95 ${
                   isActive ? 'bg-success/10 text-success' : ''

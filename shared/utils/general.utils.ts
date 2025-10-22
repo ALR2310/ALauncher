@@ -60,3 +60,11 @@ export function compareVersion(a: string, b: string): number {
 export function invertObject<T extends Record<string, string | number>>(obj: T): { [K in keyof T as `${T[K]}`]: K } {
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k])) as any;
 }
+
+export function getEnumKeys<T extends Record<string, string | number>>(enumObj: T): Array<keyof T> {
+  return Object.keys(enumObj).filter((key) => isNaN(Number(key))) as Array<keyof T>;
+}
+
+export function getEnumValues<T extends Record<string, string | number>>(enumObj: T): Array<T[keyof T]> {
+  return getEnumKeys(enumObj).map((key) => enumObj[key]) as Array<T[keyof T]>;
+}

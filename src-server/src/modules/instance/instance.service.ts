@@ -1,7 +1,6 @@
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto } from '@shared/dtos/content.dto';
 import {
-  InstanceContentType,
   InstanceContentAddQueryDto,
   InstanceContentDownloadQueryDto,
   InstanceContentDto,
@@ -9,6 +8,7 @@ import {
   InstanceContentRemoveQueryDto,
   InstanceContentRemoveResponseDto,
   InstanceContentToggleQueryDto,
+  InstanceContentType,
   InstanceDto,
   InstanceQueryDto,
   InstanceWorldDto,
@@ -265,16 +265,20 @@ export const instanceService = new (class InstanceService {
         .on(
           'speed',
           throttle((s) => {
-            const speedMB = (s / 1024 / 1024).toFixed(2);
-            this.instanceLaunchEvent.get(id)?.emit('speed', `${speedMB}MB/s`);
+            if (typeof s === 'number' && !isNaN(s) && isFinite(s) && s > 0) {
+              const speedMB = (s / 1024 / 1024).toFixed(2);
+              this.instanceLaunchEvent.get(id)?.emit('speed', `${speedMB}MB/s`);
+            }
           }, this.DELAY_MS),
         )
         .on(
           'estimated',
           throttle((e) => {
-            const m = Math.floor(e / 60);
-            const s = Math.floor(e % 60);
-            this.instanceLaunchEvent.get(id)?.emit('estimated', `${m}m ${s}s`);
+            if (typeof e === 'number' && !isNaN(e) && isFinite(e) && e > 0) {
+              const m = Math.floor(e / 60);
+              const s = Math.floor(e % 60);
+              this.instanceLaunchEvent.get(id)?.emit('estimated', `${m}m ${s}s`);
+            }
           }, this.DELAY_MS),
         )
         .on(
@@ -570,16 +574,20 @@ export const instanceService = new (class InstanceService {
       .on(
         'speed',
         throttle((s) => {
-          const speedMB = (s / 1024 / 1024).toFixed(2);
-          event.emit('speed', `${speedMB}MB/s`);
+          if (typeof s === 'number' && !isNaN(s) && isFinite(s) && s > 0) {
+            const speedMB = (s / 1024 / 1024).toFixed(2);
+            event.emit('speed', `${speedMB}MB/s`);
+          }
         }, this.DELAY_MS),
       )
       .on(
         'estimated',
         throttle((e) => {
-          const m = Math.floor(e / 60);
-          const s = Math.floor(e % 60);
-          event.emit('estimated', `${m}m ${s}s`);
+          if (typeof e === 'number' && !isNaN(e) && isFinite(e) && e > 0) {
+            const m = Math.floor(e / 60);
+            const s = Math.floor(e % 60);
+            event.emit('estimated', `${m}m ${s}s`);
+          }
         }, this.DELAY_MS),
       )
       .on('error', (err) => event.emit('error', err));

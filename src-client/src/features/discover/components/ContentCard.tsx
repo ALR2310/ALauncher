@@ -3,8 +3,9 @@ import { ROUTES } from '@shared/constants/routes';
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
 import { abbreviateNumber } from '@shared/utils/general.utils';
+import { useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, Download, Gamepad2, HardDrive } from 'lucide-react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 
 import Img from '~/components/Img';
@@ -19,29 +20,44 @@ interface ContentCardProps {
 }
 
 function ContentCard({ data, gameVersion, categoryType, instanceId }: ContentCardProps) {
+  const queryClient = useQueryClient();
   const formattedDate = useMemo(() => new Date(data.dateModified).toLocaleDateString(), [data.dateModified]);
   const categoryName = useMemo(() => categoryMap.idToText[data.classId ?? 0], [data.classId]);
-  const { addContent, progress, isDownloading, estimated, speed } = useInstanceAddContentSSE();
-  const [status, setStatus] = useState<string>();
+  const { addContent, progress, isDownloading, estimated, speed, isDone } = useInstanceAddContentSSE();
+
   const contentType = useMemo(() => {
     return CATEGORY_CLASS_REVERSED[categoryType ?? 0]?.toLowerCase().replace(' ', '');
   }, [categoryType]);
 
-  useEffect(() => {
+  const status = useMemo(() => {
     switch (data.instance?.status) {
       case ContentInstanceStatus.INSTALLED:
-        setStatus('Installed');
-        break;
+        return 'Installed';
       case ContentInstanceStatus.OUTDATED:
-        setStatus('Update');
-        break;
+        return 'Update';
       case ContentInstanceStatus.INCOMPATIBLE:
-        setStatus('Incompatible');
-        break;
+        return 'Incompatible';
       default:
-        setStatus('Install');
+        return 'Install';
     }
   }, [data.instance?.status]);
+
+  const buttonClassName = useMemo(() => {
+    const classes = ['btn', 'btn-success', 'btn-block'];
+
+    if (status === 'Installed') classes.push('btn-soft');
+    if (status === 'Update') classes.push('btn-outline');
+    if (isDownloading || status === 'Installed') classes.push('pointer-events-none');
+
+    return classes.join(' ');
+  }, [status, isDownloading]);
+
+  // Invalidate contents query to refresh status
+  useEffect(() => {
+    if (isDone && instanceId) {
+      queryClient.invalidateQueries({ queryKey: ['contents'] });
+    }
+  }, [isDone, instanceId, queryClient]);
 
   return (
     <div className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">
@@ -63,8 +79,9 @@ function ContentCard({ data, gameVersion, categoryType, instanceId }: ContentCar
           </div>
           <div className="flex-1/5">
             <button
-              className={`btn btn-success btn-block ${status === 'Installed' ? 'btn-soft' : ''} ${status === 'Update' ? 'btn-outline' : ''} ${isDownloading || status === 'Installed' ? 'pointer-events-none' : ''}`}
+              className={buttonClassName}
               onClick={() => addContent({ id: instanceId ?? 'todo', contentId: data.id, contentType, worlds: '' })}
+              title={isDownloading || status === 'Installed' ? 'Action not available' : status}
             >
               {status}
             </button>

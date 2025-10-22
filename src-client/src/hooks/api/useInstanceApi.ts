@@ -165,6 +165,7 @@ export function useInstanceAddContentSSE() {
   const [progress, setProgress] = useState<number | undefined>(undefined);
   const [speed, setSpeed] = useState('');
   const [estimated, setEstimated] = useState('');
+  const [isDone, setIsDone] = useState(false);
   const evtRef = useRef<EventSource | null>(null);
 
   const addContent = useCallback((params: InstanceContentAddQueryDto) => {
@@ -175,6 +176,7 @@ export function useInstanceAddContentSSE() {
     setProgress(undefined);
     setSpeed('');
     setEstimated('');
+    setIsDone(false);
 
     evtRef.current.addEventListener('progress', (e) => setProgress(parseFloat(e.data)));
     evtRef.current.addEventListener('speed', (e) => setSpeed(e.data));
@@ -182,6 +184,7 @@ export function useInstanceAddContentSSE() {
     evtRef.current.addEventListener('done', () => {
       setIsDownloading(false);
       setProgress(100);
+      setIsDone(true);
       evtRef?.current?.close();
     });
     evtRef.current.addEventListener('error', () => {
@@ -196,7 +199,7 @@ export function useInstanceAddContentSSE() {
     return () => evtRef.current?.close();
   }, []);
 
-  return { addContent, isDownloading, progress, speed, estimated };
+  return { addContent, isDownloading, progress, speed, estimated, isDone };
 }
 
 export function useInstanceRemoveContentMutation(params: InstanceContentRemoveQueryDto) {

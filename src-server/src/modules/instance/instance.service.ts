@@ -1,7 +1,7 @@
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto } from '@shared/dtos/content.dto';
 import {
-  INSTANCE_CONTENT_TYPE,
+  InstanceContentType,
   InstanceContentAddQueryDto,
   InstanceContentDownloadQueryDto,
   InstanceContentDto,
@@ -143,7 +143,7 @@ export const instanceService = new (class InstanceService {
   async getWorlds(id: string) {
     if (!id) throw new NotFoundException('Id is required');
 
-    const worldDir = await this.getContentDir(id, INSTANCE_CONTENT_TYPE.WORLDS);
+    const worldDir = await this.getContentDir(id, InstanceContentType.WORLDS);
     const dirs = await readdir(worldDir, { withFileTypes: true });
 
     const limit = pLimit(5);
@@ -198,7 +198,7 @@ export const instanceService = new (class InstanceService {
     const instance = await this.findOne(id);
 
     const groupedContents: Record<string, InstanceContentDto[]> = {};
-    const contentsTypes = Object.values(INSTANCE_CONTENT_TYPE);
+    const contentsTypes = Object.values(InstanceContentType);
 
     for (const type of contentsTypes) {
       const contents: InstanceContentDto[] = instance[type] ?? [];
@@ -518,15 +518,15 @@ export const instanceService = new (class InstanceService {
     let fullDir: string;
 
     if (
-      type === INSTANCE_CONTENT_TYPE.MODS ||
-      type === INSTANCE_CONTENT_TYPE.RESOURCEPACKS ||
-      type === INSTANCE_CONTENT_TYPE.SHADERPACKS
+      type === InstanceContentType.MODS ||
+      type === InstanceContentType.RESOURCEPACKS ||
+      type === InstanceContentType.SHADERPACKS
     ) {
       fullDir = path.join(baseDir, type);
-    } else if (type === INSTANCE_CONTENT_TYPE.DATAPACKS) {
+    } else if (type === InstanceContentType.DATAPACKS) {
       if (!worldName) throw new BadRequestException('World name is required for datapacks');
       fullDir = path.join(baseDir, 'saves', worldName, type);
-    } else if (type === INSTANCE_CONTENT_TYPE.WORLDS) {
+    } else if (type === InstanceContentType.WORLDS) {
       fullDir = path.join(baseDir, 'saves');
     } else {
       throw new BadRequestException('Invalid content type');
@@ -593,7 +593,7 @@ export const instanceService = new (class InstanceService {
     const filesToDownload: DownloadOptions[] = [];
 
     for (const [type, contents] of Object.entries(groupedContents)) {
-      if (type === INSTANCE_CONTENT_TYPE.DATAPACKS && Array.isArray(worlds) && worlds.length) {
+      if (type === InstanceContentType.DATAPACKS && Array.isArray(worlds) && worlds.length) {
         for (const worldName of worlds) {
           const pathDir = await this.getContentDir(instanceId, type, worldName);
 

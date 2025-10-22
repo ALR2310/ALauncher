@@ -1,3 +1,5 @@
+import '@shared/utils/zod.utils';
+
 import { listen } from '@tauri-apps/api/event';
 import dayjs from 'dayjs';
 import { createRoot } from 'react-dom/client';

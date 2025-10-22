@@ -163,6 +163,8 @@ export function useInstanceLaunchSSE() {
 export function useInstanceAddContentSSE() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState<number | undefined>(undefined);
+  const [speed, setSpeed] = useState('');
+  const [estimated, setEstimated] = useState('');
   const evtRef = useRef<EventSource | null>(null);
 
   const addContent = useCallback((params: InstanceContentAddQueryDto) => {
@@ -171,10 +173,12 @@ export function useInstanceAddContentSSE() {
 
     setIsDownloading(true);
     setProgress(undefined);
+    setSpeed('');
+    setEstimated('');
 
-    evtRef.current.addEventListener('progress', (e) => {
-      setProgress(parseFloat(e.data));
-    });
+    evtRef.current.addEventListener('progress', (e) => setProgress(parseFloat(e.data)));
+    evtRef.current.addEventListener('speed', (e) => setSpeed(e.data));
+    evtRef.current.addEventListener('estimated', (e) => setEstimated(e.data));
     evtRef.current.addEventListener('done', () => {
       setIsDownloading(false);
       setProgress(100);
@@ -192,7 +196,7 @@ export function useInstanceAddContentSSE() {
     return () => evtRef.current?.close();
   }, []);
 
-  return { addContent, isDownloading, progress };
+  return { addContent, isDownloading, progress, speed, estimated };
 }
 
 export function useInstanceRemoveContentMutation(params: InstanceContentRemoveQueryDto) {

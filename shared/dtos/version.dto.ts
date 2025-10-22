@@ -1,7 +1,7 @@
-import { createZodDto } from '@shared/utils/zod.dto';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
+import { createZodDto } from '../utils/zod.dto';
 import { baseResponseSchema } from './base.dto';
 
 export enum VERSION_TYPE {

@@ -4,9 +4,10 @@ import {
   ContentDto,
   ContentFileDto,
   ContentFileQueryDto,
+  ContentInstanceStatus,
   ContentQueryDto,
 } from '@shared/dtos/content.dto';
-import { INSTANCE_CONTENT_STATUS, INSTANCE_CONTENT_TYPE, InstanceContentDto } from '@shared/dtos/instance.dto';
+import { InstanceContentDto, InstanceContentType } from '@shared/dtos/instance.dto';
 import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
 import {
   CurseForgeFileReleaseType,
@@ -56,7 +57,7 @@ export const contentService = new (class ContentService {
       const installedContentsMap = new Map<number, InstanceContentDto>();
 
       if (instance) {
-        const types = Object.values(INSTANCE_CONTENT_TYPE);
+        const types = Object.values(InstanceContentType);
         for (const t of types) {
           const contents = instance[t];
           if (contents) {
@@ -68,7 +69,7 @@ export const contentService = new (class ContentService {
       }
 
       const data = contents.map((item) => {
-        let status: INSTANCE_CONTENT_STATUS = INSTANCE_CONTENT_STATUS.NOT_INSTALLED;
+        let status: ContentInstanceStatus = ContentInstanceStatus.NOT_INSTALLED;
         let enabled = false;
         let fileName: string | null = null;
 
@@ -87,10 +88,10 @@ export const contentService = new (class ContentService {
           if (installContent?.fileId && latestMatch) {
             status =
               installContent.fileId === latestMatch.fileId
-                ? INSTANCE_CONTENT_STATUS.INSTALLED
-                : INSTANCE_CONTENT_STATUS.OUTDATED;
+                ? ContentInstanceStatus.INSTALLED
+                : ContentInstanceStatus.OUTDATED;
           } else if (installContent?.fileId && !latestMatch) {
-            status = INSTANCE_CONTENT_STATUS.INCOMPATIBLE;
+            status = ContentInstanceStatus.INCOMPATIBLE;
           }
         }
 

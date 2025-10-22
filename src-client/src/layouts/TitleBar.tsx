@@ -82,7 +82,11 @@ const ThemeControlSelector = () => {
 
   return (
     <div className="dropdown dropdown-center">
-      <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
+      <div
+        tabIndex={0}
+        role="button"
+        className="btn btn-circle btn-ghost flex items-center justify-center hover:bg-base-content/10"
+      >
         <SwatchBook size={20} />
       </div>
       <ul tabIndex={-1} className="dropdown-content bg-base-300 rounded-box z-10 w-36 p-2 shadow-lg space-y-2">

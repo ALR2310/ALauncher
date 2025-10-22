@@ -2,7 +2,7 @@ import { SORT_FIELD } from '@shared/constants/curseforge.const';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { CurseForgeSortOrder } from 'curseforge-api';
 import { Search } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import { useContentsInfinite } from '~/hooks/api/useContentApi';
@@ -27,10 +27,10 @@ export default function DiscoverList() {
   const categoryType = useContextSelector(DiscoverContext, (v) => v.categoryType);
   const gameVersion = useContextSelector(DiscoverContext, (v) => v.gameVersion);
   const loaderType = useContextSelector(DiscoverContext, (v) => v.loaderType);
-  const instance = useContextSelector(DiscoverContext, (v) => v.instanceId);
+  const instanceId = useContextSelector(DiscoverContext, (v) => v.instanceId);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useContentsInfinite({
-    instance,
+    instance: instanceId,
     classId: categoryType,
     categoryIds: Array.from(categoryIds).join(','),
     searchFilter,
@@ -42,6 +42,20 @@ export default function DiscoverList() {
   });
 
   const allContents = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data?.pages]);
+
+  const handleSortChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSortField(Number(e.target.value));
+    },
+    [setSortField],
+  );
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchFilter(e.target.value);
+    },
+    [setSearchFilter],
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
@@ -56,11 +70,8 @@ export default function DiscoverList() {
 
   useEffect(() => {
     if (!virtualItems.length) return;
-
     const lastItem = virtualItems[virtualItems.length - 1];
-
     if (!lastItem) return;
-
     if (lastItem.index >= allContents.length - 3 && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
@@ -70,7 +81,7 @@ export default function DiscoverList() {
     <div className="flex" style={{ height, width }}>
       <div className="flex-1 flex flex-col min-h-0 p-4 pe-1 gap-4">
         <div className="flex gap-4">
-          <select className="select w-38" value={sortField} onChange={(e) => setSortField(Number(e.target.value))}>
+          <select className="select w-38" value={sortField} onChange={handleSortChange}>
             {Object.entries(SORT_FIELD).map(([key, value]) => (
               <option key={value} value={value}>
                 {key}
@@ -80,12 +91,7 @@ export default function DiscoverList() {
 
           <label className="input w-[50%]">
             <Search size={20} className="text-base-content/60" />
-            <input
-              type="search"
-              placeholder="Search..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-            />
+            <input type="search" placeholder="Search..." value={searchFilter} onChange={handleSearchChange} />
           </label>
         </div>
 
@@ -119,7 +125,12 @@ export default function DiscoverList() {
                       transform: `translateY(${virtualItem.start}px)`,
                     }}
                   >
-                    <ContentCard data={content} />
+                    <ContentCard
+                      data={content}
+                      gameVersion={gameVersion}
+                      categoryType={categoryType}
+                      instanceId={instanceId}
+                    />
                   </div>
                 );
               })}

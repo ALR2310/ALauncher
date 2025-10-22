@@ -1,20 +1,14 @@
-import { createZodDto } from '@shared/utils/zod.dto';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
-export enum INSTANCE_CONTENT_TYPE {
+import { createZodDto } from '../utils/zod.dto';
+
+export enum InstanceContentType {
   MODS = 'mods',
   RESOURCEPACKS = 'resourcepacks',
   SHADERPACKS = 'shaderpacks',
   DATAPACKS = 'datapacks',
   WORLDS = 'worlds',
-}
-
-export enum INSTANCE_CONTENT_STATUS {
-  NOT_INSTALLED = 'not_installed',
-  OUTDATED = 'outdated',
-  INSTALLED = 'installed',
-  INCOMPATIBLE = 'incompatible',
 }
 
 const instanceContentSchema = z.object({
@@ -69,7 +63,7 @@ const instanceWorldSchema = z.object({
 
 const instanceContentQuerySchema = z.object({
   id: z.string(),
-  contentType: z.enum(INSTANCE_CONTENT_TYPE).default(INSTANCE_CONTENT_TYPE.MODS),
+  contentType: z.enum(InstanceContentType).default(InstanceContentType.MODS),
 });
 
 const instanceContentAddQuerySchema = instanceContentQuerySchema.extend({

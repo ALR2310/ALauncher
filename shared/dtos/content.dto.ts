@@ -1,4 +1,3 @@
-import { createZodDto } from '@shared/utils/zod.dto';
 import {
   CurseForgeFileReleaseType,
   CurseForgeFileStatus,
@@ -8,7 +7,15 @@ import {
 } from 'curseforge-api';
 import z from 'zod';
 
+import { createZodDto } from '../utils/zod.dto';
 import { baseResponseSchema } from './base.dto';
+
+export enum ContentInstanceStatus {
+  NOT_INSTALLED = 'not_installed',
+  OUTDATED = 'outdated',
+  INSTALLED = 'installed',
+  INCOMPATIBLE = 'incompatible',
+}
 
 const contentSchema = z.object({
   screenshots: z.array(
@@ -73,7 +80,7 @@ const contentSchema = z.object({
     .nullish(),
   instance: z
     .object({
-      status: z.string(),
+      status: z.enum(ContentInstanceStatus),
       enabled: z.boolean(),
       fileName: z.string().nullable(),
     })

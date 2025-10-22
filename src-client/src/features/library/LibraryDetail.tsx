@@ -1,17 +1,15 @@
 import { CATEGORY_CLASS } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
-import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
-import { Plus, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
-import DataTable, { Column } from '~/components/DataTable';
-import Img from '~/components/Img';
+import DataTable from '~/components/DataTable';
 import { useInstanceGetContentsQuery, useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 
 import { DiscoverContext } from '../discover/context/DiscoverContext';
 import LibraryDetailHeader from './components/LibraryDetailHeader';
+import { useLibraryTableColumns } from './hooks/useLibraryTableColumns';
 
 const tabs = Object.entries(CATEGORY_CLASS)
   .slice(0, 5)
@@ -31,6 +29,7 @@ export default function LibraryDetail() {
   const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
   const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
+  const [contentIds, setContentIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (instance) {
@@ -42,74 +41,11 @@ export default function LibraryDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instance, tab]);
 
-  const tableColumns = useMemo<Column<ContentDto>[]>(
-    () => [
-      {
-        key: '',
-        title: <input type="checkbox" className="checkbox checked:checkbox-success" />,
-        render: () => <input type="checkbox" className="checkbox checked:checkbox-success" />,
-        toggleable: false,
-      },
-      {
-        key: 'name',
-        title: 'Additional utilities',
-        render: (v, row) => (
-          <div className="flex items-stretch gap-2">
-            <Img className="w-[36px] h-[36px]" src={row.logo.url} alt={v} />
-
-            <div className="flex-1">
-              <p className="line-clamp-1">{v}</p>
-              <span className="line-clamp-1 text-base-content/60">{row.instance?.fileName}</span>
-            </div>
-          </div>
-        ),
-        sortable: true,
-        toggleable: false,
-      },
-      {
-        key: 'fileSize',
-        title: 'Size',
-        render: (v) => <div className="text-center text-nowrap">{v}</div>,
-      },
-      {
-        key: '',
-        title: 'Activity',
-        render: (_, row) => (
-          <div className="text-center">
-            {row.instance?.status === ContentInstanceStatus.INSTALLED ? (
-              'Latest'
-            ) : row.instance?.status === ContentInstanceStatus.OUTDATED ? (
-              <button className="btn btn-sm btn-outline btn-success">Update</button>
-            ) : (
-              'Incompatible'
-            )}
-          </div>
-        ),
-      },
-      {
-        key: '',
-        title: (
-          <div className="text-end w-full">
-            <Link to={ROUTES.discover.path} className="btn btn-success btn-sm btn-soft">
-              <Plus size={20}></Plus>
-              Contents
-            </Link>
-          </div>
-        ),
-        render: () => (
-          <div className="flex items-center justify-between">
-            <input type="checkbox" className="toggle toggle-sm checked:toggle-success" />
-
-            <button className="btn btn-sm btn-error btn-soft px-2 text-center">
-              <Trash2 size={16}></Trash2>
-            </button>
-          </div>
-        ),
-        toggleable: false,
-      },
-    ],
-    [],
-  );
+  const tableColumns = useLibraryTableColumns({
+    contentIds,
+    setContentIds,
+    contents,
+  });
 
   return (
     <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">

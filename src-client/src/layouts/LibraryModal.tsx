@@ -46,6 +46,10 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
 
   useEffect(() => {
     if (id && instance) {
+      setModpackName(instance.name);
+      setLoaderType(instance.loader!.type);
+      setLoaderVersion(instance.loader!.version);
+      setGameVersion(instance.version);
     }
   }, [id, instance]);
 
@@ -56,7 +60,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
       const dateNow = new Date().toISOString();
 
       const data: InstanceDto = {
-        id: formatToSlug(modpackName),
+        id: id || formatToSlug(modpackName),
         name: modpackName,
         createdAt: dateNow,
         updatedAt: dateNow,
@@ -115,7 +119,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
           <div className="flex flex-nowrap gap-2 justify-between">
             <label className="label">
               <input
-                className="radio radio-primary"
+                className="radio checked:radio-success"
                 type="radio"
                 name="loaderType"
                 checked={loaderType === CurseForgeModLoaderType.Forge}
@@ -130,7 +134,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
 
             <label className="label">
               <input
-                className="radio radio-primary"
+                className="radio checked:radio-success"
                 type="radio"
                 name="loaderType"
                 checked={loaderType === CurseForgeModLoaderType.Fabric}
@@ -145,7 +149,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
 
             <label className="label">
               <input
-                className="radio radio-primary"
+                className="radio checked:radio-success"
                 type="radio"
                 name="loaderType"
                 checked={loaderType === CurseForgeModLoaderType.Quilt}
@@ -160,7 +164,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
 
             <label className="label">
               <input
-                className="radio radio-primary"
+                className="radio checked:radio-success"
                 type="radio"
                 name="loaderType"
                 checked={loaderType === CurseForgeModLoaderType.NeoForge}
@@ -210,7 +214,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
           <button className="btn btn-soft w-1/4" onClick={() => ref.current.close()}>
             Cancel
           </button>
-          <button className="btn btn-primary w-1/4" onClick={handleUpsertInstance}>
+          <button className="btn btn-success w-1/4" onClick={handleUpsertInstance}>
             Save
           </button>
         </div>

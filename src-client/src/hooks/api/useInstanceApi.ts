@@ -127,6 +127,7 @@ export function useInstanceLaunchSSE() {
   const cancel = useCallback(
     (id: string) => {
       instanceCancel(id);
+      setIsRunning(false);
       setIsDownloading(false);
       setProgress(undefined);
       setLogs((prev) => [...prev, 'Launch cancelled.']);

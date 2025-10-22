@@ -3,20 +3,21 @@ import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
 import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen } from 'lucide-react';
 import { memo } from 'react';
+import { useContextSelector } from 'use-context-selector';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
+import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
-import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto;
 }
 
 const LibraryDetailHeader = memo(({ data }: LibraryDetailHeaderProps) => {
-  const { launch, cancel, isRunning, progress } = useInstanceLaunchSSE();
-  const { open } = useLibraryModal();
+  const { launch, cancel, isRunning, progress, estimated, speed } = useInstanceLaunchSSE();
+  const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
@@ -44,8 +45,8 @@ const LibraryDetailHeader = memo(({ data }: LibraryDetailHeaderProps) => {
                   </button>
                 </li>
                 <li>
-                  <button>
-                    <SquarePen size={16} onClick={() => open(data.id)} />
+                  <button onClick={() => instanceModal.open(data.id)}>
+                    <SquarePen size={16} />
                     Edit instance
                   </button>
                 </li>
@@ -57,7 +58,11 @@ const LibraryDetailHeader = memo(({ data }: LibraryDetailHeaderProps) => {
         <div className="divider m-0"></div>
 
         {isRunning ? (
-          <Progress className="w-full h-5" value={progress} text={`${progress ?? 0}%`} />
+          <Progress
+            className="w-full h-5"
+            value={progress}
+            text={`${progress ?? 0}% ${estimated ? `(${estimated})` : ''} ${speed ? `- ${speed}` : ''}`}
+          />
         ) : (
           <div className="flex gap-1 items-center text-sm text-base-content/70">
             <Gamepad2 size={20} />

@@ -1,26 +1,42 @@
+import { CATEGORY_CLASS } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
 import { InstanceContentDto } from '@shared/dtos/instance.dto';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { useContextSelector } from 'use-context-selector';
 
 import DataTable, { Column } from '~/components/DataTable';
 import { useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 
+import { DiscoverContext } from '../discover/context/DiscoverContext';
 import LibraryDetailHeader from './components/LibraryDetailHeader';
 
-const tabs = [
-  { key: 'mods', title: 'Mods', checked: true },
-  { key: 'resourcepacks', title: 'Resource Packs' },
-  { key: 'shaderpacks', title: 'Shader Packs' },
-  { key: 'datapacks', title: 'Data Packs' },
-  { key: 'worlds', title: 'Worlds' },
-];
+const tabs = Object.entries(CATEGORY_CLASS)
+  .slice(0, 5)
+  .map(([title, value], index) => ({
+    key: title.replace(/\s+/g, '').toLowerCase(),
+    title,
+    value,
+    checked: index === 0,
+  }));
 
 export default function LibraryDetail() {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState('mods');
   const { data: instance, isLoading } = useInstanceOneQuery(id!);
+  const setGameVersion = useContextSelector(DiscoverContext, (v) => v.setGameVersion);
+  const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
+  const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
+
+  useEffect(() => {
+    if (instance) {
+      setGameVersion(instance.version);
+      setCategoryType(tabs.find((t) => t.key === tab)?.value ?? CATEGORY_CLASS.Mods);
+      setLoaderType(instance.loader ? instance.loader.type : 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instance, tab]);
 
   const tableColumns = useMemo<Column<InstanceContentDto>[]>(
     () => [
@@ -28,14 +44,14 @@ export default function LibraryDetail() {
       { key: 'name', title: 'Additional utilities', sortable: true, toggleable: false },
       { key: 'author', title: 'Author', sortable: true },
       { key: 'activity', title: 'Activity', sortable: true },
-      { key: 'status', title: 'Status' },
+      { key: '', title: 'Status' },
       {
         key: '',
         title: (
-          <button className="btn btn-success btn-sm btn-soft">
+          <Link to={ROUTES.discover.path} className="btn btn-success btn-sm btn-soft">
             <Plus size={20}></Plus>
             Contents
-          </button>
+          </Link>
         ),
         toggleable: false,
       },

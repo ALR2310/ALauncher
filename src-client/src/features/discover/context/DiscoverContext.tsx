@@ -37,27 +37,41 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   const debounceRef = useRef<number>(null!);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Global state for discover filtering
+  // State for filtering
+  const [instanceId, setInstanceId] = useState<string | undefined>(undefined);
+  const [sortField, setSortField] = useState<number>(SORT_FIELD.Featured);
+  const [searchFilter, setSearchFilter] = useState<string>('');
+  const [categoryType, setCategoryType] = useState<number>(CATEGORY_CLASS.Mods);
+  const [gameVersion, setGameVersion] = useState<string>('');
+  const [loaderType, setLoaderType] = useState<number>(MOD_LOADER.Any);
+  const [categoryIds, setCategoryIds] = useState<Set<number>>(new Set());
+  // State for detail page
   const [contentId, setContentId] = useState<number | null>(null);
-  const [instanceId, setInstanceId] = useState<string | undefined>(searchParams.get('instance') || undefined);
-  const [sortField, setSortField] = useState(Number(searchParams.get('sortField')) || SORT_FIELD.Featured);
-  const [searchFilter, setSearchFilter] = useState(searchParams.get('searchFilter') || '');
-  const [categoryType, setCategoryType] = useState(Number(searchParams.get('categoryType')) || CATEGORY_CLASS.Mods);
-  const [gameVersion, setGameVersion] = useState(searchParams.get('gameVersion') || '');
-  const [loaderType, setLoaderType] = useState(Number(searchParams.get('loaderType')) || MOD_LOADER.Any);
-  const [categoryIds, setCategoryIds] = useState<Set<number>>(() => {
-    try {
-      const raw = searchParams.get('categoryIds');
-      return raw ? new Set(JSON.parse(raw)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
   // State for files filtering
   const [allowAlphaFile, setAllowAlphaFile] = useState<boolean>(true);
   const [pageSizeFile, setPageSizeFile] = useState<number>(20);
 
   const { data: versions } = useVersionReleasesQuery();
+
+  // Sync from URL
+  useEffect(() => {
+    if (location.pathname !== ROUTES.discover.path) return;
+
+    setSortField(Number(searchParams.get('sortField')) || SORT_FIELD.Featured);
+    setCategoryType(Number(searchParams.get('categoryType')) || CATEGORY_CLASS.Mods);
+    setLoaderType(Number(searchParams.get('loaderType')) || MOD_LOADER.Any);
+    setGameVersion(searchParams.get('gameVersion') || '');
+    setSearchFilter(searchParams.get('searchFilter') || '');
+    setInstanceId(searchParams.get('instance') || undefined);
+    setCategoryIds(() => {
+      try {
+        const raw = searchParams.get('categoryIds');
+        return raw ? new Set<number>(JSON.parse(raw)) : new Set<number>();
+      } catch {
+        return new Set<number>();
+      }
+    });
+  }, [searchParams]);
 
   // Set default game version
   useEffect(() => {

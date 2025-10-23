@@ -1,3 +1,4 @@
+import { CATEGORY_CLASS } from '@shared/constants/curseforge.const';
 import { CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-api';
 
 import { useContentsQueries } from '~/hooks/api/useContentApi';
@@ -11,13 +12,13 @@ export default function HomeView() {
 
   const result = useContentsQueries([
     {
-      classId: 4471, // Modpacks
+      classId: CATEGORY_CLASS.Modpacks,
       sortField: CurseForgeModsSearchSortField.Popularity,
       sortOrder: CurseForgeSortOrder.Descending,
       pageSize: 4,
     },
     {
-      classId: 6, // Mods
+      classId: CATEGORY_CLASS.Mods,
       sortField: CurseForgeModsSearchSortField.Popularity,
       sortOrder: CurseForgeSortOrder.Descending,
       pageSize: 4,

@@ -216,6 +216,8 @@ export const instanceService = new (class InstanceService {
     try {
       if (this.instanceLaunch.has(id)) return this.instanceLaunchEvent.get(id);
 
+      this.update({ ...instance, lastPlayed: new Date().toISOString() }).catch(logger);
+
       const launch = new Launch();
       const eventEmitter = new EventEmitter();
 

@@ -31,8 +31,6 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
   const [isIndeterminate, setIsIndeterminate] = useState(false);
   const [contentIds, setContentIds] = useState<number[]>([]);
 
-  console.log('useLibraryTableColumns render');
-
   const handleSelectAll = useCallback(() => {
     if (!data) return;
 
@@ -71,9 +69,20 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
   }, [contentIds, data.length]);
 
   const isMajoritySelected = useMemo(() => {
-    if (contentIds.length === 0) return false;
-    return contentIds.length > data.length * 0.5;
-  }, [contentIds, data]);
+    if (contentIds.length === 0) {
+      const enabledCount = data.filter((content) => content.instance?.enabled).length;
+      const totalCount = data.length;
+
+      if (totalCount === 0) return false;
+      return enabledCount > totalCount * 0.5;
+    }
+
+    const selectedItems = data.filter((content) => contentIds.includes(content.id));
+    const enabledCount = selectedItems.filter((content) => content.instance?.enabled).length;
+
+    if (selectedItems.length === 0) return false;
+    return enabledCount > selectedItems.length * 0.5;
+  }, [data, contentIds]);
 
   const handleToggle = useCallback(
     async (contentId?: number, enable?: boolean) => {
@@ -182,7 +191,7 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
       {
         key: '',
         title: (
-          <div className="flex items-center justify-between w-24">
+          <div className={`flex items-center justify-between w-full min-w-24`}>
             {contentIds.length > 0 ? (
               <>
                 <input
@@ -228,10 +237,10 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
       selectAll,
       handleSelectAll,
       contentIds,
+      isMajoritySelected,
       handleSelectOne,
       handleToggle,
       handleDelete,
-      isMajoritySelected,
     ],
   );
 

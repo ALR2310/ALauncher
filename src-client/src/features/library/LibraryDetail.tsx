@@ -102,15 +102,15 @@ export default function LibraryDetail() {
       {/* Tabs */}
       <div className="flex-1 flex flex-col min-h-0 gap-1">
         <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
-          {tabs.map((tab) => (
+          {tabs.map((t) => (
             <input
-              key={tab.key}
+              key={t.key}
               type="radio"
               name="content_type"
               className={`tab`}
-              aria-label={tab.title}
-              onChange={() => setTab(tab.key)}
-              defaultChecked={tab.checked}
+              aria-label={`${t.title}${tab === t.key ? ` (${localData.length})` : ''}`}
+              onChange={() => setTab(t.key)}
+              defaultChecked={t.checked}
             />
           ))}
         </div>

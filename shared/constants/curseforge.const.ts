@@ -27,9 +27,9 @@ export const MOD_LOADER = {
 
 export const CATEGORY_CLASS = {
   Mods: 6,
-  'Data Packs': 6945,
   'Resource Packs': 12,
   'Shader Packs': 6552,
+  'Data Packs': 6945,
   Worlds: 17,
   Modpacks: 4471,
   Customization: 4546,

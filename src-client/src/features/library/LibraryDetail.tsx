@@ -29,7 +29,6 @@ export default function LibraryDetail() {
   const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
   const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
-  const [contentIds, setContentIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (instance) {
@@ -41,11 +40,7 @@ export default function LibraryDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instance, tab]);
 
-  const tableColumns = useLibraryTableColumns({
-    contentIds,
-    setContentIds,
-    contents,
-  });
+  const tableColumns = useLibraryTableColumns({ contents });
 
   return (
     <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">

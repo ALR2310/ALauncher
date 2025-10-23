@@ -121,7 +121,6 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       instanceId,
       allowAlphaFile,
       pageSizeFile,
-      setPageSizeFile,
     ],
   );
 

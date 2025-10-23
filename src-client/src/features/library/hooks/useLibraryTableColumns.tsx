@@ -8,14 +8,13 @@ import { Column } from '~/components/DataTable';
 import Img from '~/components/Img';
 
 interface UseLibraryTableColumnsProps {
-  contentIds: number[];
-  setContentIds: React.Dispatch<React.SetStateAction<number[]>>;
   contents?: { data: ContentDto[] };
 }
 
-export const useLibraryTableColumns = ({ contentIds, setContentIds, contents }: UseLibraryTableColumnsProps) => {
+export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps) => {
   const [selectAll, setSelectAll] = useState(false);
   const [isIndeterminate, setIsIndeterminate] = useState(false);
+  const [contentIds, setContentIds] = useState<number[]>([]);
 
   const handleSelectAll = useCallback(() => {
     if (!contents?.data) return;
@@ -44,7 +43,6 @@ export const useLibraryTableColumns = ({ contentIds, setContentIds, contents }: 
     [setContentIds],
   );
 
-  // Cập nhật selectAll và indeterminate state khi contentIds thay đổi
   useEffect(() => {
     if (contents?.data && contents.data.length > 0) {
       const allSelected = contentIds.length === contents.data.length;
@@ -68,9 +66,7 @@ export const useLibraryTableColumns = ({ contentIds, setContentIds, contents }: 
             className={`checkbox ${isIndeterminate ? 'checkbox-success indeterminate' : 'checked:checkbox-success'}`}
             checked={selectAll}
             ref={(el) => {
-              if (el) {
-                el.indeterminate = isIndeterminate;
-              }
+              if (el) el.indeterminate = isIndeterminate;
             }}
             onChange={handleSelectAll}
           />
@@ -90,7 +86,7 @@ export const useLibraryTableColumns = ({ contentIds, setContentIds, contents }: 
         title: 'Additional utilities',
         render: (v, row) => (
           <div className="flex items-stretch gap-2">
-            <Img className="w-[36px] h-[36px]" src={row.logo.url} alt={v} />
+            <Img className="w-9 h-9" src={row.logo.url} alt={v} />
 
             <div className="flex-1">
               <p className="line-clamp-1">{v}</p>
@@ -124,15 +120,25 @@ export const useLibraryTableColumns = ({ contentIds, setContentIds, contents }: 
       {
         key: '',
         title: (
-          <div className="text-end w-full">
-            <Link to={ROUTES.discover.path} className="btn btn-success btn-sm btn-soft">
-              <Plus size={20}></Plus>
-              Contents
-            </Link>
+          <div className="flex items-center justify-between w-24">
+            {contentIds.length > 0 ? (
+              <>
+                <input type="checkbox" className="toggle toggle-sm checked:toggle-success" />
+
+                <button className="btn btn-sm btn-error btn-soft px-2 text-center">
+                  <Trash2 size={16}></Trash2>
+                </button>
+              </>
+            ) : (
+              <Link to={ROUTES.discover.path} className="btn btn-success btn-sm btn-soft btn-block">
+                <Plus size={20}></Plus>
+                Contents
+              </Link>
+            )}
           </div>
         ),
         render: () => (
-          <div className="flex items-center justify-evenly">
+          <div className="flex items-center justify-between">
             <input type="checkbox" className="toggle toggle-sm checked:toggle-success" />
 
             <button className="btn btn-sm btn-error btn-soft px-2 text-center">

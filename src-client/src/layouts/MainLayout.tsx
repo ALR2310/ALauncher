@@ -3,6 +3,9 @@ import { Outlet } from 'react-router';
 
 import { ContainerProvider } from '~/context/ContainerContext';
 import { DiscoverProvider } from '~/features/discover/context/DiscoverContext';
+import { useAppGetConfigQuery } from '~/hooks/api/useAppApi';
+import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useVersionNotesQuery, useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 import { useUpdater } from '~/hooks/app/useUpdater';
 
 import Sidebar from './Sidebar';
@@ -16,8 +19,12 @@ export default function MainLayout() {
   const height = 700 / window.devicePixelRatio;
 
   const { checkForUpdates, isUpdating, progress } = useUpdater();
+  const { isLoading: isAppLoading } = useAppGetConfigQuery();
+  const { isLoading: isInstanceLoading } = useInstancesQuery();
+  const { isLoading: isVersionLoading } = useVersionReleasesQuery();
+  const { isLoading: isNoteLoading } = useVersionNotesQuery({});
 
-  const isLoaded = !isUpdating;
+  const isLoaded = !isUpdating && !isAppLoading && !isInstanceLoading && !isVersionLoading && !isNoteLoading;
 
   useEffect(() => {
     if (isTauri && import.meta.env.MODE !== 'development') checkForUpdates();

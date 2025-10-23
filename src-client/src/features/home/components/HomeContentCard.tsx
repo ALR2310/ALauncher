@@ -22,7 +22,7 @@ export function HomeContentCard({ title, data, isLoading, loadingCount = 0 }: Ho
         <div className="flex items-center group">
           <Link
             to={ROUTES.discover.path}
-            className="leading-2 text-xl font-semibold relative after:content-[''] after:absolute after:left-0 after:top-[12px] after:w-0 after:h-[2px] after:bg-success after:transition-all after:duration-300 group-hover:after:w-full"
+            className="leading-2 text-xl font-semibold relative after:content-[''] after:absolute after:left-0 after:top-3 after:w-0 after:h-0.5 after:bg-success after:transition-all after:duration-300 group-hover:after:w-full"
           >
             {title}
           </Link>

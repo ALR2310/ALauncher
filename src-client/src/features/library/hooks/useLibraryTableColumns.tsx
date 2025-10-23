@@ -10,11 +10,19 @@ import { Column } from '~/components/DataTable';
 import Img from '~/components/Img';
 import { toast } from '~/hooks/app/useToast';
 
+export interface OnDeleteProps {
+  contentIds: number[];
+  error?: any;
+}
+
+export interface OnToggleProps extends OnDeleteProps {
+  enable: boolean;
+}
 interface UseLibraryTableColumnsProps {
   data: ContentDto[];
   contentType: InstanceContentType;
-  onToggle?: (contentIds: number[], enable: boolean) => void;
-  onDelete?: (contentIds: number[]) => void;
+  onToggle?: (props: OnToggleProps) => void;
+  onDelete?: (props: OnDeleteProps) => void;
 }
 
 export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }: UseLibraryTableColumnsProps) => {
@@ -70,17 +78,19 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
   const handleToggle = useCallback(
     async (contentId?: number, enable?: boolean) => {
       const ids = contentId ? [contentId] : contentIds;
+
       try {
+        onToggle?.({ contentIds: ids, enable: enable! });
+
         await instanceToggleContent({
           id: instanceId!,
           contentType: contentType,
           contentIds: ids,
           enable,
         });
-
-        onToggle?.(ids, enable!);
       } catch (err) {
         console.error(err);
+        onToggle?.({ contentIds: ids, enable: enable!, error: err });
         toast.error('Failed to toggle selected contents.');
       }
     },
@@ -90,16 +100,18 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
   const handleDelete = useCallback(
     async (contentId?: number) => {
       const ids = contentId ? [contentId] : contentIds;
+
       try {
+        onDelete?.({ contentIds: ids });
+
         await instanceRemoveContent({
           id: instanceId!,
           contentType,
           contentIds: ids,
         });
-
-        onDelete?.(ids);
       } catch (err) {
         console.error(err);
+        onDelete?.({ contentIds: ids, error: err });
         toast.error('Failed to delete selected contents.');
       }
     },

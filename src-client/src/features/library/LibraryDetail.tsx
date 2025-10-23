@@ -10,7 +10,7 @@ import { useInstanceGetContentsQuery, useInstanceOneQuery } from '~/hooks/api/us
 
 import { DiscoverContext } from '../discover/context/DiscoverContext';
 import LibraryDetailHeader from './components/LibraryDetailHeader';
-import { useLibraryTableColumns } from './hooks/useLibraryTableColumns';
+import { OnDeleteProps, OnToggleProps, useLibraryTableColumns } from './hooks/useLibraryTableColumns';
 
 const tabs = Object.entries(CATEGORY_CLASS)
   .slice(0, 5)
@@ -32,6 +32,7 @@ export default function LibraryDetail() {
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
   const [localData, setLocalData] = useState<ContentDto[]>(contents?.data || []);
 
+  // Sync contents data to local state
   useEffect(() => {
     if (contents?.data) setLocalData(contents.data);
   }, [contents?.data]);
@@ -46,23 +47,45 @@ export default function LibraryDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instance, tab]);
 
-  const handleToggle = useCallback((contentIds: number[], enable: boolean) => {
-    setLocalData((prevData) =>
-      prevData.map((content) => {
-        if (contentIds.includes(content.id)) {
-          return {
-            ...content,
-            instance: content.instance ? { ...content.instance, enabled: enable } : content.instance,
-          };
-        }
-        return content;
-      }),
-    );
+  const handleToggle = useCallback(({ contentIds, enable, error }: OnToggleProps) => {
+    if (error) {
+      setLocalData((prevData) =>
+        prevData.map((content) => {
+          if (contentIds.includes(content.id)) {
+            return {
+              ...content,
+              instance: content.instance ? { ...content.instance, enabled: !enable } : content.instance,
+            };
+          }
+          return content;
+        }),
+      );
+    } else {
+      setLocalData((prevData) =>
+        prevData.map((content) => {
+          if (contentIds.includes(content.id)) {
+            return {
+              ...content,
+              instance: content.instance ? { ...content.instance, enabled: enable } : content.instance,
+            };
+          }
+          return content;
+        }),
+      );
+    }
   }, []);
 
-  const handleDelete = useCallback((contentIds: number[]) => {
-    setLocalData((prevData) => prevData.filter((content) => !contentIds.includes(content.id)));
-  }, []);
+  const handleDelete = useCallback(
+    ({ contentIds, error }: OnDeleteProps) => {
+      if (error) {
+        if (contents?.data) {
+          const deletedItems = contents.data.filter((content) => contentIds.includes(content.id));
+          setLocalData((prevData) => [...prevData, ...deletedItems]);
+        }
+      } else setLocalData((prevData) => prevData.filter((content) => !contentIds.includes(content.id)));
+    },
+    [contents?.data],
+  );
 
   const tableColumns = useLibraryTableColumns({
     data: localData,

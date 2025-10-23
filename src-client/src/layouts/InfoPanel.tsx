@@ -87,7 +87,7 @@ export default function InfoPanel() {
 
       <div className="divider"></div>
 
-      <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar">
+      <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar space-y-4">
         {notes.map((item, idx) => (
           <ReleaseCard key={idx} data={item} />
         ))}

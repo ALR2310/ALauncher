@@ -1,9 +1,4 @@
-import {
-  InstanceContentAddQueryDto,
-  InstanceContentQueryDto,
-  InstanceContentRemoveQueryDto,
-  InstanceQueryDto,
-} from '@shared/dtos/instance.dto';
+import { InstanceContentAddQueryDto, InstanceContentQueryDto, InstanceQueryDto } from '@shared/dtos/instance.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -216,9 +211,8 @@ export function useInstanceAddContentSSE() {
   return { addContent, isDownloading, progress, speed, estimated, isDone };
 }
 
-export function useInstanceRemoveContentMutation(params: InstanceContentRemoveQueryDto) {
+export function useInstanceRemoveContentMutation() {
   return useMutation({
-    mutationKey: ['instanceRemoveContent', params],
     mutationFn: instanceRemoveContent,
   });
 }

@@ -71,14 +71,18 @@ const instanceContentAddQuerySchema = instanceContentQuerySchema.extend({
   worlds: z.string().nullish(),
 });
 
-const instanceContentRemoveQuerySchema = instanceContentAddQuerySchema.omit({ worlds: true });
+const instanceContentRemoveQuerySchema = instanceContentQuerySchema.extend({
+  contentIds: z.union([z.coerce.number(), z.array(z.coerce.number())]).transform((v) => (Array.isArray(v) ? v : [v])),
+});
 
 const instanceContentRemoveResponseSchema = z.object({
   message: z.string(),
-  data: z.object({
-    id: z.number(),
-    fileName: z.string(),
-  }),
+  data: z.array(
+    z.object({
+      id: z.number(),
+      fileName: z.string(),
+    }),
+  ),
 });
 
 const instanceContentDownloadQuerySchema = z.object({

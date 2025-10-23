@@ -1,26 +1,35 @@
 import { ROUTES } from '@shared/constants/routes';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
+import { InstanceContentType } from '@shared/dtos/instance.dto';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router';
 
+import { instanceRemoveContent, instanceToggleContent } from '~/api';
 import { Column } from '~/components/DataTable';
 import Img from '~/components/Img';
+import { toast } from '~/hooks/app/useToast';
 
 interface UseLibraryTableColumnsProps {
-  contents?: { data: ContentDto[] };
+  data: ContentDto[];
+  contentType: InstanceContentType;
+  onToggle?: (contentIds: number[], enable: boolean) => void;
+  onDelete?: (contentIds: number[]) => void;
 }
 
-export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps) => {
+export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }: UseLibraryTableColumnsProps) => {
+  const { id: instanceId } = useParams<{ id: string }>();
   const [selectAll, setSelectAll] = useState(false);
   const [isIndeterminate, setIsIndeterminate] = useState(false);
   const [contentIds, setContentIds] = useState<number[]>([]);
 
+  console.log('useLibraryTableColumns render');
+
   const handleSelectAll = useCallback(() => {
-    if (!contents?.data) return;
+    if (!data) return;
 
     if (!selectAll || isIndeterminate) {
-      setContentIds(contents.data.map((content) => content.id));
+      setContentIds(data.map((content) => content.id));
       setSelectAll(true);
       setIsIndeterminate(false);
     } else {
@@ -28,25 +37,22 @@ export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps
       setSelectAll(false);
       setIsIndeterminate(false);
     }
-  }, [selectAll, isIndeterminate, contents, setContentIds]);
+  }, [data, isIndeterminate, selectAll]);
 
-  const handleSelectOne = useCallback(
-    (id: number) => {
-      setContentIds((prev) => {
-        if (prev.includes(id)) {
-          return prev.filter((contentId) => contentId !== id);
-        } else {
-          return [...prev, id];
-        }
-      });
-    },
-    [setContentIds],
-  );
+  const handleSelectOne = useCallback((id: number) => {
+    setContentIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((contentId) => contentId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  }, []);
 
   useEffect(() => {
-    if (contents?.data && contents.data.length > 0) {
-      const allSelected = contentIds.length === contents.data.length;
-      const someSelected = contentIds.length > 0 && contentIds.length < contents.data.length;
+    if (data.length > 0) {
+      const allSelected = contentIds.length === data.length;
+      const someSelected = contentIds.length > 0 && contentIds.length < data.length;
 
       setSelectAll(allSelected);
       setIsIndeterminate(someSelected);
@@ -54,7 +60,51 @@ export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps
       setSelectAll(false);
       setIsIndeterminate(false);
     }
-  }, [contentIds, contents?.data]);
+  }, [contentIds, data.length]);
+
+  const isMajoritySelected = useMemo(() => {
+    if (contentIds.length === 0) return false;
+    return contentIds.length > data.length * 0.5;
+  }, [contentIds, data]);
+
+  const handleToggle = useCallback(
+    async (contentId?: number, enable?: boolean) => {
+      const ids = contentId ? [contentId] : contentIds;
+      try {
+        await instanceToggleContent({
+          id: instanceId!,
+          contentType: contentType,
+          contentIds: ids,
+          enable,
+        });
+
+        onToggle?.(ids, enable!);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to toggle selected contents.');
+      }
+    },
+    [contentIds, contentType, instanceId, onToggle],
+  );
+
+  const handleDelete = useCallback(
+    async (contentId?: number) => {
+      const ids = contentId ? [contentId] : contentIds;
+      try {
+        await instanceRemoveContent({
+          id: instanceId!,
+          contentType,
+          contentIds: ids,
+        });
+
+        onDelete?.(ids);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to delete selected contents.');
+      }
+    },
+    [contentIds, contentType, instanceId, onDelete],
+  );
 
   const columns = useMemo<Column<ContentDto>[]>(
     () => [
@@ -123,9 +173,14 @@ export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps
           <div className="flex items-center justify-between w-24">
             {contentIds.length > 0 ? (
               <>
-                <input type="checkbox" className="toggle toggle-sm checked:toggle-success" />
+                <input
+                  type="checkbox"
+                  className="toggle toggle-sm checked:toggle-success"
+                  checked={isMajoritySelected}
+                  onChange={(e) => handleToggle(undefined, e.target.checked)}
+                />
 
-                <button className="btn btn-sm btn-error btn-soft px-2 text-center">
+                <button className="btn btn-sm btn-error btn-soft px-2 text-center" onClick={() => handleDelete()}>
                   <Trash2 size={16}></Trash2>
                 </button>
               </>
@@ -137,11 +192,18 @@ export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps
             )}
           </div>
         ),
-        render: () => (
+        render: (_, row) => (
           <div className="flex items-center justify-between">
-            <input type="checkbox" className="toggle toggle-sm checked:toggle-success" />
+            <input
+              type="checkbox"
+              className="toggle toggle-sm checked:toggle-success"
+              checked={row.instance?.enabled}
+              onChange={(e) => {
+                handleToggle(row.id, e.target.checked);
+              }}
+            />
 
-            <button className="btn btn-sm btn-error btn-soft px-2 text-center">
+            <button className="btn btn-sm btn-error btn-soft px-2 text-center" onClick={() => handleDelete(row.id)}>
               <Trash2 size={16}></Trash2>
             </button>
           </div>
@@ -149,7 +211,16 @@ export const useLibraryTableColumns = ({ contents }: UseLibraryTableColumnsProps
         toggleable: false,
       },
     ],
-    [selectAll, contentIds, isIndeterminate, handleSelectAll, handleSelectOne],
+    [
+      isIndeterminate,
+      selectAll,
+      handleSelectAll,
+      contentIds,
+      handleSelectOne,
+      handleToggle,
+      handleDelete,
+      isMajoritySelected,
+    ],
   );
 
   return columns;

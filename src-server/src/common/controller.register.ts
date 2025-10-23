@@ -25,6 +25,11 @@ function safePath(base: string = '', sub: string = ''): string {
   return full || '/';
 }
 
+function buildQuery(c: Context) {
+  const raw = c.req.queries();
+  return Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v.length > 1 ? v : v[0]]));
+}
+
 export function controllerRegister(app: Hono, controllers: (ControllerClass | ControllerInstance)[]) {
   const list = Array.isArray(controllers) ? controllers : [controllers];
 
@@ -42,7 +47,7 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
       (app as any)[route.method](fullPath, async (c: Context) => {
         const body = await safeJson(c);
         const params = c.req.param();
-        const query = c.req.query();
+        const query = buildQuery(c);
         let payload: any = { ...body, ...params, ...query };
 
         const schemaOrDto = Reflect.getMetadata(VALIDATE_KEY, controller, route.handlerName);

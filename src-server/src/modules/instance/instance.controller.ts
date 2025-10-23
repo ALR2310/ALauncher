@@ -168,10 +168,11 @@ export class InstanceController {
     });
   }
 
-  @Delete(':id/:contentType/:contentId')
+  @Delete(':id/:contentType')
   @Validate(InstanceContentRemoveQueryDto)
-  async removeContents(@Param() param) {
-    return instanceService.removeContents(param);
+  async removeContents(@Param() param, @Query() query) {
+    const payload: InstanceContentRemoveQueryDto = { ...param, ...query };
+    return instanceService.removeContents(payload);
   }
 
   @Put(':id/:contentType')

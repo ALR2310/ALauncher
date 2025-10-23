@@ -64,8 +64,8 @@ export function instanceAddContent(params: InstanceContentAddQueryDto) {
 }
 
 export async function instanceRemoveContent(params: InstanceContentRemoveQueryDto) {
-  const { id, contentType, contentId } = params;
-  return API.delete<InstanceContentRemoveResponseDto>(`${BASE_PATH}/${id}/${contentType}/${contentId}`);
+  const { id, contentType, contentIds } = params;
+  return API.delete<InstanceContentRemoveResponseDto>(`${BASE_PATH}/${id}/${contentType}`, { contentIds });
 }
 
 export async function instanceToggleContent(params: InstanceContentToggleQueryDto) {

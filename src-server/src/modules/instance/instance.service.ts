@@ -424,7 +424,7 @@ export const instanceService = new (class InstanceService {
   }
 
   async removeContents(payload: InstanceContentRemoveQueryDto) {
-    const { id: instanceId, contentType, contentId } = payload;
+    const { id: instanceId, contentType, contentIds } = payload;
 
     const lock = this.getInstanceLock(instanceId, 'removeContent');
 
@@ -434,28 +434,36 @@ export const instanceService = new (class InstanceService {
         this.getContentDir(instanceId, contentType),
       ]);
 
-      const content = instance[contentType]?.find((c) => c.id === contentId);
-      if (!content) throw new NotFoundException(`Content with id ${contentId} not found in instance ${instanceId}`);
+      const contentIdsSet = new Set(contentIds);
+      const contentsToRemove = (instance[contentType] ?? []).filter((c) => contentIdsSet.has(c.id));
 
-      const filePath = path.join(contentDir, content.fileName);
-      const fileDisabledPath = filePath + '.disabled';
-
-      try {
-        await rm(filePath, { force: true });
-        await rm(fileDisabledPath, { force: true });
-      } catch (err: any) {
-        if (err.code !== 'ENOENT') throw err;
+      if (contentsToRemove.length === 0) {
+        throw new NotFoundException(`No contents found with provided IDs in instance ${instanceId}`);
       }
 
-      instance[contentType] = instance[contentType]?.filter((c) => c.id !== contentId) ?? [];
+      await Promise.all(
+        contentsToRemove.map(async (content) => {
+          const filePath = path.join(contentDir, content.fileName);
+          const fileDisabledPath = filePath + '.disabled';
+
+          try {
+            await rm(filePath, { force: true });
+            await rm(fileDisabledPath, { force: true });
+          } catch (err: any) {
+            if (err.code !== 'ENOENT') throw err;
+          }
+        }),
+      );
+
+      instance[contentType] = instance[contentType]?.filter((c) => !contentIdsSet.has(c.id)) ?? [];
       await this.update(instance);
 
       return {
         message: 'Removed successfully',
-        data: {
-          id: contentId,
-          fileName: content.fileName,
-        },
+        data: contentsToRemove.map((c) => ({
+          id: c.id,
+          fileName: c.fileName,
+        })),
       } as InstanceContentRemoveResponseDto;
     });
   }

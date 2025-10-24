@@ -1,5 +1,5 @@
 import { CATEGORY_CLASS, MOD_LOADER } from '@shared/constants/curseforge.const';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import { useCategoryQuery } from '~/hooks/api/useCategoryApi';
@@ -79,6 +79,13 @@ export default function DiscoverFilterBar() {
     return buildCategoryTree(categories, categoryType);
   }, [categories, categoryType]);
 
+  useEffect(() => {
+    if (categoryType !== CATEGORY_CLASS.Mods) {
+      setCategoryIds(new Set());
+      setLoaderType(MOD_LOADER.Any);
+    }
+  }, [categoryType, setCategoryIds, setLoaderType]);
+
   return (
     <div className="flex flex-col gap-4 w-64 lg:w-80 bg-base-200">
       <div className="flex px-3 pt-3">
@@ -112,11 +119,7 @@ export default function DiscoverFilterBar() {
 
       <div className="flex px-3">
         <span className="label flex-1/3">Loader</span>
-        <select
-          className="select flex-2/3"
-          value={loaderType}
-          onChange={(e) => setLoaderType(Number(e.target.value))}
-        >
+        <select className="select flex-2/3" value={loaderType} onChange={(e) => setLoaderType(Number(e.target.value))}>
           {Object.entries(MOD_LOADER).map(([key, value]) => {
             const label = value === MOD_LOADER.Any ? 'All' : key;
             return (

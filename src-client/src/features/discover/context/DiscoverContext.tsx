@@ -75,8 +75,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
 
   // Set default game version
   useEffect(() => {
-    if (gameVersion) return;
-    if (!versions || !versions.length) return;
+    if (gameVersion || !versions || !versions.length) return;
     setGameVersion(versions[0].version);
   }, [gameVersion, versions]);
 

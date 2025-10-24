@@ -47,8 +47,8 @@ export async function instanceCancel(id: string) {
   return API.get(`${BASE_PATH}/${id}/cancel`);
 }
 
-export async function instanceDownload(id: string) {
-  const url = `${API_URL}/${BASE_PATH}/${id}/download`;
+export function instanceVerify(id: string) {
+  const url = `${API_URL}/${BASE_PATH}/${id}/verify`;
   return new EventSource(url);
 }
 

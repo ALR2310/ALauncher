@@ -15,6 +15,7 @@ import {
   instanceRemoveContent,
   instanceToggleContent,
   instanceUpdate,
+  instanceVerify,
 } from '~/api/instance.api';
 
 import { toast } from '../app/useToast';
@@ -58,6 +59,48 @@ export function useInstanceWorldsQuery(id: string) {
     queryFn: () => instanceFindWorlds(id),
     enabled: !!id,
   });
+}
+
+export function useInstanceVerifySSE() {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [progress, setProgress] = useState<number | undefined>(undefined);
+  const [speed, setSpeed] = useState('');
+  const [estimated, setEstimated] = useState('');
+  const [isDone, setIsDone] = useState(false);
+  const evtRef = useRef<EventSource | null>(null);
+
+  const verifyContent = useCallback((id: string) => {
+    if (evtRef.current) return;
+    evtRef.current = instanceVerify(id);
+
+    setIsDownloading(true);
+    setProgress(undefined);
+    setSpeed('');
+    setEstimated('');
+    setIsDone(false);
+
+    evtRef.current.addEventListener('progress', (e) => setProgress(parseFloat(e.data)));
+    evtRef.current.addEventListener('speed', (e) => setSpeed(e.data));
+    evtRef.current.addEventListener('estimated', (e) => setEstimated(e.data));
+    evtRef.current.addEventListener('done', () => {
+      setIsDownloading(false);
+      setProgress(100);
+      setIsDone(true);
+      evtRef?.current?.close();
+    });
+    evtRef.current.addEventListener('error', () => {
+      setIsDownloading(false);
+      toast.error('Failed to install. Please try again.');
+      evtRef?.current?.close();
+      evtRef.current = null;
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => evtRef.current?.close();
+  }, []);
+
+  return { verifyContent, isDownloading, progress, speed, estimated, isDone };
 }
 
 export function useInstanceLaunchSSE() {

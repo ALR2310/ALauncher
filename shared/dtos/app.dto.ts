@@ -35,7 +35,7 @@ const appConfigSchema = z.object({
       type: z.enum(JAVA_TYPE).default(JAVA_TYPE.JDK),
     }),
     memory: z.object({
-      min: z.number().min(512).default(512),
+      min: z.number().min(512).default(1024),
       max: z.number().min(512).default(1024),
     }),
     screen: z.object({

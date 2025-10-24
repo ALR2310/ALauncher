@@ -30,6 +30,7 @@ import { parse } from 'prismarine-nbt';
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
 import { Launch, Mojang } from '~/libraries/minecraft-java-core/build/Index';
+import { LaunchOPTS } from '~/libraries/minecraft-java-core/build/Launch';
 import Downloader, { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
 
 import { appService } from '../app/app.service';
@@ -194,7 +195,7 @@ export const instanceService = new (class InstanceService {
     return worlds;
   }
 
-  async download(id: string) {
+  async verify(id: string) {
     const instance = await this.findOne(id);
 
     const groupedContents: Record<string, InstanceContentDto[]> = {};
@@ -226,14 +227,14 @@ export const instanceService = new (class InstanceService {
 
       const auth = await Mojang.login(config.auth.username);
 
-      launch.Launch({
+      const opts: LaunchOPTS = {
         path: config.minecraft.gameDir,
         version: instance.version,
         bypassOffline: true,
         authenticator: auth,
         loader: {
           path: '.',
-          type: instance.loader ? CurseForgeModLoaderType[instance.loader.type] : undefined,
+          type: instance.loader ? CurseForgeModLoaderType[instance.loader.type].toLowerCase() : undefined,
           build: instance.loader?.version ?? 'latest',
           enable: !!instance.loader,
         },
@@ -250,7 +251,9 @@ export const instanceService = new (class InstanceService {
         downloadFileMultiple: config.downloadMultiple,
         JVM_ARGS: [],
         GAME_ARGS: [],
-      });
+      };
+
+      launch.Launch(opts);
 
       launch
         .on(

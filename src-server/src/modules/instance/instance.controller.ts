@@ -93,10 +93,10 @@ export class InstanceController {
     return instanceService.cancel(id);
   }
 
-  @Get(':id/download')
-  async download(@Param('id') id: string, @Context() c) {
-    const downloader = await instanceService.download(id);
-    if (!downloader) {
+  @Get(':id/verify')
+  async verify(@Param('id') id: string, @Context() c) {
+    const verifier = await instanceService.verify(id);
+    if (!verifier) {
       return streamSSE(c, async (stream) => {
         await stream.writeSSE({ event: 'done', data: 'Verification complete' });
         await stream.close();
@@ -105,7 +105,7 @@ export class InstanceController {
 
     return streamSSE(c, async (stream) => {
       const done = new Promise<void>((resolve) => {
-        downloader
+        verifier
           .on('progress', async (percent) => await stream.writeSSE({ event: 'progress', data: percent }))
           .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
           .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))

@@ -34,7 +34,7 @@ const appConfig: AppConfigDto = {
       type: JAVA_TYPE.JDK,
     },
     memory: {
-      min: 512,
+      min: 1024,
       max: 1024,
     },
     screen: {

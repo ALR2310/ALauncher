@@ -2,14 +2,14 @@ import { InstanceDto } from '@shared/dtos/instance.dto';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
 import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen } from 'lucide-react';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
+import { useInstanceLaunchSSE, useInstanceVerifySSE } from '~/hooks/api/useInstanceApi';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto | undefined;
@@ -17,8 +17,25 @@ interface LibraryDetailHeaderProps {
 }
 
 const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
-  const { launch, cancel, isRunning, progress, estimated, speed } = useInstanceLaunchSSE();
+  const { launch, cancel, isRunning, isDownloading, progress, estimated, speed } = useInstanceLaunchSSE();
+  const {
+    verifyContent,
+    isDownloading: verifyIsDownloading,
+    progress: verifyProgress,
+    speed: verifySpeed,
+    estimated: verifyEstimated,
+    isDone: verifyIsDone,
+  } = useInstanceVerifySSE();
   const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
+
+  const [pendingLaunchId, setPendingLaunchId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (verifyIsDone && pendingLaunchId) {
+      launch(pendingLaunchId);
+      setPendingLaunchId(null);
+    }
+  }, [verifyIsDone, pendingLaunchId, launch]);
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
@@ -45,7 +62,8 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
                 if (isRunning && data?.id) {
                   cancel(data.id);
                 } else if (data?.id) {
-                  launch(data.id);
+                  setPendingLaunchId(data.id);
+                  verifyContent(data.id);
                 }
               }}
             >
@@ -78,11 +96,17 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
 
         {isLoading ? (
           <div className="skeleton w-full h-5"></div>
-        ) : isRunning ? (
+        ) : verifyIsDownloading ? (
+          <Progress
+            className="w-full h-5"
+            value={verifyProgress}
+            text={`Verifying... ${verifyProgress ?? 0}% ${verifyEstimated ? `(${verifyEstimated})` : ''} ${verifySpeed ? `- ${verifySpeed}` : ''}`}
+          />
+        ) : isDownloading ? (
           <Progress
             className="w-full h-5"
             value={progress}
-            text={`${progress ?? 0}% ${estimated ? `(${estimated})` : ''} ${speed ? `- ${speed}` : ''}`}
+            text={`Launching... ${progress ?? 0}% ${estimated ? `(${estimated})` : ''} ${speed ? `- ${speed}` : ''}`}
           />
         ) : (
           <div className="flex gap-1 items-center text-sm text-base-content/70">

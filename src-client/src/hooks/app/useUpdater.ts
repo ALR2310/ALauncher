@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { appCheckUpdate, appUpdate } from '~/api';
+import { appCheckForUpdates, appInstallUpdates } from '~/api';
 
 import { toast } from './useToast';
 
@@ -12,10 +12,10 @@ export function useUpdater() {
   const checkForUpdates = async () => {
     setIsUpdating(true);
 
-    const check = await appCheckUpdate();
+    const check = await appCheckForUpdates();
 
     if (check.hasUpdate) {
-      evtRef.current = await appUpdate();
+      evtRef.current = await appInstallUpdates();
 
       evtRef.current.addEventListener('progress', (e) => {
         setProgress(parseFloat(e.data));

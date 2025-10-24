@@ -1,21 +1,27 @@
-import { LoaderDto, ReleaseNoteDto, ReleaseNoteQueryDto, VersionDto } from '@shared/dtos/version.dto';
+import {
+  LoaderQueryDto,
+  ReleaseNoteDetailsDto,
+  ReleaseNoteQueryDto,
+  ReleaseNoteResponseDto,
+  VersionDto,
+} from '@shared/dtos/version.dto';
 
 import { API } from '.';
 
-const BASE_URL = '/versions';
+const BASE_PATH = 'versions';
 
-export async function findAllVersion() {
-  return API.get<VersionDto[]>(`${BASE_URL}`);
-}
+export const versionReleases = () => {
+  return API.get<VersionDto[]>(`${BASE_PATH}/releases`);
+};
 
-export async function findReleaseVersion() {
-  return API.get<VersionDto[]>(`${BASE_URL}/releases`);
-}
+export const versionLoaders = (params: LoaderQueryDto) => {
+  return API.get<VersionDto[]>(`${BASE_PATH}/loaders`, params);
+};
 
-export async function findLoaderVersion(params: LoaderDto) {
-  return API.get<VersionDto[]>(`${BASE_URL}/loaders`, params);
-}
+export const versionNotes = (params: ReleaseNoteQueryDto) => {
+  return API.get<ReleaseNoteResponseDto>(`${BASE_PATH}/notes`, params);
+};
 
-export async function findReleaseNotes(params: ReleaseNoteQueryDto) {
-  return API.get<ReleaseNoteDto[]>(`${BASE_URL}/releases/notes`, params);
-}
+export const versionNoteDetail = (version: string) => {
+  return API.get<ReleaseNoteDetailsDto>(`${BASE_PATH}/notes/${version}`);
+};

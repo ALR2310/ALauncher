@@ -81,21 +81,7 @@ export default class Microsoft {
      * @returns      A fully populated AuthResponse object or an error.
      */
     private getAccount;
-    /**
-     * Fetches the Minecraft profile (including skins and capes) for a given access token,
-     * then converts each skin/cape URL to base64.
-     *
-     * @param mcLogin An object containing `access_token` to call the Minecraft profile API.
-     * @returns The user's Minecraft profile or an error object.
-     */
     getProfile(mcLogin: {
         access_token: string;
     }): Promise<MinecraftProfile | AuthError>;
-    /**
-     * A helper method to perform fetch and parse JSON.
-     * @param url     The endpoint URL.
-     * @param options fetch options (method, headers, body, etc.).
-     * @returns       The parsed JSON or an object with an error field if something goes wrong.
-     */
-    private fetchJSON;
 }

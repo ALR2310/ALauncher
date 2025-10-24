@@ -1,9 +1,10 @@
+import { CategoryQueryDto } from '@shared/dtos/category.dto';
 import { CurseForgeCategory } from 'curseforge-api/v1/Types';
 
 import { API } from '.';
 
-const BASE_URL = '/categories';
+const BASE_PATH = 'categories';
 
-export async function findAllCategory(params: { classId: number; classesOnly?: boolean }) {
-  return API.get<CurseForgeCategory[]>(BASE_URL, params);
-}
+export const categoryFindAll = async (params: CategoryQueryDto) => {
+  return API.get<CurseForgeCategory[]>(`${BASE_PATH}`, params);
+};

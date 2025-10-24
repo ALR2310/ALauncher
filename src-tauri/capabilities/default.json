@@ -4,32 +4,16 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "remote": {
-    "urls": ["http://localhost:1420/*"]
+    "urls": ["http://localhost:2310/*", "http://localhost:2311/*"]
   },
   "permissions": [
     "core:default",
     "opener:default",
-    "process:default",
-    "shell:default",
-    "core:webview:allow-create-webview",
-    "core:webview:allow-create-webview-window",
-    {
-      "identifier": "shell:allow-spawn",
-      "allow": [
-        {
-          "name": "binaries/server",
-          "sidecar": true
-        }
-      ]
-    },
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "name": "binaries/server",
-          "sidecar": true
-        }
-      ]
-    }
+    "core:window:default",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-unmaximize",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging"
   ]
 }

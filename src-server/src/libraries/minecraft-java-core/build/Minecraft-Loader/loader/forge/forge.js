@@ -42,9 +42,15 @@ class ForgeMC extends events_1.EventEmitter {
      */
     async downloadInstaller(Loader) {
         // Fetch metadata for the given Forge version
-        let metaDataList = await fetch(Loader.metaData)
-            .then(res => res.json())
-            .then(json => json[this.options.loader.version]);
+        let metaDataList = await fetch(Loader.metaData);
+        if (!metaDataList.ok) {
+            metaDataList = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../../../assets/forge', 'forge-metadata.json'), 'utf-8');
+            metaDataList = JSON.parse(metaDataList);
+        }
+        else {
+            metaDataList = await metaDataList.json();
+        }
+        metaDataList = metaDataList[this.options.loader.version];
         if (!metaDataList) {
             return { error: `Forge ${this.options.loader.version} not supported` };
         }

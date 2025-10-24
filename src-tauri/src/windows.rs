@@ -26,6 +26,7 @@ fn spawn_runtime_process<P: AsRef<Path>>(runtime_path: P, data_path: P) {
 
 pub fn create_main_window(app: &App) {
     let node_env = env::var("NODE_ENV").unwrap_or_else(|_| "production".into());
+    let vite_env = env::var("VITE_ENV").unwrap_or_else(|_| "production".into());
 
     let exe_dir = env::current_exe()
         .ok()
@@ -35,7 +36,7 @@ pub fn create_main_window(app: &App) {
     let runtime_path = exe_dir.join("runtime.bin");
     let data_path = exe_dir.join("data.bin");
 
-    logger(&format!("NODE_ENV = {}", node_env));
+    logger(&format!("ENV = {}", node_env));
     logger(&format!("exe_dir = {:?}", exe_dir));
     logger(&format!("runtime_path = {:?}", runtime_path));
     logger(&format!("data_path = {:?}", data_path));
@@ -49,10 +50,10 @@ pub fn create_main_window(app: &App) {
     let screen_size = monitor.size();
 
     // default size
-    let mut desired_width_physical = 1150.0;
-    let mut desired_height_physical = 650.0;
+    let mut desired_width_physical = 1200.0;
+    let mut desired_height_physical = 700.0;
 
-    if node_env == "development" {
+    if vite_env == "office" {
         desired_width_physical = 500.0;
         desired_height_physical = 250.0;
     }
@@ -63,13 +64,18 @@ pub fn create_main_window(app: &App) {
     let x = (screen_size.width as f64 / scale_factor - logical_width) / 2.0;
     let y = (screen_size.height as f64 / scale_factor - logical_height) / 2.0;
 
-    let min_width = logical_width * 0.75;
-    let min_height = logical_height * 0.75;
+    let min_width = logical_width * 0.80;
+    let min_height = logical_height * 0.80;
 
-    let url = WebviewUrl::External("http://localhost:1420".parse().unwrap());
+    let mut url = WebviewUrl::External("http://localhost:2310".parse().unwrap());
+
+    if node_env == "development" {
+        url = WebviewUrl::External("http://localhost:2311".parse().unwrap());
+    }
 
     WebviewWindowBuilder::new(app, "main", url)
         .title("ALauncher")
+        .decorations(false)
         .inner_size(logical_width, logical_height)
         .min_inner_size(min_width, min_height)
         .position(x, y)

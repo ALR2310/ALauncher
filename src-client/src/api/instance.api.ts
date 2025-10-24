@@ -1,57 +1,74 @@
 import { ContentResponseDto } from '@shared/dtos/content.dto';
 import {
-  AddContentInstanceDto,
+  InstanceContentAddQueryDto,
+  InstanceContentQueryDto,
+  InstanceContentRemoveQueryDto,
+  InstanceContentRemoveResponseDto,
+  InstanceContentToggleQueryDto,
   InstanceDto,
-  RemoveContentInstanceDto,
-  ToggleContentInstanceDto,
+  InstanceQueryDto,
+  InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
-import qs from 'qs';
 
 import { API, API_URL } from '.';
 
 const BASE_PATH = 'instances';
 
-export const findAllInstance = async () => {
-  return API.get<InstanceDto[]>(BASE_PATH);
-};
+export async function instanceFindAll(param?: InstanceQueryDto) {
+  return API.get<InstanceDto[]>(`${BASE_PATH}`, param);
+}
 
-export const findOneInstance = async (id: string) => {
+export async function instanceFindOne(id: string) {
   return API.get<InstanceDto>(`${BASE_PATH}/${id}`);
-};
+}
 
-export const createInstance = async (instance: InstanceDto) => {
-  return API.post<InstanceDto>(`${BASE_PATH}`, instance);
-};
+export async function instanceCreate(body: InstanceDto) {
+  return API.post<InstanceDto>(`${BASE_PATH}`, body);
+}
 
-export const updateInstance = async (instance: InstanceDto) => {
-  return API.put<InstanceDto>(`${BASE_PATH}/${instance.id}`, instance);
-};
+export async function instanceUpdate(body: Partial<InstanceDto>) {
+  return API.put<InstanceDto>(`${BASE_PATH}/${body.id}`, body);
+}
 
-export const deleteInstance = async (id: string) => {
+export async function instanceDelete(id: string) {
   return API.delete<InstanceDto>(`${BASE_PATH}/${id}`);
-};
+}
 
-export const findContentInstance = async (instanceId: string, type: string) => {
-  return API.get<ContentResponseDto>(`${BASE_PATH}/${instanceId}/${type}`);
-};
+export async function instanceFindWorlds(id: string) {
+  return API.get<InstanceWorldDto[]>(`${BASE_PATH}/${id}/worlds`);
+}
 
-export const addContentInstance = (params: AddContentInstanceDto) => {
-  const { id: instanceId, type: contentType, contentId, worlds } = params;
-  const query = qs.stringify({ worlds }, { arrayFormat: 'repeat' });
-  const apiPath = `${API_URL}/${BASE_PATH}/${instanceId}/${contentType}/${contentId}?${query}`;
-  return new EventSource(apiPath);
-};
+export function instanceLaunch(id: string) {
+  const url = `${API_URL}/${BASE_PATH}/${id}/launch`;
+  return new EventSource(url);
+}
 
-export const removeContentInstance = async ({ id, type, contentId }: RemoveContentInstanceDto) => {
-  return API.delete<InstanceDto>(`${BASE_PATH}/${id}/${type}/${contentId}`);
-};
+export async function instanceCancel(id: string) {
+  return API.get(`${BASE_PATH}/${id}/cancel`);
+}
 
-export const canRemoveContentInstance = async ({ id, type, contentId }: RemoveContentInstanceDto) => {
-  return API.get<{ canRemove: boolean; message: string; dependents: string[] }>(
-    `${BASE_PATH}/${id}/${type}/${contentId}/can-remove`,
-  );
-};
+export function instanceVerify(id: string) {
+  const url = `${API_URL}/${BASE_PATH}/${id}/verify`;
+  return new EventSource(url);
+}
 
-export const toggleContentInstance = async ({ id, type, contentIds, enabled }: ToggleContentInstanceDto) => {
-  return API.post(`${BASE_PATH}/${id}/${type}/toggle`, { contentIds, enabled });
-};
+export async function instanceGetContents(params: InstanceContentQueryDto) {
+  const { id, contentType } = params;
+  return API.get<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`);
+}
+
+export function instanceAddContent(params: InstanceContentAddQueryDto) {
+  const { id, contentType, contentId, worlds } = params;
+  const url = `${API_URL}/${BASE_PATH}/${id}/${contentType}/${contentId}?worlds=${worlds || ''}`;
+  return new EventSource(url);
+}
+
+export async function instanceRemoveContent(params: InstanceContentRemoveQueryDto) {
+  const { id, contentType, contentIds } = params;
+  return API.delete<InstanceContentRemoveResponseDto>(`${BASE_PATH}/${id}/${contentType}`, { contentIds });
+}
+
+export async function instanceToggleContent(params: InstanceContentToggleQueryDto) {
+  const { id, contentType, ...rest } = params;
+  return API.put<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`, rest);
+}

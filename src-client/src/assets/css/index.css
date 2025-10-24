@@ -9,6 +9,28 @@
     dracula;
 }
 
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/Inter-VariableFont.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/Inter-Italic-VariableFont.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, sans-serif;
+  }
+}
+
 @layer utilities {
   .no-scrollbar {
     &::-webkit-scrollbar {
@@ -19,20 +41,116 @@
     scrollbar-width: none;
   }
 
-  .text-ellipsis-1 {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -webkit-line-clamp: 1;
+  .tabs-border-primary .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-primary);
+        border-color: var(--tab-border-color);
+      }
+    }
   }
 
-  .text-ellipsis-2 {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -webkit-line-clamp: 2;
+  .tabs-border-secondary .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-secondary);
+        border-color: var(--tab-border-color);
+      }
+    }
+  }
+
+  .tabs-border-accent .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-accent);
+        border-color: var(--tab-border-color);
+      }
+    }
+  }
+
+  .tabs-border-neutral .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-neutral);
+        border-color: var(--tab-border-color);
+      }
+    }
+  }
+
+  .tabs-border-info .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-info);
+        border-color: var(--tab-border-color);
+      }
+    }
+  }
+
+  .tabs-border-success .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-success);
+        border-color: var(--tab-border-color);
+      }
+    }
+  }
+
+  .tabs-border-warning .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-warning);
+        border-color: var(--tab-border-color);
+      }
+    }
+  }
+
+  .tabs-border-error .tab {
+    &:is(.tab-active, [aria-selected='true'], [aria-current='true'], [aria-current='page']):not(
+        .tab-disabled,
+        [disabled]
+      ),
+    &:is(input:checked),
+    &:is(label:has(:checked)) {
+      &:before {
+        --tab-border-color: var(--color-error);
+        border-color: var(--tab-border-color);
+      }
+    }
   }
 
   .select:focus,
@@ -41,11 +159,61 @@
   .input:focus-within {
     --input-color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
   }
-}
 
-@utility container {
-  @variant 2xl {
-    max-width: 80rem;
+  .input-neutral:focus,
+  .input-neutral:focus-within,
+  .select-neutral:focus,
+  .select-neutral:focus-within {
+    --input-color: color-mix(in oklab, var(--color-neutral) 80%, transparent);
+  }
+
+  .input-primary:focus,
+  .input-primary:focus-within,
+  .select-primary:focus,
+  .select-primary:focus-within {
+    --input-color: color-mix(in oklab, var(--color-primary) 80%, transparent);
+  }
+
+  .input-secondary:focus,
+  .input-secondary:focus-within,
+  .select-secondary:focus,
+  .select-secondary:focus-within {
+    --input-color: color-mix(in oklab, var(--color-secondary) 80%, transparent);
+  }
+
+  .input-accent:focus,
+  .input-accent:focus-within,
+  .select-accent:focus,
+  .select-accent:focus-within {
+    --input-color: color-mix(in oklab, var(--color-accent) 80%, transparent);
+  }
+
+  .input-info:focus,
+  .input-info:focus-within,
+  .select-info:focus,
+  .select-info:focus-within {
+    --input-color: color-mix(in oklab, var(--color-info) 80%, transparent);
+  }
+
+  .input-success:focus,
+  .input-success:focus-within,
+  .select-success:focus,
+  .select-success:focus-within {
+    --input-color: color-mix(in oklab, var(--color-success) 80%, transparent);
+  }
+
+  .input-warning:focus,
+  .input-warning:focus-within,
+  .select-warning:focus,
+  .select-warning:focus-within {
+    --input-color: color-mix(in oklab, var(--color-warning) 80%, transparent);
+  }
+
+  .input-error:focus,
+  .input-error:focus-within,
+  .select-error:focus,
+  .select-error:focus-within {
+    --input-color: color-mix(in oklab, var(--color-error) 80%, transparent);
   }
 }
 

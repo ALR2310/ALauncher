@@ -185,28 +185,7 @@ export default class Launch extends EventEmitter {
     private downloadPromise;
     Launch(opt: LaunchOPTS): Promise<boolean>;
     start(): Promise<boolean>;
-    DownloadGame(): Promise<{
-        error: any;
-        cancelled?: undefined;
-        minecraftJson?: undefined;
-        minecraftLoader?: undefined;
-        minecraftVersion?: undefined;
-        minecraftJava?: undefined;
-    } | {
-        cancelled: boolean;
-        error?: undefined;
-        minecraftJson?: undefined;
-        minecraftLoader?: undefined;
-        minecraftVersion?: undefined;
-        minecraftJava?: undefined;
-    } | {
-        minecraftJson: any;
-        minecraftLoader: any;
-        minecraftVersion: string;
-        minecraftJava: any;
-        error?: undefined;
-        cancelled?: undefined;
-    }>;
+    DownloadGame(): Promise<any>;
     cancel(): void;
 }
 export {};

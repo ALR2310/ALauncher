@@ -7,22 +7,16 @@ import {
   CurseForgeSearchModsOptions,
 } from 'curseforge-api/v1/Options';
 import { CurseForgeMinecraftModLoaderIndex } from 'curseforge-api/v1/Types';
-import { config } from 'dotenv';
-import path from 'path';
 
-config({ quiet: true, path: path.resolve('..', '.env') });
-
-const API_KEY = process.env.VITE_CURSEFORGE_API_KEY;
+const API_KEY = process.env.CURSEFORGE_API_KEY ?? '';
 
 const API = axios.create({
   baseURL: 'https://api.curseforge.com/v1',
-  headers: {
-    'x-api-key': API_KEY,
-  },
+  headers: { 'x-api-key': API_KEY },
 });
 
 class CurseForgeService {
-  private client = new CurseForgeClient(process.env.CURSEFORGE_API_KEY || '');
+  private client = new CurseForgeClient(API_KEY);
   private gameId = 432; // Minecraft
 
   async getCategories(payload: CurseForgeGetCategoriesOptions) {

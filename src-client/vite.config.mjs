@@ -3,19 +3,23 @@ import react from '@vitejs/plugin-react';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
+import { ENV } from '../shared/enums/general.enum';
+import { analyzer } from 'vite-bundle-analyzer';
 
-config({ quiet: true, path: resolve(__dirname, '../.env') });
+
+config({ quiet: true, path: resolve('..', '.env') });
 
 const host = process.env.TAURI_DEV_HOST;
-const clientPort = Number(process.env.VITE_CLIENT_PORT) || 1420;
-const isDev = process.env.NODE_ENV === 'development';
+const clientPort = Number(process.env.VITE_PORT) + 1 || 2311;
+const isDev = process.env.NODE_ENV === ENV.Development;
+
 
 export default defineConfig(async () => ({
   build: {
     minify: !isDev,
     cssMinify: !isDev,
     emptyOutDir: true,
-    outDir: resolve(__dirname, '../dist'),
+    outDir: resolve('..', 'dist'),
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -51,5 +55,8 @@ export default defineConfig(async () => ({
     },
   },
   clearScreen: false,
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), analyzer({
+    openAnalyzer: false,
+    analyzerMode: 'static',
+  })],
 }));

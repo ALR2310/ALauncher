@@ -2,6 +2,8 @@ import { Context } from 'hono';
 import { ContentfulStatusCode } from 'hono/utils/http-status';
 import z from 'zod';
 
+import { logger } from '../logger';
+
 export class HttpException extends Error {
   status: number;
   constructor(message: string, status: number = 500) {
@@ -29,6 +31,8 @@ export class InternalServerException extends HttpException {
 }
 
 export const exception = (err: Error, c: Context) => {
+  logger(err);
+
   if (err instanceof HttpException) {
     return c.json({ message: err.message, status: err.status }, err.status as ContentfulStatusCode);
   }

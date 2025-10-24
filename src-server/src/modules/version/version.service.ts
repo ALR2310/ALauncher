@@ -1,174 +1,108 @@
-import { LoaderDto, ReleaseNoteDto, ReleaseNoteQueryDto, VersionDto } from '@shared/dtos/version.dto';
-import { loaderMap } from '@shared/mappings/general.mapping';
+import {
+  LoaderQueryDto,
+  ReleaseNoteDetailQueryDto,
+  ReleaseNoteDetailsDto,
+  ReleaseNoteDto,
+  ReleaseNoteQueryDto,
+  ReleaseNoteResponseDto,
+  VERSION_TYPE,
+  VersionDto,
+} from '@shared/dtos/version.dto';
 import { capitalize } from '@shared/utils/general.utils';
 import axios from 'axios';
-import { readdir } from 'fs/promises';
-import path from 'path';
+import { CurseForgeModLoaderType } from 'curseforge-api';
 
-import { configService } from '../config/config.service';
+import { NotFoundException } from '~/common/filters/exception.filter';
+
 import { curseForgeService } from '../curseforge/curseforge.service';
-import { instanceService } from '../instance/instance.service';
 
-class VersionService {
-  private listNote: any[] = [];
-  private readonly NOTE_API = 'https://launchercontent.mojang.com/v2/';
-
-  async findAll() {
-    const [releases, loaders, instances, downloaded] = await Promise.all([
-      this.findReleases(),
-      this.findLoadersByVersion(),
-      this.mapInstancesToVersions(),
-      this.findDownloadedVersions(),
-    ]);
-
-    const result: VersionDto[] = [];
-
-    for (const release of releases) {
-      const relatedInstances = instances.filter((i) => i.version === release.version);
-      for (const instance of relatedInstances) {
-        result.push({
-          ...instance,
-          downloaded: instance.instance
-            ? downloaded.includes(instance.instance)
-            : downloaded.includes(instance.version),
-        });
-      }
-
-      const relatedLoaders = loaders.filter((l) => l.version === release.version);
-      for (const loader of relatedLoaders) {
-        result.push({
-          ...loader,
-          downloaded: downloaded.includes(loader.version),
-        });
-      }
-
-      result.push({
-        ...release,
-        downloaded: downloaded.includes(release.version),
-      });
-    }
-
-    return result;
-  }
+export const versionService = new (class VersionService {
+  private NOTE_API_URL = 'https://launchercontent.mojang.com/v2/';
+  private noteCache: ReleaseNoteDto[] = [];
 
   async findReleases(): Promise<VersionDto[]> {
-    const res = await curseForgeService.getMinecraftVersions();
-    return res
-      .filter((v) => !v.versionString.toLowerCase().includes('snapshot'))
+    const versions = await curseForgeService.getMinecraftVersions();
+    return versions
+      .filter((v) => !v.versionString.includes('snapshot'))
       .map((v) => ({
         name: `Release ${v.versionString}`,
-        type: 'release',
+        type: VERSION_TYPE.RELEASE,
         version: v.versionString,
       }));
   }
 
-  async findLoaders(payload: LoaderDto): Promise<VersionDto[]> {
+  async findLoaders(payload: LoaderQueryDto): Promise<VersionDto[]> {
     const { version, type } = payload;
-    const res = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });
 
-    const mapped = res.flatMap((item) => {
-      const loaderType = loaderMap.idToKey[item.type];
-      if (!loaderType) return [];
+    const loaders = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });
 
-      let loaderVersion = item.name.replace(`${loaderType}-`, '');
-      if (loaderVersion.endsWith(`-${item.gameVersion}`)) {
-        loaderVersion = loaderVersion.replace(`-${item.gameVersion}`, '');
-      }
+    return loaders
+      .filter((l) => !type || l.type === type)
+      .map((loader) => {
+        const enumType = CurseForgeModLoaderType[loader.type];
+        if (!enumType) return null;
 
-      const displayName = `${capitalize(loaderType)} ${loaderVersion.replace(/-/g, ' ')}`;
+        const lowerType = enumType.toLowerCase();
+        const lowerGame = loader.gameVersion.toLowerCase();
 
-      return [
-        {
-          name: displayName,
-          type: 'modified' as const,
-          version: item.gameVersion,
+        let loaderVersion = loader.name.toLowerCase();
+        loaderVersion = loaderVersion.replace(`${lowerType}-`, '');
+        loaderVersion = loaderVersion.replace(`-${lowerGame}`, '');
+
+        return {
+          name: `${capitalize(enumType)} ${loaderVersion.replace(/-/g, ' ')}`,
+          type: VERSION_TYPE.MODIFIED,
+          version: loader.gameVersion,
           loader: {
-            type: loaderType,
+            type: lowerType,
             version: loaderVersion,
           },
+        } as VersionDto;
+      })
+      .filter((x): x is VersionDto => x !== null);
+  }
+
+  async findNotes(payload: ReleaseNoteQueryDto): Promise<ReleaseNoteResponseDto> {
+    const { index = 0, pageSize = 50 } = payload;
+
+    if (!this.noteCache.length) {
+      const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`);
+
+      this.noteCache = data.entries.map((note: any) => ({
+        ...note,
+        image: {
+          ...note.image,
+          url: `${this.NOTE_API_URL.replace('/v2/', '')}${note.image.url}`,
         },
-      ];
-    });
+      }));
+    }
 
-    return mapped.filter((m) => m && (!type || m.loader?.type === type));
+    const start = index;
+    const end = Math.min(index + pageSize, this.noteCache.length);
+    const sliced = this.noteCache.slice(start, end);
+
+    return {
+      data: sliced,
+      pagination: {
+        index,
+        pageSize,
+        resultCount: sliced.length,
+        totalCount: this.noteCache.length,
+      },
+    };
   }
 
-  async findReleaseNotes(payload: ReleaseNoteQueryDto): Promise<ReleaseNoteDto[]> {
-    const { pageIndex, pageSize } = payload;
-    if (!this.listNote.length) {
-      const listNoteRes = await axios.get(`${this.NOTE_API}javaPatchNotes.json`);
-      this.listNote = listNoteRes.data.entries.filter((entry: any) => entry.type === 'release');
-    }
+  async findNoteDetails(payload: ReleaseNoteDetailQueryDto) {
+    const { version } = payload;
 
-    const start = (pageIndex - 1) * pageSize;
-    const end = start + pageSize;
-    const sliceNotes = this.listNote.slice(start, end);
+    if (!this.noteCache.length) await this.findNotes({});
+    const note = this.noteCache.find((note) => note.version === version);
 
-    const details: ReleaseNoteDto[] = await Promise.all(
-      sliceNotes.map(async (note) => {
-        const res = await axios.get(`${this.NOTE_API}${note.contentPath}`);
-        return res.data;
-      }),
-    );
+    if (!note) throw new NotFoundException('Release note not found');
+    const contentPath = note.contentPath;
 
-    return details.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }
-
-  private async findLoadersByVersion(version?: string) {
-    const res = await curseForgeService.getMinecraftModLoaders({ version, includeAll: true });
-
-    const grouped: Record<string, Record<number, any[]>> = {};
-    for (const item of res) {
-      if (!grouped[item.gameVersion]) grouped[item.gameVersion] = {};
-      if (!grouped[item.gameVersion][item.type]) grouped[item.gameVersion][item.type] = [];
-      grouped[item.gameVersion][item.type].push(item);
-    }
-
-    const result: VersionDto[] = [];
-
-    for (const [gameVersion, typeGroups] of Object.entries(grouped)) {
-      for (const [typeId] of Object.entries(typeGroups)) {
-        const loaderType = loaderMap.idToKey[Number(typeId)];
-        if (!loaderType) continue;
-
-        result.push({
-          name: `${capitalize(loaderType)} ${gameVersion}`,
-          type: 'modified',
-          version: gameVersion,
-          loader: {
-            type: loaderType,
-            version: 'latest',
-          },
-        });
-      }
-    }
-
+    const { data } = await axios.get(`${this.NOTE_API_URL}${contentPath}`);
+    const result: ReleaseNoteDetailsDto = { ...note, content: data.body };
     return result;
   }
-
-  private async mapInstancesToVersions(): Promise<VersionDto[]> {
-    const instances = await instanceService.findAll();
-    return instances.map((inst) => ({
-      name: inst.name,
-      type: 'modified',
-      version: inst.version,
-      loader: inst.loader,
-      instance: inst.id,
-    }));
-  }
-
-  private async findDownloadedVersions(): Promise<string[]> {
-    try {
-      const gameDir = (await configService.getConfig()).minecraft.gamedir;
-      const versionPath = path.resolve(gameDir, 'versions');
-      return (await readdir(versionPath, { withFileTypes: true }))
-        .filter((dirent) => dirent.isDirectory())
-        .map((dirent) => dirent.name);
-    } catch (err: any) {
-      if (err.code === 'ENOENT') return [];
-      throw err;
-    }
-  }
-}
-
-export const versionService = new VersionService();
+})();

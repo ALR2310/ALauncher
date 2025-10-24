@@ -1,8 +1,12 @@
+import { AppConfigDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
+import { ENV } from '@shared/enums/general.enum';
+import { Mutex } from 'async-mutex';
 import axios from 'axios';
 import { spawn } from 'child_process';
 import EventEmitter from 'events';
 import { unzipSync } from 'fflate';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
+import set from 'lodash/set';
 import throttle from 'lodash/throttle';
 import path from 'path';
 import semver from 'semver';
@@ -11,7 +15,39 @@ import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 
 import pkg from '../../../../package.json' assert { type: 'json' };
 
-class AppService {
+const appConfig: AppConfigDto = {
+  // General
+  language: 'vi',
+  theme: 'dark',
+  autoUpdate: true,
+  downloadMultiple: 5,
+  // Auth
+  auth: {
+    type: 'offline',
+    username: 'Player',
+  },
+  // Minecraft
+  minecraft: {
+    verify: false,
+    gameDir: '.minecraft',
+    java: {
+      type: JAVA_TYPE.JDK,
+    },
+    memory: {
+      min: 1024,
+      max: 1024,
+    },
+    screen: {
+      width: 400,
+      height: 250,
+      fullscreen: false,
+    },
+  },
+};
+
+export const appService = new (class AppService {
+  private readonly CONFIG_PATH = path.resolve('launcher.json');
+  private setConfigMutex = new Mutex();
   private isUpdating = false;
   private updateCache: { hasUpdate: boolean; assets: any[] } | null = null;
   private cacheTimestamp: number | null = null;
@@ -29,9 +65,45 @@ class AppService {
     process.exit(0);
   }
 
-  async checkUpdate(forceRefresh = false) {
+  async getConfig(): Promise<AppConfigDto> {
+    try {
+      const config = await readFile(this.CONFIG_PATH, 'utf-8');
+      return JSON.parse(config);
+    } catch (error) {
+      await writeFile(this.CONFIG_PATH, JSON.stringify(appConfig, null, 2), 'utf-8');
+      return appConfig;
+    }
+  }
+
+  async setConfig(payload: SetConfigDto) {
+    return this.setConfigMutex.runExclusive(async () => {
+      const config = await this.getConfig();
+      try {
+        const { key, value } = payload;
+
+        set(config, key, value);
+        await writeFile(this.CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+        return config;
+      } catch (error) {
+        return config;
+      }
+    });
+  }
+
+  async openFolder() {
+    const config = await this.getConfig();
+    const gameDir = path.resolve(config.minecraft.gameDir);
+    const platform = process.platform;
+
+    if (platform === 'win32') spawn('explorer', [gameDir]);
+    else if (platform === 'darwin') spawn('open', [gameDir]);
+    else spawn('xdg-open', [gameDir]);
+    return { success: true };
+  }
+
+  async checkForUpdates(forceRefresh = false) {
     const currentVersion = this.getVersion().version;
-    const gitToken = process.env.NODE_ENV === 'development' ? process.env.GITHUB_TOKEN : undefined;
+    const gitToken = process.env.NODE_ENV === ENV.Development ? process.env.GITHUB_TOKEN : undefined;
 
     const now = Date.now();
     if (!forceRefresh && this.updateCache && this.cacheTimestamp && now - this.cacheTimestamp < this.CACHE_TTL) {
@@ -70,17 +142,12 @@ class AppService {
     }
   }
 
-  clearUpdateCache() {
-    this.updateCache = null;
-    this.cacheTimestamp = null;
-  }
-
-  async update() {
+  async installUpdates() {
     if (this.isUpdating) return null;
     this.isUpdating = true;
 
     try {
-      const check = await this.checkUpdate();
+      const check = await this.checkForUpdates();
 
       if (!check.hasUpdate) {
         this.isUpdating = false;
@@ -113,7 +180,8 @@ class AppService {
                 await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
                 await this.decompress(path.resolve(fileName), path.resolve());
                 await rm(path.resolve(fileName), { force: true });
-                this.clearUpdateCache();
+                this.updateCache = null;
+                this.cacheTimestamp = null;
                 this.reloadRuntime();
               } catch (err) {
                 event.emit('error', err);
@@ -162,6 +230,4 @@ class AppService {
     child.unref();
     process.exit(0);
   }
-}
-
-export const appService = new AppService();
+})();

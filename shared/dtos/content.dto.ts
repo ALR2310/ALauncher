@@ -1,30 +1,23 @@
 import {
   CurseForgeFileReleaseType,
+  CurseForgeFileStatus,
   CurseForgeModLoaderType,
   CurseForgeModsSearchSortField,
   CurseForgeSortOrder,
 } from 'curseforge-api';
-import { z } from 'zod';
+import z from 'zod';
 
 import { createZodDto } from '../utils/zod.dto';
+import { baseResponseSchema } from './base.dto';
 
-export const contentSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  fileId: z.number(),
-  fileName: z.string(),
-  fileUrl: z.url(),
-  fileSize: z.number(),
-  enabled: z.boolean(),
-  dependencies: z.array(z.number()).optional(),
-});
+export enum ContentInstanceStatus {
+  NOT_INSTALLED = 'not_installed',
+  OUTDATED = 'outdated',
+  INSTALLED = 'installed',
+  INCOMPATIBLE = 'incompatible',
+}
 
-const detailContentQuerySchema = z.object({
-  slug: z.string(),
-  instance: z.string().optional(),
-});
-
-const detailContentResponseSchema = z.object({
+const contentSchema = z.object({
   screenshots: z.array(
     z.object({
       title: z.string(),
@@ -69,7 +62,7 @@ const detailContentResponseSchema = z.object({
     url: z.string(),
   }),
   gameVersions: z.array(z.string()),
-  loaderTypes: z.array(z.string()),
+  modLoaders: z.array(z.string()),
   dateCreated: z.date(),
   dateModified: z.date(),
   dateReleased: z.date(),
@@ -87,11 +80,15 @@ const detailContentResponseSchema = z.object({
     .nullish(),
   instance: z
     .object({
-      status: z.string(),
+      status: z.enum(ContentInstanceStatus),
       enabled: z.boolean(),
       fileName: z.string().nullable(),
     })
     .nullish(),
+});
+
+const contentResponseSchema = baseResponseSchema.extend({
+  data: z.array(contentSchema),
 });
 
 const contentQuerySchema = z.object({
@@ -113,26 +110,52 @@ const contentQuerySchema = z.object({
   primaryAuthorId: z.coerce.number().optional(),
   slug: z.string().optional(),
   index: z.coerce.number().min(0).optional(),
-  pageSize: z.coerce.number().max(100).optional(),
+  pageSize: z.coerce.number().max(50).optional(),
 });
 
-const contentResponseSchema = z.object({
-  data: z.array(detailContentResponseSchema),
-  pagination: z.object({
-    index: z.number(),
-    pageSize: z.number(),
-    resultCount: z.number(),
-    totalCount: z.number(),
-  }),
-});
-
-const contentFindFilesQuerySchema = z.object({
+const contentDetailQuerySchema = z.object({
   slug: z.string(),
+  instance: z.string().optional(),
+});
+
+const contentFileSchema = z.object({
+  id: z.number(),
+  contentId: z.number(),
+  releaseType: z.enum(Object.keys(CurseForgeFileReleaseType)),
+  fileName: z.string(),
+  fileStatus: z.enum(Object.keys(CurseForgeFileStatus)),
+  fileDate: z.date(),
+  fileLength: z.number(),
+  fileSize: z.string(),
+  downloadCount: z.number(),
+  downloadUrl: z.url(),
+  gameVersions: z.array(z.string()),
+  modLoaders: z.array(z.string()),
+  dependencies: z.array(
+    z.object({
+      modId: z.number(),
+      relationType: z.number(),
+    }),
+  ),
+});
+
+const contentFileResponseSchema = baseResponseSchema.extend({
+  data: z.array(contentFileSchema),
+});
+
+const contentFileQuerySchema = z.object({
+  id: z.coerce.number(),
+  gameVersion: z.string().optional(),
+  modLoaderType: z.coerce.number().enum(CurseForgeModLoaderType).optional(),
+  gameVersionTypeId: z.coerce.number().optional(),
+  index: z.coerce.number().min(0).optional(),
+  pageSize: z.coerce.number().max(50).optional(),
 });
 
 export class ContentDto extends createZodDto(contentSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
 export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
-export class DetailContentQueryDto extends createZodDto(detailContentQuerySchema) {}
-export class DetailContentResponseDto extends createZodDto(detailContentResponseSchema) {}
-export class ContentFindFilesQueryDto extends createZodDto(contentFindFilesQuerySchema) {}
+export class ContentDetailQueryDto extends createZodDto(contentDetailQuerySchema) {}
+export class ContentFileDto extends createZodDto(contentFileSchema) {}
+export class ContentFileQueryDto extends createZodDto(contentFileQuerySchema) {}
+export class ContentFileResponseDto extends createZodDto(contentFileResponseSchema) {}

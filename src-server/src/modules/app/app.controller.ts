@@ -1,6 +1,7 @@
+import { SetConfigDto } from '@shared/dtos/app.dto';
 import { streamSSE } from 'hono/streaming';
 
-import { Context, Controller, Get } from '~/common/decorators';
+import { Body, Context, Controller, Get, Put, Validate } from '~/common/decorators';
 
 import { appService } from './app.service';
 
@@ -15,14 +16,30 @@ export class AppController {
   @Get('exit')
   exit = () => appService.exit();
 
+  @Get('config')
+  async getConfig() {
+    return appService.getConfig();
+  }
+
+  @Put('config')
+  @Validate(SetConfigDto)
+  async setConfig(@Body() body: SetConfigDto) {
+    return appService.setConfig(body);
+  }
+
+  @Get('open-folder')
+  openFolder = () => appService.openFolder();
+
   @Get('update/check')
-  checkUpdate = () => appService.checkUpdate();
+  async checkForUpdates() {
+    return appService.checkForUpdates();
+  }
 
-  @Get('update')
-  async update(@Context() c) {
-    const downloader = await appService.update();
+  @Get('update/install')
+  async installUpdates(@Context() c) {
+    const updater = await appService.installUpdates();
 
-    if (!downloader) {
+    if (!updater) {
       return streamSSE(c, async (stream) => {
         await stream.writeSSE({ event: 'done', data: 'No Update found' });
         await stream.close();
@@ -31,7 +48,7 @@ export class AppController {
 
     return streamSSE(c, async (stream) => {
       const done = new Promise<void>((resolve) => {
-        downloader
+        updater
           .on('progress', async (percent) => await stream.writeSSE({ event: 'progress', data: percent }))
           .on('done', async () => {
             await stream.writeSSE({ event: 'done', data: 'Download complete' });

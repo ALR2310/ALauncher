@@ -3,12 +3,12 @@ import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
 import { Link, NavLink, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
+import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { DiscoverContext } from '~/features/discover/context/DiscoverContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
-import { useLibraryModal } from '~/hooks/app/useLibraryModal';
 
 export default function Sidebar() {
-  const { open } = useLibraryModal();
+  const libraryModal = useContextSelector(LibraryModalContext, (v) => v);
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
   const { id } = useParams();
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
@@ -81,7 +81,7 @@ export default function Sidebar() {
             <a
               className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
               data-tip="Create"
-              onClick={() => open()}
+              onClick={() => libraryModal.open()}
             >
               <Plus size={20} />
             </a>

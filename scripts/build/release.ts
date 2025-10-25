@@ -40,7 +40,7 @@ async function gemini(prompt: string) {
 async function prepareNodeRuntime() {
   await mkdir('dist', { recursive: true });
 
-  const iconPath = path.resolve('src-client/src/assets/imgs/favicon.ico');
+  const iconPath = path.resolve('src-client/src/assets/images/icon.ico');
   const iconFile = ResEdit.Data.IconFile.from(await readFile(iconPath));
 
   const exeData = await readFile(process.execPath);
@@ -243,7 +243,7 @@ async function uploadRelease(version: string, changelogs: string) {
 
       const changelogs = await generateChangelog(latestVersion);
 
-      await uploadRelease(currentVersion, changelogs);
+      await uploadRelease(currentVersion, '');
     } catch (err: any) {
       console.error(`Failed to prepare and build: ${err.message}`);
       process.exit(1);

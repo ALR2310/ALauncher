@@ -47,6 +47,11 @@ export class InstanceController {
     return instanceService.getWorlds(id);
   }
 
+  @Get(':id/folders')
+  async openFolder(@Param('id') id: string) {
+    return instanceService.openFolder(id);
+  }
+
   @Get(':id/launch')
   async launch(@Param('id') id: string, @Context() c) {
     const launcher = await instanceService.launch(id);

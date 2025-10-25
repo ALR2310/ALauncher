@@ -15,6 +15,7 @@ import {
 } from '@shared/dtos/instance.dto';
 import AdmZip from 'adm-zip';
 import { Mutex } from 'async-mutex';
+import { spawn } from 'child_process';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { CurseForgePagination } from 'curseforge-api/v1/Types';
 import dayjs from 'dayjs';
@@ -193,6 +194,32 @@ export const instanceService = new (class InstanceService {
 
     const worlds = (await Promise.all(tasks)).filter((w): w is InstanceWorldDto => w !== null);
     return worlds;
+  }
+
+  async openFolder(id: string) {
+    try {
+      const instanceDir = path.join(await this.getInstanceDir(), id);
+
+      const platform = process.platform;
+      let command: string;
+      let args: string[] = [];
+      if (platform === 'win32') {
+        command = 'explorer';
+        args = [instanceDir.replace(/\//g, '\\')];
+      } else if (platform === 'darwin') {
+        command = 'open';
+        args = [instanceDir];
+      } else {
+        command = 'xdg-open';
+        args = [instanceDir];
+      }
+      const child = spawn(command, args, { detached: true, stdio: 'ignore' });
+      child.unref();
+      return { message: 'Folder opened successfully' };
+    } catch (err) {
+      logger(`Failed to open folder for instance ${id}:`, err);
+      throw new BadRequestException('Failed to open folder');
+    }
   }
 
   async verify(id: string) {

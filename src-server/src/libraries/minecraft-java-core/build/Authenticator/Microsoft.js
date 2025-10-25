@@ -241,8 +241,7 @@ class Microsoft {
             profile: {
                 skins: [...profile.skins],
                 capes: [...profile.capes]
-            },
-            oauth2
+            }
         };
     }
     async getProfile(mcLogin) {

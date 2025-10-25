@@ -243,7 +243,7 @@ async function uploadRelease(version: string, changelogs: string) {
 
       const changelogs = await generateChangelog(latestVersion);
 
-      await uploadRelease(currentVersion, '');
+      await uploadRelease(currentVersion, changelogs);
     } catch (err: any) {
       console.error(`Failed to prepare and build: ${err.message}`);
       process.exit(1);

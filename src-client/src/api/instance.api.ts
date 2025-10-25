@@ -38,6 +38,10 @@ export async function instanceFindWorlds(id: string) {
   return API.get<InstanceWorldDto[]>(`${BASE_PATH}/${id}/worlds`);
 }
 
+export async function instanceOpenFolder(id: string) {
+  return API.get(`${BASE_PATH}/${id}/folders`);
+}
+
 export function instanceLaunch(id: string) {
   const url = `${API_URL}/${BASE_PATH}/${id}/launch`;
   return new EventSource(url);

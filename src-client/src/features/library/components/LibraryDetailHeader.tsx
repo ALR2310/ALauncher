@@ -1,15 +1,20 @@
+import { ROUTES } from '@shared/constants/routes';
 import { InstanceDto } from '@shared/dtos/instance.dto';
+import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
-import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen } from 'lucide-react';
+import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen, Trash2 } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
+import { instanceOpenFolder } from '~/api';
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceLaunchSSE, useInstanceVerifySSE } from '~/hooks/api/useInstanceApi';
+import { useInstanceDeleteMutation, useInstanceLaunchSSE, useInstanceVerifySSE } from '~/hooks/api/useInstanceApi';
+import { toast } from '~/hooks/app/useToast';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto | undefined;
@@ -17,6 +22,7 @@ interface LibraryDetailHeaderProps {
 }
 
 const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
+  const navigation = useNavigate();
   const { launch, cancel, isRunning, isDownloading, progress, estimated, speed } = useInstanceLaunchSSE();
   const {
     verifyContent,
@@ -27,6 +33,9 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
     isDone: verifyIsDone,
   } = useInstanceVerifySSE();
   const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
+
+  const { mutateAsync: deleteInstance } = useInstanceDeleteMutation();
+  const queryClient = useQueryClient();
 
   const [pendingLaunchId, setPendingLaunchId] = useState<string | null>(null);
 
@@ -74,9 +83,9 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
               <button className="btn btn-soft btn-circle">
                 <EllipsisVertical />
               </button>
-              <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 w-38 shadow mt-3">
+              <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 min-w-38 shadow mt-3">
                 <li>
-                  <button onClick={() => {}}>
+                  <button onClick={() => instanceOpenFolder(data!.id)}>
                     <FolderOpen size={16} />
                     Open folder
                   </button>
@@ -85,6 +94,25 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
                   <button onClick={() => instanceModal.open(data?.id)}>
                     <SquarePen size={16} />
                     Edit instance
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="text-nowrap"
+                    onClick={async () => {
+                      try {
+                        await deleteInstance(data!.id);
+                        toast.success('Instance deleted');
+                        queryClient.invalidateQueries({ queryKey: ['instances'] });
+                        navigation(ROUTES.library.path);
+                      } catch {
+                        console.error('Failed to delete instance');
+                        toast.error('Failed to delete instance');
+                      }
+                    }}
+                  >
+                    <Trash2 size={16} />
+                    Delete instance
                   </button>
                 </li>
               </ul>

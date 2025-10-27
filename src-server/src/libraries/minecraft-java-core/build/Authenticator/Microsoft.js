@@ -31,22 +31,14 @@ class Microsoft {
             client_id = '00000000402b5328';
         }
         this.client_id = client_id;
-        // Determine if we're running under Electron, NW.js, or just in a terminal
-        if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
-            this.type = 'electron';
-        }
-        else if (typeof process !== 'undefined' && process.versions && process.versions.nw) {
-            this.type = 'nwjs';
-        }
-        else {
-            this.type = 'terminal';
-        }
+        // Only terminal-based authentication is supported
+        this.type = 'terminal';
     }
     /**
-     * Opens a GUI (Electron or NW.js) or uses terminal approach to fetch an OAuth2 code,
+     * Opens a terminal-based OAuth flow to fetch an OAuth2 code,
      * and then retrieves user information from Microsoft if successful.
      *
-     * @param type The environment to open the OAuth window. Defaults to the auto-detected type.
+     * @param type The environment to open the OAuth window. Only 'terminal' is supported.
      * @param url  The full OAuth2 authorization URL. If not provided, a default is used.
      * @returns    An object with user data on success, or false if canceled.
      */
@@ -54,20 +46,13 @@ class Microsoft {
         const finalType = type || this.type;
         const finalUrl = url ||
             `https://login.live.com/oauth20_authorize.srf?client_id=${this.client_id}&response_type=code&redirect_uri=https://login.live.com/oauth20_desktop.srf&scope=XboxLive.signin%20offline_access&cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d&prompt=select_account`;
-        // Dynamically require different GUI modules depending on environment
+        // Use terminal-based authentication
         let userCode;
-        switch (finalType) {
-            case 'electron':
-                userCode = await (require('./GUI/Electron.js'))(finalUrl);
-                break;
-            case 'nwjs':
-                userCode = await (require('./GUI/NW.js'))(finalUrl);
-                break;
-            case 'terminal':
-                userCode = await (require('./GUI/Terminal.js'))(finalUrl);
-                break;
-            default:
-                return false;
+        if (finalType === 'terminal') {
+            userCode = await require('./GUI/Terminal.js')(finalUrl);
+        }
+        else {
+            return false;
         }
         if (userCode === 'cancel') {
             return false;
@@ -85,7 +70,7 @@ class Microsoft {
             const response = await fetch('https://login.live.com/oauth20_token.srf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `client_id=${this.client_id}&code=${code}&grant_type=authorization_code&redirect_uri=https://login.live.com/oauth20_desktop.srf`
+                body: `client_id=${this.client_id}&code=${code}&grant_type=authorization_code&redirect_uri=https://login.live.com/oauth20_desktop.srf`,
             });
             const oauth2 = await response.json();
             if (oauth2.error) {
@@ -107,7 +92,7 @@ class Microsoft {
     async refresh(acc) {
         const timeStamp = Math.floor(Date.now());
         // If the token is still valid for at least 2 more hours, just re-fetch the profile
-        if (timeStamp < (acc?.meta?.access_token_expires_in - 7200)) {
+        if (timeStamp < acc?.meta?.access_token_expires_in - 7200) {
             const updatedProfile = await this.getProfile({ access_token: acc.access_token });
             if ('error' in updatedProfile) {
                 // If there's an error, return it directly
@@ -115,7 +100,7 @@ class Microsoft {
             }
             acc.profile = {
                 skins: updatedProfile.skins,
-                capes: updatedProfile.capes
+                capes: updatedProfile.capes,
             };
             return acc;
         }
@@ -124,7 +109,7 @@ class Microsoft {
             const response = await fetch('https://login.live.com/oauth20_token.srf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `grant_type=refresh_token&client_id=${this.client_id}&refresh_token=${acc.refresh_token}`
+                body: `grant_type=refresh_token&client_id=${this.client_id}&refresh_token=${acc.refresh_token}`,
             });
             const oauth2 = await response.json();
             if (oauth2.error) {
@@ -145,7 +130,7 @@ class Microsoft {
     async getAccount(oauth2) {
         const authenticateResponse = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({
                 Properties: {
                     AuthMethod: 'RPS',
@@ -162,7 +147,7 @@ class Microsoft {
         }
         const authorizeResponse = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({
                 Properties: {
                     SandboxId: 'RETAIL',
@@ -178,9 +163,9 @@ class Microsoft {
         }
         const mcLoginResponse = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({
-                identityToken: `XBL3.0 x=${xbl.DisplayClaims.xui[0].uhs};${xsts.Token}`
+                identityToken: `XBL3.0 x=${xbl.DisplayClaims.xui[0].uhs};${xsts.Token}`,
             }),
         });
         const mcLogin = await mcLoginResponse.json();
@@ -192,14 +177,19 @@ class Microsoft {
         }
         const mcstoreResponse = await fetch('https://api.minecraftservices.com/entitlements/mcstore', {
             method: 'GET',
-            headers: { 'Authorization': `Bearer ${mcLogin.access_token}` },
+            headers: { Authorization: `Bearer ${mcLogin.access_token}` },
         });
         const mcstore = await mcstoreResponse.json();
         if (mcstore.error) {
             return { error: mcstore.error, errorType: 'mcStore', ...mcstore, refresh_token: oauth2.refresh_token };
         }
-        if (!mcstore.items.some((item) => item.name === "game_minecraft" || item.name === "product_minecraft")) {
-            return { error: 'NO_MINECRAFT_ENTITLEMENTS', errorType: 'mcStore', ...mcstore, refresh_token: oauth2.refresh_token };
+        if (!mcstore.items.some((item) => item.name === 'game_minecraft' || item.name === 'product_minecraft')) {
+            return {
+                error: 'NO_MINECRAFT_ENTITLEMENTS',
+                errorType: 'mcStore',
+                ...mcstore,
+                refresh_token: oauth2.refresh_token,
+            };
         }
         const profile = await this.getProfile(mcLogin);
         if ('error' in profile) {
@@ -211,15 +201,20 @@ class Microsoft {
             body: JSON.stringify({
                 Properties: {
                     SandboxId: 'RETAIL',
-                    UserTokens: [xbl.Token]
+                    UserTokens: [xbl.Token],
                 },
                 RelyingParty: 'http://xboxlive.com',
-                TokenType: 'JWT'
-            })
+                TokenType: 'JWT',
+            }),
         });
         const xboxAccount = await xboxAccountResponse.json();
         if (xboxAccount.error) {
-            return { error: xboxAccount.error, errorType: 'xboxAccount', ...xboxAccount, refresh_token: oauth2.refresh_token };
+            return {
+                error: xboxAccount.error,
+                errorType: 'xboxAccount',
+                ...xboxAccount,
+                refresh_token: oauth2.refresh_token,
+            };
         }
         return {
             access_token: mcLogin.access_token,
@@ -227,21 +222,21 @@ class Microsoft {
             uuid: profile.id,
             name: profile.name,
             refresh_token: oauth2.refresh_token,
-            user_properties: "{}",
+            user_properties: '{}',
             meta: {
                 type: 'Xbox',
-                access_token_expires_in: Date.now() + (mcLogin.expires_in * 1000),
-                demo: false
+                access_token_expires_in: Date.now() + mcLogin.expires_in * 1000,
+                demo: false,
             },
             xboxAccount: {
                 xuid: xboxAccount.DisplayClaims.xui[0].xid,
                 gamertag: xboxAccount.DisplayClaims.xui[0].gtg,
-                ageGroup: xboxAccount.DisplayClaims.xui[0].agg
+                ageGroup: xboxAccount.DisplayClaims.xui[0].agg,
             },
             profile: {
                 skins: [...profile.skins],
-                capes: [...profile.capes]
-            }
+                capes: [...profile.capes],
+            },
         };
     }
     async getProfile(mcLogin) {
@@ -249,8 +244,8 @@ class Microsoft {
             const response = await fetch('https://api.minecraftservices.com/minecraft/profile', {
                 method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${mcLogin.access_token}`
-                }
+                    Authorization: `Bearer ${mcLogin.access_token}`,
+                },
             });
             const profile = await response.json();
             if (profile.error) {
@@ -274,7 +269,7 @@ class Microsoft {
                 id: profile.id,
                 name: profile.name,
                 skins: profile.skins || [],
-                capes: profile.capes || []
+                capes: profile.capes || [],
             };
         }
         catch (err) {

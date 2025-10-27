@@ -2,7 +2,7 @@
  * @author Luuxis
  * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
  */
-export type MicrosoftClientType = 'electron' | 'nwjs' | 'terminal';
+export type MicrosoftClientType = 'terminal';
 export interface MinecraftSkin {
     id?: string;
     state?: string;
@@ -53,10 +53,10 @@ export default class Microsoft {
      */
     constructor(client_id: string);
     /**
-     * Opens a GUI (Electron or NW.js) or uses terminal approach to fetch an OAuth2 code,
+     * Opens a terminal-based OAuth flow to fetch an OAuth2 code,
      * and then retrieves user information from Microsoft if successful.
      *
-     * @param type The environment to open the OAuth window. Defaults to the auto-detected type.
+     * @param type The environment to open the OAuth window. Only 'terminal' is supported.
      * @param url  The full OAuth2 authorization URL. If not provided, a default is used.
      * @returns    An object with user data on success, or false if canceled.
      */

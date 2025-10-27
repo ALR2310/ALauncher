@@ -3,6 +3,7 @@
  * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
  */
 import { EventEmitter } from 'events';
+import { BundleItem } from './Minecraft/Minecraft-Bundle.js';
 type loader = {
     /**
      * Path to loader directory. Relative to absolute path to Minecraft's root directory (config option `path`).
@@ -179,34 +180,14 @@ export type LaunchOPTS = {
 };
 export default class Launch extends EventEmitter {
     options: LaunchOPTS;
+    extraBundle: BundleItem[] | undefined;
     private isCancelled;
     private minecraftProcess;
     private currentDownloader;
     private downloadPromise;
-    Launch(opt: LaunchOPTS): Promise<boolean>;
-    start(): Promise<boolean>;
-    DownloadGame(): Promise<{
-        error: any;
-        cancelled?: undefined;
-        minecraftJson?: undefined;
-        minecraftLoader?: undefined;
-        minecraftVersion?: undefined;
-        minecraftJava?: undefined;
-    } | {
-        cancelled: boolean;
-        error?: undefined;
-        minecraftJson?: undefined;
-        minecraftLoader?: undefined;
-        minecraftVersion?: undefined;
-        minecraftJava?: undefined;
-    } | {
-        minecraftJson: any;
-        minecraftLoader: any;
-        minecraftVersion: string;
-        minecraftJava: any;
-        error?: undefined;
-        cancelled?: undefined;
-    }>;
+    Launch(opt: LaunchOPTS, extraBundle?: BundleItem[]): Promise<boolean>;
+    private start;
+    private DownloadGame;
     cancel(): void;
 }
 export {};

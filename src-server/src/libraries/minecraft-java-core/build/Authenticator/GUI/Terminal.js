@@ -12,6 +12,6 @@ module.exports = async function (url) {
     console.log(`Open brosser ${url}`);
     prompt_1.default.start();
     let result = await prompt_1.default.get(['copy-URL']);
-    return result['copy-URL'].split("code=")[1].split("&")[0];
+    return result['copy-URL'].split('code=')[1].split('&')[0];
 };
 //# sourceMappingURL=Terminal.js.map

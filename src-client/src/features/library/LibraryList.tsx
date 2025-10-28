@@ -1,6 +1,7 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { Gamepad2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -15,6 +16,15 @@ export default function LibraryList() {
 
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
   const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
+
+  const [dots, setDots] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length < 3 ? prev + '.' : ''));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
@@ -64,8 +74,14 @@ export default function LibraryList() {
                           value={progress}
                           text={
                             <div className="w-full">
-                              <p>Launching... {progress}%</p>
-                              <p className="line-clamp-1">{extract ? extract : `${speed} - ${estimated}`}</p>
+                              <p>
+                                {`Launching${dots}`} {`${progress}%`}
+                              </p>
+                              {extract ? (
+                                <p className="line-clamp-1">{extract}</p>
+                              ) : estimated && speed ? (
+                                <p className="line-clamp-1">{`${estimated} - ${speed}`}</p>
+                              ) : null}
                             </div>
                           }
                         />

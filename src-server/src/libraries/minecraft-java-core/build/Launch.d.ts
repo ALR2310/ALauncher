@@ -186,8 +186,8 @@ export default class Launch extends EventEmitter {
     private currentDownloader;
     private downloadPromise;
     Launch(opt: LaunchOPTS, extraBundle?: BundleItem[]): Promise<boolean>;
-    private start;
-    private DownloadGame;
+    start(): Promise<boolean>;
+    DownloadGame(): Promise<any>;
     cancel(): void;
 }
 export {};

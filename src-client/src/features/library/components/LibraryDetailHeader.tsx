@@ -49,7 +49,7 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
 
           <div className="flex gap-2">
             <button
-              className="btn btn-success w-28"
+              className={`btn btn-success w-28 ${isRunning ? 'btn-outline' : ''}`}
               onClick={() => {
                 if (isRunning && data?.id) {
                   cancel(data.id);
@@ -110,7 +110,7 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
           <Progress
             className="w-full h-5"
             value={progress}
-            text={`Launching... ${progress ?? 0}% ${estimated ? `(${estimated})` : ''} ${speed ? `- ${speed}` : ''}`}
+            text={`${progress ?? 0}% ${estimated ? `(${estimated})` : ''} ${speed ? `- ${speed}` : ''}`}
           />
         ) : (
           <div className="flex gap-1 items-center text-sm text-base-content/70">

@@ -223,29 +223,6 @@ export const instanceService = new (class InstanceService {
     }
   }
 
-  private async getContentFiles(instance: InstanceDto): Promise<BundleItem[]> {
-    const bundleItems: BundleItem[] = [];
-    const types = ['mods', 'resourcepacks', 'shaderpacks'] as const;
-
-    for (const type of types) {
-      const contents = instance[type];
-      if (!contents?.length) continue;
-
-      const dir = await this.getContentDir(instance.id, type);
-
-      for (const c of contents) {
-        bundleItems.push({
-          path: path.join(dir, c.fileName),
-          sha1: c.hash,
-          size: c.fileLength,
-          url: c.fileUrl,
-        });
-      }
-    }
-
-    return bundleItems;
-  }
-
   async launch(id: string) {
     const [instance, config] = await Promise.all([this.findOne(id), appService.getConfig()]);
 
@@ -713,5 +690,28 @@ export const instanceService = new (class InstanceService {
       event.removeAllListeners();
       this.instanceLaunchEvent.delete(id);
     }
+  }
+
+  private async getContentFiles(instance: InstanceDto): Promise<BundleItem[]> {
+    const bundleItems: BundleItem[] = [];
+    const types = ['mods', 'resourcepacks', 'shaderpacks'] as const;
+
+    for (const type of types) {
+      const contents = instance[type];
+      if (!contents?.length) continue;
+
+      const dir = await this.getContentDir(instance.id, type);
+
+      for (const c of contents) {
+        bundleItems.push({
+          path: path.join(dir, c.fileName),
+          sha1: c.hash,
+          size: c.fileLength,
+          url: c.fileUrl,
+        });
+      }
+    }
+
+    return bundleItems;
   }
 })();

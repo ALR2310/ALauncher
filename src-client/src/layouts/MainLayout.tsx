@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Outlet } from 'react-router';
 
 import { ContainerProvider } from '~/context/ContainerContext';
-import { DiscoverProvider } from '~/features/discover/context/DiscoverContext';
+import { DiscoverProvider } from '~/context/DiscoverContext';
 import { useAppGetConfigQuery } from '~/hooks/api/useAppApi';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useVersionNotesQuery, useVersionReleasesQuery } from '~/hooks/api/useVersionApi';

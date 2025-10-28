@@ -20,6 +20,7 @@ export default defineConfig(async () => ({
     cssMinify: !isDev,
     emptyOutDir: true,
     outDir: resolve('..', 'dist'),
+    chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
         manualChunks(id) {

@@ -6,9 +6,9 @@ import { Link, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import DataTable from '~/components/DataTable';
+import { DiscoverContext } from '~/context/DiscoverContext';
 import { useInstanceGetContentsQuery, useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 
-import { DiscoverContext } from '../discover/context/DiscoverContext';
 import LibraryDetailHeader from './components/LibraryDetailHeader';
 import { OnDeleteProps, OnToggleProps, useLibraryTableColumns } from './hooks/useLibraryTableColumns';
 

@@ -3,8 +3,8 @@ import { Box, Compass, House, Library, Plus, Settings } from 'lucide-react';
 import { Link, NavLink, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
+import { DiscoverContext } from '~/context/DiscoverContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { DiscoverContext } from '~/features/discover/context/DiscoverContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 export default function Sidebar() {

@@ -5,13 +5,13 @@ import { Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
+import { DiscoverContext } from '~/context/DiscoverContext';
 import { useContentsInfinite } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
 
 import ContentCard from './components/ContentCard';
 import ContentCardSkeleton from './components/ContentCardSkeleton';
 import DiscoverFilterBar from './components/DiscoverFilterBar';
-import { DiscoverContext } from './context/DiscoverContext';
 
 const LoadingCount = Array.from({ length: 10 });
 

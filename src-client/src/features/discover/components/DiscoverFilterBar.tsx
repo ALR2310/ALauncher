@@ -2,11 +2,10 @@ import { CATEGORY_CLASS, MOD_LOADER } from '@shared/constants/curseforge.const';
 import { useEffect, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
+import { DiscoverContext } from '~/context/DiscoverContext';
 import { useCategoryQuery } from '~/hooks/api/useCategoryApi';
 import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 import { buildCategoryTree, CategoryNode } from '~/utils/discover.utils';
-
-import { DiscoverContext } from '../context/DiscoverContext';
 
 function MenuItem({ node }: { node: CategoryNode }) {
   const categoryIds = useContextSelector(DiscoverContext, (v) => v.categoryIds);

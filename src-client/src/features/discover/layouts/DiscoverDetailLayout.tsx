@@ -7,10 +7,10 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import Img from '~/components/Img';
+import { DiscoverContext } from '~/context/DiscoverContext';
 import { useContentDetailQuery } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
 
-import { DiscoverContext } from '../context/DiscoverContext';
 import DiscoverDetailPanel from './DiscoverDetailPanel';
 
 export default function DiscoverDetailLayout() {

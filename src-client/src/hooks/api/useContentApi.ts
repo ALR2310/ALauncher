@@ -1,4 +1,4 @@
-import { ContentDetailQueryDto, ContentFileQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
+import { ContentDetailQueryDto, ContentFilesQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
 import { useInfiniteQuery, useQueries, useQuery } from '@tanstack/react-query';
 
 import { contentFindAll, contentFindFiles, contentFindOne } from '~/api/content.api';
@@ -44,7 +44,7 @@ export function useContentDetailQuery(params: ContentDetailQueryDto) {
   });
 }
 
-export function useContentFilesInfinite(params: ContentFileQueryDto) {
+export function useContentFilesInfinite(params: ContentFilesQueryDto) {
   return useInfiniteQuery({
     queryKey: ['contentFiles', params],
     queryFn: ({ pageParam }) => contentFindFiles({ ...params, index: pageParam }),

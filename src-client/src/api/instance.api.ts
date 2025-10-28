@@ -10,7 +10,7 @@ import {
   InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
 
-import { API, API_URL } from '.';
+import { API } from '.';
 
 const BASE_PATH = 'instances';
 
@@ -43,8 +43,7 @@ export async function instanceOpenFolder(id: string) {
 }
 
 export function instanceLaunch(id: string) {
-  const url = `${API_URL}/${BASE_PATH}/${id}/launch`;
-  return new EventSource(url);
+  return API.getSSE(`${BASE_PATH}/${id}/launch`);
 }
 
 export async function instanceCancel(id: string) {
@@ -58,8 +57,7 @@ export async function instanceGetContents(params: InstanceContentQueryDto) {
 
 export function instanceAddContent(params: InstanceContentAddQueryDto) {
   const { id, contentType, contentId, worlds } = params;
-  const url = `${API_URL}/${BASE_PATH}/${id}/${contentType}/${contentId}?worlds=${worlds || ''}`;
-  return new EventSource(url);
+  return API.getSSE(`${BASE_PATH}/${id}/${contentType}/${contentId}`, { worlds });
 }
 
 export async function instanceRemoveContent(params: InstanceContentRemoveQueryDto) {

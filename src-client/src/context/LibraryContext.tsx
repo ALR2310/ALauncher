@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createContext } from 'use-context-selector';
 
-import { instanceCancel, instanceLaunch } from '~/api';
+import { FetchEventSource, instanceCancel, instanceLaunch } from '~/api';
 
 type Patch = Partial<InstanceLaunchState> | ((prev: InstanceLaunchState) => Partial<InstanceLaunchState>);
 
@@ -26,7 +26,7 @@ const LibraryContext = createContext<LibraryContextType>(null!);
 
 const LibraryProvider = ({ children }: { children: ReactNode }) => {
   const [instances, setInstances] = useState<Map<string, InstanceLaunchState>>(new Map());
-  const refs = useRef<Map<string, EventSource>>(new Map());
+  const refs = useRef<Map<string, FetchEventSource>>(new Map());
 
   const updateState = useCallback((id: string, patch: Patch) => {
     setInstances((prev) => {

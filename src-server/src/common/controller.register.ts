@@ -1,9 +1,16 @@
-import { Method } from 'axios';
 import chalk from 'chalk';
 import { Context, Hono } from 'hono';
 import { ZodType } from 'zod';
 
-import { BASE_PATH_KEY, ParamMetadata, PARAMS_KEY, RouteMetadata, ROUTES_KEY, VALIDATE_KEY } from './decorators';
+import {
+  BASE_PATH_KEY,
+  Method,
+  ParamMetadata,
+  PARAMS_KEY,
+  RouteMetadata,
+  ROUTES_KEY,
+  VALIDATE_KEY,
+} from './decorators';
 
 type ControllerClass<T = any> = new (...args: any[]) => T;
 type ControllerInstance = object;
@@ -109,6 +116,9 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
           break;
         case 'put':
           methodColor = chalk.cyan(route.method.toUpperCase());
+          break;
+        case 'patch':
+          methodColor = chalk.magenta(route.method.toUpperCase());
           break;
         case 'delete':
           methodColor = chalk.red(route.method.toUpperCase());

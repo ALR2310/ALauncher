@@ -70,6 +70,7 @@ const instanceContentQuerySchema = z.object({
 const instanceContentAddQuerySchema = instanceContentQuerySchema.extend({
   contentId: z.coerce.number(),
   worlds: z.string().nullish(),
+  fileId: z.coerce.number().optional(),
 });
 
 const instanceContentRemoveQuerySchema = instanceContentQuerySchema.extend({

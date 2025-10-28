@@ -4,8 +4,11 @@ import {
   ContentDto,
   ContentFileDto,
   ContentFileQueryDto,
+  ContentFilesQueryDto,
+  ContentFilesResponseDto,
   ContentInstanceStatus,
   ContentQueryDto,
+  ContentResponseDto,
 } from '@shared/dtos/content.dto';
 import { InstanceContentDto, InstanceContentType } from '@shared/dtos/instance.dto';
 import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
@@ -39,7 +42,7 @@ function splitGameVersions(item: { gameVersions?: string[] }) {
 }
 
 export const contentService = new (class ContentService {
-  async findAll(payload: ContentQueryDto) {
+  async findAll(payload: ContentQueryDto): Promise<ContentResponseDto> {
     const { instance: instanceId, ids, ...rest } = payload;
 
     let pagination: CurseForgePagination = { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 };
@@ -134,7 +137,7 @@ export const contentService = new (class ContentService {
     }
   }
 
-  async findOne(payload: ContentDetailQueryDto) {
+  async findOne(payload: ContentDetailQueryDto): Promise<ContentDto> {
     const { slug } = payload;
     const content = await this.findAll({ slug }).then((res) => res.data[0]);
 
@@ -149,7 +152,35 @@ export const contentService = new (class ContentService {
     return result;
   }
 
-  async findFiles(payload: ContentFileQueryDto) {
+  async findFile(payload: ContentFileQueryDto): Promise<ContentFileDto> {
+    const { id, fileId } = payload;
+    const response = await curseForgeService.getModFile(id, fileId);
+
+    const downloadUrl = this.getDownloadUrl(response.modId, response.id);
+
+    const { gameVersions, modLoaders } = splitGameVersions(response);
+
+    const file: ContentFileDto = {
+      id: response.id,
+      contentId: response.modId,
+      releaseType: CurseForgeFileReleaseType[response.releaseType],
+      fileName: response.fileName,
+      fileStatus: CurseForgeFileStatus[response.fileStatus],
+      fileDate: response.fileDate,
+      fileLength: response.fileLength,
+      fileSize: formatBytes(response.fileLength),
+      downloadCount: response.downloadCount,
+      downloadUrl,
+      gameVersions: [...gameVersions].sort(compareVersion),
+      modLoaders,
+      hash: response.hashes[0].value,
+      dependencies: response.dependencies,
+    };
+
+    return file;
+  }
+
+  async findFiles(payload: ContentFilesQueryDto): Promise<ContentFilesResponseDto> {
     const { id, ...rest } = payload;
 
     let pagination: CurseForgePagination = { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 };
@@ -160,8 +191,7 @@ export const contentService = new (class ContentService {
     });
 
     const files = result.map((item) => {
-      const downloadUrl =
-        item.downloadUrl ?? `https://www.curseforge.com/api/v1/mods/${item.modId}/files/${item.id}/download`;
+      const downloadUrl = item.downloadUrl ?? this.getDownloadUrl(item.modId, item.id);
 
       const { gameVersions, modLoaders } = splitGameVersions(item);
 
@@ -185,5 +215,9 @@ export const contentService = new (class ContentService {
     });
 
     return { data: files, pagination };
+  }
+
+  private getDownloadUrl(id: number, fileId: number): string {
+    return `https://www.curseforge.com/api/v1/mods/${id}/files/${fileId}/download`;
   }
 })();

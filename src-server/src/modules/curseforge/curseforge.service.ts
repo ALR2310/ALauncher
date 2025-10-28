@@ -35,6 +35,10 @@ class CurseForgeService {
     return this.client.getModDescription(modId);
   }
 
+  async getModFile(modId: number, fileId: number) {
+    return this.client.getModFile(modId, fileId);
+  }
+
   async getModFiles(modId: number, options: CurseForgeGetModFilesOptions) {
     return this.client.getModFiles(modId, options);
   }

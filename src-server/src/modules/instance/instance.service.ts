@@ -1,3 +1,4 @@
+import { CATEGORY_CLASS_REVERSED } from '@shared/constants/curseforge.const';
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto } from '@shared/dtos/content.dto';
 import {
@@ -358,7 +359,7 @@ export const instanceService = new (class InstanceService {
   }
 
   async addContents(payload: InstanceContentAddQueryDto) {
-    const { id: instanceId, contentType, contentId } = payload;
+    const { id: instanceId, contentType, contentId, fileId } = payload;
     const worlds = payload.worlds?.split(',') ?? [];
 
     const lock = this.getInstanceLock(instanceId, 'addContent');
@@ -369,7 +370,7 @@ export const instanceService = new (class InstanceService {
       const groupedContents: Record<string, InstanceContentDto[]> = {};
       const visited = new Map<number, InstanceContentDto>();
 
-      const resolveDependencies = async (id: number, gameVersion: string, parentType?: number) => {
+      const resolveDependencies = async (id: number, gameVersion: string, parentType?: string, fileId?: number) => {
         if (visited.has(id)) return visited.get(id);
 
         const existingContent = Object.values(instance)
@@ -385,13 +386,17 @@ export const instanceService = new (class InstanceService {
         if (!contentInfo) return null;
 
         const mappedType = contentInfo.classId ? categoryMap.idToText[contentInfo.classId] : undefined;
-        const realType = mappedType ? mappedType.toLowerCase().replace(/\s+/g, '') : (parentType ?? contentType);
+        const realType: string = mappedType
+          ? mappedType.toLowerCase().replace(/\s+/g, '')
+          : (parentType ?? contentType);
 
-        const loader = realType === 'mods' ? instance.loader?.type : undefined;
+        const loader = realType === CATEGORY_CLASS_REVERSED[6].toLowerCase() ? instance.loader?.type : undefined;
 
-        const contentFile = await contentService
-          .findFiles({ id: id, gameVersion, modLoaderType: loader })
-          .then((res) => (res.data.length ? res.data[0] : null));
+        const contentFile = fileId
+          ? await contentService.findFile({ id, fileId })
+          : await contentService
+              .findFiles({ id, gameVersion, modLoaderType: loader })
+              .then((res) => (res.data.length ? res.data[0] : null));
         if (!contentFile) return null;
 
         const instanceContent: InstanceContentDto = {
@@ -412,7 +417,7 @@ export const instanceService = new (class InstanceService {
         if (!groupedContents[realType]) groupedContents[realType] = [];
         groupedContents[realType].push(instanceContent);
 
-        if (contentFile.dependencies.length) {
+        if (contentFile?.dependencies?.length) {
           const deps = await Promise.all(
             contentFile.dependencies
               .filter((dep) => dep.relationType === 3)
@@ -427,7 +432,7 @@ export const instanceService = new (class InstanceService {
         return instanceContent;
       };
 
-      await resolveDependencies(contentId, instance.version);
+      await resolveDependencies(contentId, instance.version, undefined, fileId);
 
       for (const [type, newContents] of Object.entries(groupedContents)) {
         const existingContents = instance[type] ?? [];
@@ -694,10 +699,12 @@ export const instanceService = new (class InstanceService {
 
   private async getContentFiles(instance: InstanceDto): Promise<BundleItem[]> {
     const bundleItems: BundleItem[] = [];
-    const types = ['mods', 'resourcepacks', 'shaderpacks'] as const;
+    const types = [CATEGORY_CLASS_REVERSED[6], CATEGORY_CLASS_REVERSED[12], CATEGORY_CLASS_REVERSED[6552]].map((t) =>
+      t.toLowerCase().replace(/\s+/g, ''),
+    );
 
     for (const type of types) {
-      const contents = instance[type];
+      const contents: InstanceContentDto[] | undefined = instance[type];
       if (!contents?.length) continue;
 
       const dir = await this.getContentDir(instance.id, type);

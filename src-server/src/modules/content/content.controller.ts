@@ -1,4 +1,9 @@
-import { ContentDetailQueryDto, ContentFileQueryDto, ContentQueryDto } from '@shared/dtos/content.dto';
+import {
+  ContentDetailQueryDto,
+  ContentFileQueryDto,
+  ContentFilesQueryDto,
+  ContentQueryDto,
+} from '@shared/dtos/content.dto';
 
 import { Controller, Get, Param, Query, Validate } from '~/common/decorators';
 
@@ -19,9 +24,15 @@ export class ContentController {
   }
 
   @Get(':id/files')
-  @Validate(ContentFileQueryDto)
+  @Validate(ContentFilesQueryDto)
   async findFiles(@Param('id') id, @Query() query) {
-    const payload: ContentFileQueryDto = { id, ...query };
+    const payload: ContentFilesQueryDto = { id, ...query };
     return contentService.findFiles(payload);
+  }
+
+  @Get(':id/files/:fileId')
+  @Validate(ContentFileQueryDto)
+  async findFile(@Param() params: ContentFileQueryDto) {
+    return contentService.findFile(params);
   }
 }

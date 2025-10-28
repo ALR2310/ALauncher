@@ -12,8 +12,9 @@ import { instanceOpenFolder } from '~/api';
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
+import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceDeleteMutation, useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
+import { useInstanceDeleteMutation } from '~/hooks/api/useInstanceApi';
 import { toast } from '~/hooks/app/useToast';
 
 interface LibraryDetailHeaderProps {
@@ -23,8 +24,16 @@ interface LibraryDetailHeaderProps {
 
 const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
   const navigation = useNavigate();
-  const { launch, cancel, isRunning, isDownloading, progress, estimated, speed } = useInstanceLaunchSSE();
+
   const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
+  const { launch, cancel, getState } = useContextSelector(LibraryContext, (v) => v);
+
+  const state = getState(data?.id || '');
+  const isRunning = state?.isRunning;
+  const isDownloading = state?.isDownloading;
+  const progress = state?.progress;
+  const estimated = state?.estimated;
+  const speed = state?.speed;
 
   const { mutateAsync: deleteInstance } = useInstanceDeleteMutation();
   const queryClient = useQueryClient();

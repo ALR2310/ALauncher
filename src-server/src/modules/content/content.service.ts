@@ -178,6 +178,7 @@ export const contentService = new (class ContentService {
         downloadUrl,
         gameVersions: [...gameVersions].sort(compareVersion),
         modLoaders,
+        hash: item.hashes[0].value,
         dependencies: item.dependencies,
       };
       return file;

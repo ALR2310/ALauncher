@@ -131,6 +131,7 @@ const contentFileSchema = z.object({
   downloadUrl: z.url(),
   gameVersions: z.array(z.string()),
   modLoaders: z.array(z.string()),
+  hash: z.hash('sha1'),
   dependencies: z.array(
     z.object({
       modId: z.number(),

@@ -32,6 +32,7 @@ import { BadRequestException, NotFoundException } from '~/common/filters/excepti
 import { logger } from '~/common/logger';
 import { Launch, Mojang } from '~/libraries/minecraft-java-core/build/Index';
 import { LaunchOPTS } from '~/libraries/minecraft-java-core/build/Launch';
+import { BundleItem } from '~/libraries/minecraft-java-core/build/Minecraft/Minecraft-Bundle';
 import Downloader, { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
 
 import { appService } from '../app/app.service';
@@ -238,6 +239,29 @@ export const instanceService = new (class InstanceService {
     return this.handleDownloadContents({ groupedContents, instanceId: id });
   }
 
+  private async getContentFiles(instance: InstanceDto): Promise<BundleItem[]> {
+    const bundleItems: BundleItem[] = [];
+    const types = ['mods', 'resourcepacks', 'shaderpacks'] as const;
+
+    for (const type of types) {
+      const contents = instance[type];
+      if (!contents?.length) continue;
+
+      const dir = await this.getContentDir(instance.id, type);
+
+      for (const c of contents) {
+        bundleItems.push({
+          path: path.join(dir, c.fileName),
+          sha1: c.hash,
+          size: c.fileLength,
+          url: c.fileUrl,
+        });
+      }
+    }
+
+    return bundleItems;
+  }
+
   async launch(id: string) {
     const [instance, config] = await Promise.all([this.findOne(id), appService.getConfig()]);
 
@@ -280,7 +304,9 @@ export const instanceService = new (class InstanceService {
         GAME_ARGS: [],
       };
 
-      launch.Launch(opts);
+      const contentFiles = await this.getContentFiles(instance);
+
+      launch.Launch(opts, contentFiles);
 
       launch
         .on(
@@ -415,6 +441,7 @@ export const instanceService = new (class InstanceService {
           fileUrl: contentFile.downloadUrl,
           fileLength: contentFile.fileLength,
           enabled: true,
+          hash: contentFile.hash,
           dependencies: [],
         };
 
@@ -551,7 +578,7 @@ export const instanceService = new (class InstanceService {
 
   private async getInstanceDir() {
     if (!this.instanceDirCache) {
-      this.instanceDirCache = path.join((await appService.getConfig()).minecraft.gameDir, 'versions');
+      this.instanceDirCache = path.resolve((await appService.getConfig()).minecraft.gameDir, 'versions');
     }
     return this.instanceDirCache;
   }

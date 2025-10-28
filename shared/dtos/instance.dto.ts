@@ -19,6 +19,7 @@ const instanceContentSchema = z.object({
   fileUrl: z.url(),
   fileLength: z.number(),
   enabled: z.boolean(),
+  hash: z.hash('sha1'),
   dependencies: z.array(z.number()).optional(),
 });
 

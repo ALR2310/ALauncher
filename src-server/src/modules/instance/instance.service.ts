@@ -223,22 +223,6 @@ export const instanceService = new (class InstanceService {
     }
   }
 
-  async verify(id: string) {
-    const instance = await this.findOne(id);
-
-    const groupedContents: Record<string, InstanceContentDto[]> = {};
-    const contentsTypes = Object.values(InstanceContentType);
-
-    for (const type of contentsTypes) {
-      const contents: InstanceContentDto[] = instance[type] ?? [];
-      if (contents.length) {
-        groupedContents[type] = contents;
-      }
-    }
-
-    return this.handleDownloadContents({ groupedContents, instanceId: id });
-  }
-
   private async getContentFiles(instance: InstanceDto): Promise<BundleItem[]> {
     const bundleItems: BundleItem[] = [];
     const types = ['mods', 'resourcepacks', 'shaderpacks'] as const;

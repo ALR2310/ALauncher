@@ -98,39 +98,6 @@ export class InstanceController {
     return instanceService.cancel(id);
   }
 
-  @Get(':id/verify')
-  async verify(@Param('id') id: string, @Context() c) {
-    const verifier = await instanceService.verify(id);
-    if (!verifier) {
-      return streamSSE(c, async (stream) => {
-        await stream.writeSSE({ event: 'done', data: 'Verification complete' });
-        await stream.close();
-      });
-    }
-
-    return streamSSE(c, async (stream) => {
-      const done = new Promise<void>((resolve) => {
-        verifier
-          .on('progress', async (percent) => await stream.writeSSE({ event: 'progress', data: percent }))
-          .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
-          .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
-          .on('extract', async (f) => await stream.writeSSE({ event: 'extract', data: f }))
-          .on('done', async () => {
-            await stream.writeSSE({ event: 'done', data: 'Download complete' });
-            await stream.close();
-            resolve();
-          })
-          .on('error', async (err) => {
-            await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
-            await stream.close();
-            resolve();
-          });
-      });
-
-      await done;
-    });
-  }
-
   @Get(':id/:contentType')
   @Validate(InstanceContentQueryDto)
   async getContents(@Param() param) {

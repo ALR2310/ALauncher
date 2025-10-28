@@ -51,11 +51,6 @@ export async function instanceCancel(id: string) {
   return API.get(`${BASE_PATH}/${id}/cancel`);
 }
 
-export function instanceVerify(id: string) {
-  const url = `${API_URL}/${BASE_PATH}/${id}/verify`;
-  return new EventSource(url);
-}
-
 export async function instanceGetContents(params: InstanceContentQueryDto) {
   const { id, contentType } = params;
   return API.get<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`);

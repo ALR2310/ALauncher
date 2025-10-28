@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
 import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen, Trash2 } from 'lucide-react';
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 import { useNavigate } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -13,7 +13,7 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceDeleteMutation, useInstanceLaunchSSE, useInstanceVerifySSE } from '~/hooks/api/useInstanceApi';
+import { useInstanceDeleteMutation, useInstanceLaunchSSE } from '~/hooks/api/useInstanceApi';
 import { toast } from '~/hooks/app/useToast';
 
 interface LibraryDetailHeaderProps {
@@ -24,27 +24,10 @@ interface LibraryDetailHeaderProps {
 const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
   const navigation = useNavigate();
   const { launch, cancel, isRunning, isDownloading, progress, estimated, speed } = useInstanceLaunchSSE();
-  const {
-    verifyContent,
-    isDownloading: verifyIsDownloading,
-    progress: verifyProgress,
-    speed: verifySpeed,
-    estimated: verifyEstimated,
-    isDone: verifyIsDone,
-  } = useInstanceVerifySSE();
   const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
 
   const { mutateAsync: deleteInstance } = useInstanceDeleteMutation();
   const queryClient = useQueryClient();
-
-  const [pendingLaunchId, setPendingLaunchId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (verifyIsDone && pendingLaunchId) {
-      launch(pendingLaunchId);
-      setPendingLaunchId(null);
-    }
-  }, [verifyIsDone, pendingLaunchId, launch]);
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
@@ -71,8 +54,7 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
                 if (isRunning && data?.id) {
                   cancel(data.id);
                 } else if (data?.id) {
-                  setPendingLaunchId(data.id);
-                  verifyContent(data.id);
+                  launch(data.id);
                 }
               }}
             >
@@ -124,12 +106,6 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
 
         {isLoading ? (
           <div className="skeleton w-full h-5"></div>
-        ) : verifyIsDownloading ? (
-          <Progress
-            className="w-full h-5"
-            value={verifyProgress}
-            text={`Verifying... ${verifyProgress ?? 0}% ${verifyEstimated ? `(${verifyEstimated})` : ''} ${verifySpeed ? `- ${verifySpeed}` : ''}`}
-          />
         ) : isDownloading ? (
           <Progress
             className="w-full h-5"

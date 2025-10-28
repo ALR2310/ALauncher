@@ -1,7 +1,6 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { Gamepad2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -17,15 +16,6 @@ export default function LibraryList() {
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
   const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
 
-  const [dots, setDots] = useState('');
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length < 3 ? prev + '.' : ''));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="flex-1 overflow-y-auto p-4">
       {instances && instances.length > 0 ? (
@@ -36,6 +26,7 @@ export default function LibraryList() {
             const isDownloading = state?.isDownloading;
             const progress = state?.progress;
             const extract = state?.extract;
+            const patch = state?.patch;
             const estimated = state?.estimated;
             const speed = state?.speed;
 
@@ -73,16 +64,22 @@ export default function LibraryList() {
                           className="h-full w-full"
                           value={progress}
                           text={
-                            <div className="w-full">
-                              <p>
-                                {`Launching${dots}`} {`${progress}%`}
-                              </p>
-                              {extract ? (
+                            patch ? (
+                              <div className="w-full">
+                                <p>Patching...</p>
+                                <p className="line-clamp-1">{patch}</p>
+                              </div>
+                            ) : extract ? (
+                              <div className="w-full">
+                                <p>Extracting...</p>
                                 <p className="line-clamp-1">{extract}</p>
-                              ) : estimated && speed ? (
+                              </div>
+                            ) : estimated && speed ? (
+                              <div className="w-full">
+                                <p>Downloading...{`${progress ?? 0}%`}</p>
                                 <p className="line-clamp-1">{`${estimated} - ${speed}`}</p>
-                              ) : null}
-                            </div>
+                              </div>
+                            ) : null
                           }
                         />
                       </button>

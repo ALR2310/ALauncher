@@ -89,7 +89,8 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
         updateState(id, { isRunning: false, isDownloading: false });
         cleanup(id);
       });
-      evt.addEventListener('error', () => {
+      evt.addEventListener('error', (e) => {
+        console.error('Launch SSE error', e);
         updateState(id, { isRunning: false, isDownloading: false });
         cleanup(id);
       });

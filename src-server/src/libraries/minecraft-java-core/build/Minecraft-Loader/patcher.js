@@ -25,9 +25,9 @@ class ForgePatcher extends events_1.EventEmitter {
             const jarInfo = (0, Index_js_1.getPathLibraries)(processor.jar);
             const jarPath = path_1.default.resolve(this.options.path, 'libraries', jarInfo.path, jarInfo.name);
             const args = processor.args
-                .map(arg => this.setArgument(arg, profile, config, neoForgeOld))
-                .map(arg => this.computePath(arg));
-            const classPaths = processor.classpath.map(cp => {
+                .map((arg) => this.setArgument(arg, profile, config, neoForgeOld))
+                .map((arg) => this.computePath(arg));
+            const classPaths = processor.classpath.map((cp) => {
                 const cpInfo = (0, Index_js_1.getPathLibraries)(cp);
                 return `"${path_1.default.join(this.options.path, 'libraries', cpInfo.path, cpInfo.name)}"`;
             });
@@ -37,19 +37,14 @@ class ForgePatcher extends events_1.EventEmitter {
                 continue;
             }
             await new Promise((resolve) => {
-                const spawned = (0, child_process_1.spawn)(`"${path_1.default.resolve(config.java)}"`, [
-                    '-classpath',
-                    [`"${jarPath}"`, ...classPaths].join(path_1.default.delimiter),
-                    mainClass,
-                    ...args
-                ], { shell: true });
-                spawned.stdout.on('data', data => {
+                const spawned = (0, child_process_1.spawn)(`"${path_1.default.resolve(config.java)}"`, ['-classpath', [`"${jarPath}"`, ...classPaths].join(path_1.default.delimiter), mainClass, ...args], { shell: true });
+                spawned.stdout.on('data', (data) => {
                     this.emit('patch', data.toString('utf-8'));
                 });
-                spawned.stderr.on('data', data => {
+                spawned.stderr.on('data', (data) => {
                     this.emit('patch', data.toString('utf-8'));
                 });
-                spawned.on('close', code => {
+                spawned.on('close', (code) => {
                     if (code !== 0) {
                         this.emit('error', `Le patcher Forge s'est terminé avec le code ${code}`);
                     }
@@ -64,7 +59,7 @@ class ForgePatcher extends events_1.EventEmitter {
         for (const processor of Object.values(processors)) {
             if (processor.sides && !processor.sides.includes('client'))
                 continue;
-            processor.args.forEach(arg => {
+            processor.args.forEach((arg) => {
                 const finalArg = arg.replace('{', '').replace('}', '');
                 if (profile.data[finalArg]) {
                     if (finalArg === 'BINPATCH')
@@ -84,7 +79,7 @@ class ForgePatcher extends events_1.EventEmitter {
     }
     setArgument(arg, profile, config, neoForgeOld) {
         const finalArg = arg.replace('{', '').replace('}', '');
-        const universalLib = profile.libraries.find(lib => {
+        const universalLib = profile.libraries.find((lib) => {
             if (this.options.loader.type === 'forge')
                 return lib.name.startsWith('net.minecraftforge:forge');
             else
@@ -93,7 +88,9 @@ class ForgePatcher extends events_1.EventEmitter {
         if (profile.data[finalArg]) {
             if (finalArg === 'BINPATCH') {
                 const jarInfo = (0, Index_js_1.getPathLibraries)(profile.path || (universalLib?.name ?? ''));
-                return `"${path_1.default.join(this.options.path, 'libraries', jarInfo.path, jarInfo.name).replace('.jar', '-clientdata.lzma')}"`;
+                return `"${path_1.default
+                    .join(this.options.path, 'libraries', jarInfo.path, jarInfo.name)
+                    .replace('.jar', '-clientdata.lzma')}"`;
             }
             return profile.data[finalArg].client;
         }

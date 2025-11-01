@@ -3,7 +3,7 @@ import 'reflect-metadata';
 export const ROUTES_KEY = Symbol('routes');
 export const BASE_PATH_KEY = Symbol('basePath');
 
-export type Method = 'get' | 'post' | 'put' | 'delete';
+export type Method = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
 export interface RouteMetadata {
   method: Method;
@@ -33,3 +33,4 @@ export const Get = createMethodDecorator('get');
 export const Post = createMethodDecorator('post');
 export const Put = createMethodDecorator('put');
 export const Delete = createMethodDecorator('delete');
+export const Patch = createMethodDecorator('patch');

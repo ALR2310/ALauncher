@@ -9,13 +9,13 @@ class Unzipper {
     constructor(zipFilePath) {
         this.entries = [];
         const fileBuffer = fs_1.default.readFileSync(zipFilePath);
-        const eocdSig = Buffer.from([0x50, 0x4B, 0x05, 0x06]);
-        const maxCommentLength = 0xFFFF;
+        const eocdSig = Buffer.from([0x50, 0x4b, 0x05, 0x06]);
+        const maxCommentLength = 0xffff;
         const scanStart = Math.max(0, fileBuffer.length - (maxCommentLength + 22));
         let eocdPos = -1;
         for (let i = fileBuffer.length - 22; i >= scanStart; i--) {
             if (fileBuffer[i] === 0x50 &&
-                fileBuffer[i + 1] === 0x4B &&
+                fileBuffer[i + 1] === 0x4b &&
                 fileBuffer[i + 2] === 0x05 &&
                 fileBuffer[i + 3] === 0x06) {
                 eocdPos = i;
@@ -65,7 +65,12 @@ class Unzipper {
                     isDirectory: fileName.endsWith('/'),
                     getData: () => {
                         if (compressionMethod === 8) {
-                            return zlib_1.default.inflateRawSync(compressedData);
+                            try {
+                                return zlib_1.default.inflateRawSync(compressedData);
+                            }
+                            catch (e) {
+                                throw new Error(`Failed to inflate entry '${fileName}': ${e.message}`);
+                            }
                         }
                         else if (compressionMethod === 0) {
                             return compressedData;
@@ -73,7 +78,7 @@ class Unzipper {
                         else {
                             throw new Error(`Unsupported compression method: ${compressionMethod}`);
                         }
-                    }
+                    },
                 });
                 cdCursor += 46 + fileNameLength + extraFieldLength + fileCommentLength;
             }
@@ -81,7 +86,7 @@ class Unzipper {
         else {
             let currentOffset = 0;
             while (currentOffset < fileBuffer.length - 4) {
-                const signaturePos = fileBuffer.indexOf(Buffer.from([0x50, 0x4B, 0x03, 0x04]), currentOffset);
+                const signaturePos = fileBuffer.indexOf(Buffer.from([0x50, 0x4b, 0x03, 0x04]), currentOffset);
                 if (signaturePos === -1)
                     break;
                 const headerOffset = signaturePos;
@@ -109,7 +114,12 @@ class Unzipper {
                     isDirectory: fileName.endsWith('/'),
                     getData: () => {
                         if (compressionMethod === 8) {
-                            return zlib_1.default.inflateRawSync(compressedData);
+                            try {
+                                return zlib_1.default.inflateRawSync(compressedData);
+                            }
+                            catch (e) {
+                                throw new Error(`Failed to inflate entry '${fileName}': ${e.message}`);
+                            }
                         }
                         else if (compressionMethod === 0) {
                             return compressedData;
@@ -117,7 +127,7 @@ class Unzipper {
                         else {
                             throw new Error(`Unsupported compression method: ${compressionMethod}`);
                         }
-                    }
+                    },
                 });
                 currentOffset = dataEnd;
             }

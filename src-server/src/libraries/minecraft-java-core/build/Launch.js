@@ -28,7 +28,7 @@ class Launch extends events_1.EventEmitter {
         this.currentDownloader = null;
         this.downloadPromise = null;
     }
-    async Launch(opt) {
+    async Launch(opt, extraBundle) {
         this.isCancelled = false;
         this.minecraftProcess = null;
         this.currentDownloader = null;
@@ -71,6 +71,7 @@ class Launch extends events_1.EventEmitter {
             },
             ...opt,
         };
+        this.extraBundle = extraBundle;
         this.options = defaultOptions;
         this.options.path = path_1.default.resolve(this.options.path).replace(/\\/g, '/');
         if (this.options.mcp) {
@@ -170,6 +171,7 @@ class Launch extends events_1.EventEmitter {
         let gameAssetsOther = await libraries.GetAssetsOthers(this.options.url);
         let gameAssets = await new Minecraft_Assets_js_1.default(this.options).getAssets(json);
         let gameJava = this.options.java.path ? { files: [] } : await java.getJavaFiles(json);
+        let extraBundle = this.extraBundle ? this.extraBundle : [];
         if (gameJava.error)
             return { error: gameJava.error };
         let filesList = await bundle.checkBundle([
@@ -177,6 +179,7 @@ class Launch extends events_1.EventEmitter {
             ...gameAssetsOther,
             ...gameAssets,
             ...gameJava.files,
+            ...extraBundle,
         ]);
         if (filesList.length > 0) {
             if (this.isCancelled)
@@ -216,6 +219,9 @@ class Launch extends events_1.EventEmitter {
             });
             loaderInstall.on('patch', (patch) => {
                 this.emit('patch', patch);
+            });
+            loaderInstall.on('error', (e) => {
+                this.emit('error', e);
             });
             let jsonLoader = await loaderInstall
                 .GetLoader(version, this.options.java.path ? this.options.java.path : gameJava.path)

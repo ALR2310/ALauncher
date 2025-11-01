@@ -9,7 +9,7 @@ import path from 'path';
 import { ENV } from '../../shared/enums/general.enum';
 
 const outfile = 'dist/data.bin';
-const target = 'node20';
+const target = 'node20'; 
 let define: Record<string, string> = {};
 
 if (existsSync('.env')) {
@@ -33,7 +33,7 @@ const isDev = process.env.NODE_ENV === ENV.Development;
       entryPoints: ['src-server/src/index.ts'],
       bundle: true,
       platform: 'node',
-      external: ['electron'],
+      external: ['@aws-sdk/client-s3'],
       target,
       format: 'cjs',
       outfile,

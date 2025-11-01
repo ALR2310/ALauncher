@@ -6,10 +6,9 @@ import { useContextSelector } from 'use-context-selector';
 
 import DataTable, { Column } from '~/components/DataTable';
 import Tooltip from '~/components/Tooltip';
+import { DiscoverContext } from '~/context/DiscoverContext';
 import { useContentFilesInfinite } from '~/hooks/api/useContentApi';
 import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
-
-import { DiscoverContext } from './context/DiscoverContext';
 
 export default function DiscoverFiles() {
   const contentId = useContextSelector(DiscoverContext, ({ contentId }) => contentId);
@@ -75,11 +74,11 @@ export default function DiscoverFiles() {
         render: (v: string[], _row) => {
           if (!v || v.length === 0) return null;
           const remaining = v.length - 1;
-          
+
           if (remaining === 0) {
             return <span>{v[0]}</span>;
           }
-          
+
           return (
             <Tooltip
               content={
@@ -104,11 +103,11 @@ export default function DiscoverFiles() {
         render: (v: string[], _row) => {
           if (!v || v.length === 0) return null;
           const remaining = v.length - 1;
-          
+
           if (remaining === 0) {
             return <span>{v[0]}</span>;
           }
-          
+
           return (
             <Tooltip
               content={

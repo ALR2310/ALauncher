@@ -1,6 +1,6 @@
 import { AppConfigDto, SetConfigDto } from '@shared/dtos/app.dto';
 
-import { API, API_URL } from '.';
+import { API } from '.';
 
 const BASE_URL = 'app';
 
@@ -36,6 +36,5 @@ export async function appCheckForUpdates(): Promise<{
 }
 
 export async function appInstallUpdates() {
-  const apiPath = `${API_URL}${BASE_URL}/update/install`;
-  return new EventSource(apiPath);
+  return API.getSSE(`${BASE_URL}/update/install`);
 }

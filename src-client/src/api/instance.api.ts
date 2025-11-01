@@ -1,16 +1,18 @@
 import { ContentResponseDto } from '@shared/dtos/content.dto';
 import {
   InstanceContentAddQueryDto,
+  InstanceContentDownloadQueryDto,
   InstanceContentQueryDto,
   InstanceContentRemoveQueryDto,
   InstanceContentRemoveResponseDto,
   InstanceContentToggleQueryDto,
   InstanceDto,
   InstanceQueryDto,
+  InstanceUpdateBodyDto,
   InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
 
-import { API, API_URL } from '.';
+import { API } from '.';
 
 const BASE_PATH = 'instances';
 
@@ -26,8 +28,9 @@ export async function instanceCreate(body: InstanceDto) {
   return API.post<InstanceDto>(`${BASE_PATH}`, body);
 }
 
-export async function instanceUpdate(body: Partial<InstanceDto>) {
-  return API.put<InstanceDto>(`${BASE_PATH}/${body.id}`, body);
+export async function instanceUpdate(payload: InstanceUpdateBodyDto) {
+  const { id, ...rest } = payload;
+  return API.put<InstanceDto>(`${BASE_PATH}/${id}`, rest);
 }
 
 export async function instanceDelete(id: string) {
@@ -38,37 +41,39 @@ export async function instanceFindWorlds(id: string) {
   return API.get<InstanceWorldDto[]>(`${BASE_PATH}/${id}/worlds`);
 }
 
+export async function instanceOpenFolder(id: string) {
+  return API.get(`${BASE_PATH}/${id}/folders`);
+}
+
 export function instanceLaunch(id: string) {
-  const url = `${API_URL}/${BASE_PATH}/${id}/launch`;
-  return new EventSource(url);
+  return API.getSSE(`${BASE_PATH}/${id}/launch`);
 }
 
 export async function instanceCancel(id: string) {
   return API.get(`${BASE_PATH}/${id}/cancel`);
 }
 
-export function instanceVerify(id: string) {
-  const url = `${API_URL}/${BASE_PATH}/${id}/verify`;
-  return new EventSource(url);
-}
-
 export async function instanceGetContents(params: InstanceContentQueryDto) {
-  const { id, contentType } = params;
-  return API.get<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`);
+  const { id, ...rest } = params;
+  return API.get<ContentResponseDto>(`${BASE_PATH}/${id}/contents`, rest);
 }
 
 export function instanceAddContent(params: InstanceContentAddQueryDto) {
-  const { id, contentType, contentId, worlds } = params;
-  const url = `${API_URL}/${BASE_PATH}/${id}/${contentType}/${contentId}?worlds=${worlds || ''}`;
-  return new EventSource(url);
+  const { id, ...rest } = params;
+  return API.postSSE(`${BASE_PATH}/${id}/contents`, rest);
 }
 
 export async function instanceRemoveContent(params: InstanceContentRemoveQueryDto) {
-  const { id, contentType, contentIds } = params;
-  return API.delete<InstanceContentRemoveResponseDto>(`${BASE_PATH}/${id}/${contentType}`, { contentIds });
+  const { id, ...rest } = params;
+  return API.delete<InstanceContentRemoveResponseDto>(`${BASE_PATH}/${id}/contents`, rest);
 }
 
 export async function instanceToggleContent(params: InstanceContentToggleQueryDto) {
-  const { id, contentType, ...rest } = params;
-  return API.put<ContentResponseDto>(`${BASE_PATH}/${id}/${contentType}`, rest);
+  const { id, ...rest } = params;
+  return API.put<ContentResponseDto>(`${BASE_PATH}/${id}/contents/toggle`, rest);
+}
+
+export async function instanceDownloadContent(params: InstanceContentDownloadQueryDto) {
+  const { id, ...rest } = params;
+  return API.postSSE(`${BASE_PATH}/${id}/contents/download`, rest);
 }

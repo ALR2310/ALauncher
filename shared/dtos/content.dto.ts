@@ -131,6 +131,7 @@ const contentFileSchema = z.object({
   downloadUrl: z.url(),
   gameVersions: z.array(z.string()),
   modLoaders: z.array(z.string()),
+  hash: z.hash('sha1'),
   dependencies: z.array(
     z.object({
       modId: z.number(),
@@ -139,11 +140,12 @@ const contentFileSchema = z.object({
   ),
 });
 
-const contentFileResponseSchema = baseResponseSchema.extend({
-  data: z.array(contentFileSchema),
+const contentFileQuerySchema = z.object({
+  id: z.coerce.number(),
+  fileId: z.coerce.number(),
 });
 
-const contentFileQuerySchema = z.object({
+const contentFilesQuerySchema = z.object({
   id: z.coerce.number(),
   gameVersion: z.string().optional(),
   modLoaderType: z.coerce.number().enum(CurseForgeModLoaderType).optional(),
@@ -152,10 +154,15 @@ const contentFileQuerySchema = z.object({
   pageSize: z.coerce.number().max(50).optional(),
 });
 
+const contentFilesResponseSchema = baseResponseSchema.extend({
+  data: z.array(contentFileSchema),
+});
+
 export class ContentDto extends createZodDto(contentSchema) {}
 export class ContentQueryDto extends createZodDto(contentQuerySchema) {}
 export class ContentResponseDto extends createZodDto(contentResponseSchema) {}
 export class ContentDetailQueryDto extends createZodDto(contentDetailQuerySchema) {}
 export class ContentFileDto extends createZodDto(contentFileSchema) {}
 export class ContentFileQueryDto extends createZodDto(contentFileQuerySchema) {}
-export class ContentFileResponseDto extends createZodDto(contentFileResponseSchema) {}
+export class ContentFilesQueryDto extends createZodDto(contentFilesQuerySchema) {}
+export class ContentFilesResponseDto extends createZodDto(contentFilesResponseSchema) {}

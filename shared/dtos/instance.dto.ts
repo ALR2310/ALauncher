@@ -1,15 +1,8 @@
+import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
 import { createZodDto } from '../utils/zod.dto';
-
-export enum InstanceContentType {
-  MODS = 'mods',
-  RESOURCEPACKS = 'resourcepacks',
-  SHADERPACKS = 'shaderpacks',
-  DATAPACKS = 'datapacks',
-  WORLDS = 'worlds',
-}
 
 const instanceContentSchema = z.object({
   id: z.number(),
@@ -19,10 +12,11 @@ const instanceContentSchema = z.object({
   fileUrl: z.url(),
   fileLength: z.number(),
   enabled: z.boolean(),
+  hash: z.hash('sha1'),
   dependencies: z.array(z.number()).optional(),
 });
 
-const instanceSchema = z.object({
+export const instanceSchema = z.object({
   // Metadata
   id: z.string(),
   name: z.string(),
@@ -34,8 +28,8 @@ const instanceSchema = z.object({
   version: z.string(),
   loader: z
     .object({
-      type: z.coerce.number().enum(CurseForgeModLoaderType),
-      version: z.string(),
+      type: z.enum(CurseForgeModLoaderType),
+      build: z.string(),
     })
     .nullish(),
   // Game Contents
@@ -51,6 +45,11 @@ const instanceQuerySchema = z.object({
   sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'lastPlayed', 'version']).default('lastPlayed'),
 });
 
+const instanceUpdateBodySchema = z.object({
+  id: z.string(),
+  data: instanceSchema.partial(),
+});
+
 const instanceWorldSchema = z.object({
   instanceId: z.string().nullish(),
   name: z.string(),
@@ -63,12 +62,14 @@ const instanceWorldSchema = z.object({
 
 const instanceContentQuerySchema = z.object({
   id: z.string(),
-  contentType: z.enum(InstanceContentType).default(InstanceContentType.MODS),
+  contentType: z.enum(InstanceContentEnum).default(InstanceContentEnum.Mods),
 });
 
-const instanceContentAddQuerySchema = instanceContentQuerySchema.extend({
-  contentId: z.coerce.number(),
-  worlds: z.string().nullish(),
+const instanceContentAddQuerySchema = z.object({
+  id: z.string(),
+  contentId: z.number(),
+  worlds: z.array(z.string()).optional(),
+  fileId: z.number().optional(),
 });
 
 const instanceContentRemoveQuerySchema = instanceContentQuerySchema.extend({
@@ -77,27 +78,25 @@ const instanceContentRemoveQuerySchema = instanceContentQuerySchema.extend({
 
 const instanceContentRemoveResponseSchema = z.object({
   message: z.string(),
-  data: z.array(
-    z.object({
-      id: z.number(),
-      fileName: z.string(),
-    }),
-  ),
+  data: z.array(instanceContentSchema),
 });
 
-const instanceContentDownloadQuerySchema = z.object({
-  groupedContents: z.record(z.string(), z.array(instanceContentSchema)),
-  instanceId: z.string(),
-  worlds: z.array(z.string()).optional(),
-});
-
-const instanceContentToggleQuerySchema = instanceContentQuerySchema.extend({
+const instanceContentToggleQuerySchema = instanceContentRemoveQuerySchema.extend({
   contentIds: z.array(z.number()),
   enable: z.boolean().optional(),
 });
 
+const instanceContentToggleResponseSchema = instanceContentRemoveResponseSchema;
+
+const instanceContentDownloadQuerySchema = z.object({
+  id: z.string(),
+  grouped: z.partialRecord(z.enum(InstanceContentEnum), z.array(instanceContentSchema)),
+  worlds: z.array(z.string()).optional(),
+});
+
 export class InstanceDto extends createZodDto(instanceSchema) {}
 export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
+export class InstanceUpdateBodyDto extends createZodDto(instanceUpdateBodySchema) {}
 export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
@@ -105,4 +104,5 @@ export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQ
 export class InstanceContentRemoveQueryDto extends createZodDto(instanceContentRemoveQuerySchema) {}
 export class InstanceContentRemoveResponseDto extends createZodDto(instanceContentRemoveResponseSchema) {}
 export class InstanceContentToggleQueryDto extends createZodDto(instanceContentToggleQuerySchema) {}
+export class InstanceContentToggleResponseDto extends createZodDto(instanceContentToggleResponseSchema) {}
 export class InstanceContentDownloadQueryDto extends createZodDto(instanceContentDownloadQuerySchema) {}

@@ -66,15 +66,26 @@ export const versionService = new (class VersionService {
     const { index = 0, pageSize = 50 } = payload;
 
     if (!this.noteCache.length) {
-      const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`);
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
 
-      this.noteCache = data.entries.map((note: any) => ({
-        ...note,
-        image: {
-          ...note.image,
-          url: `${this.NOTE_API_URL.replace('/v2/', '')}${note.image.url}`,
-        },
-      }));
+        const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`, {
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        this.noteCache = data.entries.map((note: any) => ({
+          ...note,
+          image: {
+            ...note.image,
+            url: `${this.NOTE_API_URL.replace('/v2/', '')}${note.image.url}`,
+          },
+        }));
+      } catch {
+        this.noteCache = [];
+      }
     }
 
     const start = index;

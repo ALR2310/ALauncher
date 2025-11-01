@@ -102,6 +102,9 @@ class Loader extends events_1.EventEmitter {
         forge.on('patch', (patch) => {
             this.emit('patch', patch);
         });
+        forge.on('error', (err) => {
+            this.emit('error', err);
+        });
         // 1. Download installer
         const installer = await forge.downloadInstaller(LoaderData);
         if (installer.error)
@@ -110,7 +113,7 @@ class Loader extends events_1.EventEmitter {
         if (profile.error)
             return profile;
         // Write the version JSON to disk
-        if ("version" in profile && "id" in profile.version) {
+        if ('version' in profile && 'id' in profile.version) {
             const destination = path_1.default.resolve(this.options.path, 'versions', profile.version.id);
             if (!fs_1.default.existsSync(destination))
                 fs_1.default.mkdirSync(destination, { recursive: true });
@@ -154,6 +157,9 @@ class Loader extends events_1.EventEmitter {
         neoForge.on('patch', (patch) => {
             this.emit('patch', patch);
         });
+        neoForge.on('error', (err) => {
+            this.emit('error', err);
+        });
         const installer = await neoForge.downloadInstaller(LoaderData);
         if (installer.error)
             return installer;
@@ -162,7 +168,7 @@ class Loader extends events_1.EventEmitter {
         if (profile.error)
             return profile;
         // Write version JSON
-        if ("version" in profile && "id" in profile.version) {
+        if ('version' in profile && 'id' in profile.version) {
             const destination = path_1.default.resolve(this.options.path, 'versions', profile.version.id);
             if (!fs_1.default.existsSync(destination))
                 fs_1.default.mkdirSync(destination, { recursive: true });
@@ -181,7 +187,7 @@ class Loader extends events_1.EventEmitter {
         const patch = await neoForge.patchneoForge(profile.install, installer.oldAPI);
         if (patch.error)
             return patch;
-        if ("version" in profile)
+        if ('version' in profile)
             return profile.version;
     }
     /**
@@ -199,17 +205,20 @@ class Loader extends events_1.EventEmitter {
         fabric.on('progress', (progress, size, element) => {
             this.emit('progress', progress, size, element);
         });
+        fabric.on('error', (err) => {
+            this.emit('error', err);
+        });
         const json = await fabric.downloadJson(LoaderData);
         if (json.error)
             return json;
-        if ("id" in json) {
+        if ('id' in json) {
             const destination = path_1.default.resolve(this.options.path, 'versions', json.id);
             if (!fs_1.default.existsSync(destination))
                 fs_1.default.mkdirSync(destination, { recursive: true });
             fs_1.default.writeFileSync(path_1.default.resolve(destination, `${json.id}.json`), JSON.stringify(json, null, 4));
             fs_1.default.cpSync(path_1.default.resolve(this.options.loader.config.minecraftJar), path_1.default.resolve(destination, `${json.id}.jar`));
         }
-        if ("libraries" in json) {
+        if ('libraries' in json) {
             await fabric.downloadLibraries(json);
         }
         return json;
@@ -229,17 +238,20 @@ class Loader extends events_1.EventEmitter {
         legacyFabric.on('progress', (progress, size, element) => {
             this.emit('progress', progress, size, element);
         });
+        legacyFabric.on('error', (err) => {
+            this.emit('error', err);
+        });
         const json = await legacyFabric.downloadJson(LoaderData);
         if (json.error)
             return json;
-        if ("id" in json) {
+        if ('id' in json) {
             const destination = path_1.default.resolve(this.options.path, 'versions', json.id);
             if (!fs_1.default.existsSync(destination))
                 fs_1.default.mkdirSync(destination, { recursive: true });
             fs_1.default.writeFileSync(path_1.default.resolve(destination, `${json.id}.json`), JSON.stringify(json, null, 4));
             fs_1.default.cpSync(path_1.default.resolve(this.options.loader.config.minecraftJar), path_1.default.resolve(destination, `${json.id}.jar`));
         }
-        if ("libraries" in json) {
+        if ('libraries' in json) {
             await legacyFabric.downloadLibraries(json);
         }
         return json;
@@ -259,17 +271,20 @@ class Loader extends events_1.EventEmitter {
         quilt.on('progress', (progress, size, element) => {
             this.emit('progress', progress, size, element);
         });
+        quilt.on('error', (err) => {
+            this.emit('error', err);
+        });
         const json = await quilt.downloadJson(LoaderData);
         if (json.error)
             return json;
-        if ("id" in json) {
+        if ('id' in json) {
             const destination = path_1.default.resolve(this.options.path, 'versions', json.id);
             if (!fs_1.default.existsSync(destination))
                 fs_1.default.mkdirSync(destination, { recursive: true });
             fs_1.default.writeFileSync(path_1.default.resolve(destination, `${json.id}.json`), JSON.stringify(json, null, 4));
             fs_1.default.cpSync(path_1.default.resolve(this.options.loader.config.minecraftJar), path_1.default.resolve(destination, `${json.id}.jar`));
         }
-        if ("libraries" in json) {
+        if ('libraries' in json) {
             await quilt.downloadLibraries(json);
         }
         return json;

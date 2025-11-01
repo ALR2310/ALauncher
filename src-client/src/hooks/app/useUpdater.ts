@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { appCheckForUpdates, appInstallUpdates } from '~/api';
+import { appCheckForUpdates, appInstallUpdates, FetchEventSource } from '~/api';
 
 import { toast } from './useToast';
 
 export function useUpdater() {
-  const evtRef = useRef<EventSource | null>(null);
+  const evtRef = useRef<FetchEventSource | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [progress, setProgress] = useState<number | undefined>(undefined);
 

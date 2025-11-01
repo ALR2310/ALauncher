@@ -42,16 +42,16 @@ class MinecraftLoader extends events_1.EventEmitter {
                 config: {
                     javaPath,
                     minecraftJar: `${this.options.path}/versions/${version}/${version}.jar`,
-                    minecraftJson: `${this.options.path}/versions/${version}/${version}.json`
-                }
-            }
+                    minecraftJson: `${this.options.path}/versions/${version}/${version}.json`,
+                },
+            },
         });
         return new Promise((resolve, reject) => {
             loader.install();
             loader.on('json', (json) => {
                 // Inject the loader path into each library if needed
                 const modifiedJson = json;
-                modifiedJson.libraries = modifiedJson.libraries.map(lib => {
+                modifiedJson.libraries = modifiedJson.libraries.map((lib) => {
                     lib.loader = this.loaderPath;
                     return lib;
                 });
@@ -110,7 +110,7 @@ class MinecraftLoader extends events_1.EventEmitter {
         return {
             game: args.game || [],
             jvm: args.jvm || [],
-            mainClass: args.mainClass
+            mainClass: args.mainClass,
         };
     }
 }

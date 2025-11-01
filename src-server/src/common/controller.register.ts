@@ -1,9 +1,16 @@
-import { Method } from 'axios';
 import chalk from 'chalk';
 import { Context, Hono } from 'hono';
 import { ZodType } from 'zod';
 
-import { BASE_PATH_KEY, ParamMetadata, PARAMS_KEY, RouteMetadata, ROUTES_KEY, VALIDATE_KEY } from './decorators';
+import {
+  BASE_PATH_KEY,
+  Method,
+  ParamMetadata,
+  PARAMS_KEY,
+  RouteMetadata,
+  ROUTES_KEY,
+  VALIDATE_KEY,
+} from './decorators';
 
 type ControllerClass<T = any> = new (...args: any[]) => T;
 type ControllerInstance = object;
@@ -72,7 +79,7 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
         for (const meta of paramMetas) {
           switch (meta.type) {
             case 'body':
-              args[meta.index] = body;
+              args[meta.index] = meta.key ? body?.[meta.key] : body;
               break;
             case 'param':
               args[meta.index] = meta.key ? params[meta.key] : params;
@@ -81,7 +88,7 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
               args[meta.index] = meta.key ? query[meta.key] : query;
               break;
             case 'payload':
-              args[meta.index] = payload;
+              args[meta.index] = meta.key ? payload?.[meta.key] : payload;
               break;
             case 'context':
               args[meta.index] = c;
@@ -109,6 +116,9 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
           break;
         case 'put':
           methodColor = chalk.cyan(route.method.toUpperCase());
+          break;
+        case 'patch':
+          methodColor = chalk.magenta(route.method.toUpperCase());
           break;
         case 'delete':
           methodColor = chalk.red(route.method.toUpperCase());

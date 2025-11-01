@@ -1,16 +1,16 @@
-import { CATEGORY_CLASS_REVERSED } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
 import { abbreviateNumber } from '@shared/utils/general.utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, Download, Gamepad2, HardDrive } from 'lucide-react';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { useInstanceAddContentSSE } from '~/hooks/api/useInstanceApi';
+import { toast } from '~/hooks/app/useToast';
 
 interface ContentCardProps {
   data: ContentDto;
@@ -19,15 +19,11 @@ interface ContentCardProps {
   instanceId?: string;
 }
 
-function ContentCard({ data, gameVersion, categoryType, instanceId }: ContentCardProps) {
+function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
   const queryClient = useQueryClient();
   const formattedDate = useMemo(() => new Date(data.dateModified).toLocaleDateString(), [data.dateModified]);
   const categoryName = useMemo(() => categoryMap.idToText[data.classId ?? 0], [data.classId]);
   const { addContent, progress, isDownloading, estimated, speed, isDone } = useInstanceAddContentSSE();
-
-  const contentType = useMemo(() => {
-    return CATEGORY_CLASS_REVERSED[categoryType ?? 0]?.toLowerCase().replace(' ', '');
-  }, [categoryType]);
 
   const status = useMemo(() => {
     switch (data.instance?.status) {
@@ -59,6 +55,12 @@ function ContentCard({ data, gameVersion, categoryType, instanceId }: ContentCar
     }
   }, [isDone, instanceId, queryClient]);
 
+  const handleAddContent = useCallback(() => {
+    if (!instanceId) return toast.warning('Please select an instance to add content to.');
+
+    addContent({ id: instanceId, contentId: data.id, worlds: undefined });
+  }, [addContent, data.id, instanceId]);
+
   return (
     <div className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">
       <Link to={ROUTES.discover.detail(data.slug)} className="flex justify-center items-center w-24 h-24">
@@ -80,7 +82,7 @@ function ContentCard({ data, gameVersion, categoryType, instanceId }: ContentCar
           <div className="flex-1/5">
             <button
               className={buttonClassName}
-              onClick={() => addContent({ id: instanceId ?? 'todo', contentId: data.id, contentType, worlds: '' })}
+              onClick={handleAddContent}
               title={isDownloading || status === 'Installed' ? 'Action not available' : status}
             >
               {status}

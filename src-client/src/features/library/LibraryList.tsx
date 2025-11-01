@@ -1,35 +1,34 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { Gamepad2 } from 'lucide-react';
-import { useState } from 'react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
+import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 export default function LibraryList() {
   const { data: instances } = useInstancesQuery();
 
-  const [instanceActive, setInstanceActive] = useState<string | null>(null);
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
-
-  const handlePlay = (id: string) => {
-    setInstanceActive(id);
-
-    setTimeout(() => {
-      setInstanceActive(null);
-    }, 1000000);
-  };
+  const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
       {instances && instances.length > 0 ? (
         <div className="grid grid-cols-3 lg:grid-cols-5 gap-6">
           {instances.map((instance) => {
-            const isRunning = instanceActive === instance.id;
+            const state = getState(instance.id);
+            const isRunning = state?.isRunning;
+            const isDownloading = state?.isDownloading;
+            const progress = state?.progress;
+            const extract = state?.extract;
+            const patch = state?.patch;
+            const estimated = state?.estimated;
+            const speed = state?.speed;
 
             return (
               <Link
@@ -53,19 +52,47 @@ export default function LibraryList() {
                 >
                   <p className="font-semibold">{instance.name}</p>
                   <div className="h-10 w-full">
-                    {isRunning ? (
-                      <button className="btn btn-ghost w-full px-0 " onClick={() => console.log('stop')}>
-                        <Progress className="h-full w-full" text={`Download ${instance.name}`} />
+                    {isDownloading ? (
+                      <button
+                        className="btn btn-ghost w-full px-0"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          cancel(instance.id);
+                        }}
+                      >
+                        <Progress
+                          className="h-full w-full"
+                          value={progress}
+                          text={
+                            patch ? (
+                              <div className="w-full">
+                                <p>Patching...</p>
+                                <p className="line-clamp-1">{patch}</p>
+                              </div>
+                            ) : extract ? (
+                              <div className="w-full">
+                                <p>Extracting...</p>
+                                <p className="line-clamp-1">{extract}</p>
+                              </div>
+                            ) : estimated && speed ? (
+                              <div className="w-full">
+                                <p>Downloading...{`${progress ?? 0}%`}</p>
+                                <p className="line-clamp-1">{`${estimated} - ${speed}`}</p>
+                              </div>
+                            ) : null
+                          }
+                        />
                       </button>
                     ) : (
                       <button
-                        className="btn btn-success w-full"
+                        className={`btn btn-success w-full ${isRunning ? 'btn-soft' : ''}`}
                         onClick={(e) => {
                           e.preventDefault();
-                          handlePlay(instance.id);
+                          if (isRunning) cancel(instance.id);
+                          else launch(instance.id);
                         }}
                       >
-                        Play
+                        {isRunning ? 'Cancel' : 'Launch'}
                       </button>
                     )}
                   </div>

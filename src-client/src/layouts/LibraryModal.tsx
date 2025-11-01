@@ -1,5 +1,6 @@
 import { InstanceDto } from '@shared/dtos/instance.dto';
 import { formatToSlug } from '@shared/utils/general.utils';
+import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { RefObject, useEffect, useState } from 'react';
 
@@ -11,12 +12,7 @@ import quiltLogo from '~/assets/images/logos/quilt.png';
 import Img from '~/components/Img';
 import Modal from '~/components/Modal';
 import Select from '~/components/Select';
-import {
-  useInstanceCreateMutation,
-  useInstanceOneQuery,
-  useInstancesQuery,
-  useInstanceUpdateMutation,
-} from '~/hooks/api/useInstanceApi';
+import { useInstanceCreateMutation, useInstanceOneQuery, useInstanceUpdateMutation } from '~/hooks/api/useInstanceApi';
 import { useVersionLoadersQuery, useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 import { toast } from '~/hooks/app/useToast';
 
@@ -30,13 +26,13 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
   const [loaderType, setLoaderType] = useState<CurseForgeModLoaderType>(CurseForgeModLoaderType.Forge);
   const [loaderVersion, setLoaderVersion] = useState('latest');
   const [gameVersion, setGameVersion] = useState('');
+  const queryClient = useQueryClient();
 
   const { data: releaseVersions } = useVersionReleasesQuery();
   const { data: loaderVersions } = useVersionLoadersQuery({ type: loaderType, version: gameVersion });
   const { data: instance } = useInstanceOneQuery(id!);
   const { mutateAsync: createInstance } = useInstanceCreateMutation();
   const { mutateAsync: updateInstance } = useInstanceUpdateMutation();
-  const { refetch: refetchInstances } = useInstancesQuery();
 
   useEffect(() => {
     if (releaseVersions && releaseVersions.length > 0) {
@@ -48,7 +44,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
     if (id && instance) {
       setModpackName(instance.name);
       setLoaderType(instance.loader!.type);
-      setLoaderVersion(instance.loader!.version);
+      setLoaderVersion(instance.loader!.build);
       setGameVersion(instance.version);
     }
   }, [id, instance]);
@@ -67,12 +63,12 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
         version: gameVersion,
         loader: {
           type: loaderType,
-          version: loaderVersion,
+          build: loaderVersion,
         },
       };
 
-      if (id) await updateInstance(data);
-      else await createInstance(data);
+      if (!id) await createInstance(data);
+      else await updateInstance({ id, data });
 
       ref.current.close();
       setModpackName('');
@@ -80,7 +76,8 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
       setLoaderVersion('latest');
       setGameVersion(releaseVersions?.[0].version ?? '');
       toast.success(`Modpack ${id ? 'updated' : 'created'} successfully`);
-      refetchInstances();
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
+      queryClient.invalidateQueries({ queryKey: ['instance'] });
     } catch (error: any) {
       console.error(error);
       toast.error(error.message);

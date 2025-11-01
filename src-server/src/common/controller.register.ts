@@ -79,7 +79,7 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
         for (const meta of paramMetas) {
           switch (meta.type) {
             case 'body':
-              args[meta.index] = body;
+              args[meta.index] = meta.key ? body?.[meta.key] : body;
               break;
             case 'param':
               args[meta.index] = meta.key ? params[meta.key] : params;
@@ -88,7 +88,7 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
               args[meta.index] = meta.key ? query[meta.key] : query;
               break;
             case 'payload':
-              args[meta.index] = payload;
+              args[meta.index] = meta.key ? payload?.[meta.key] : payload;
               break;
             case 'context':
               args[meta.index] = c;

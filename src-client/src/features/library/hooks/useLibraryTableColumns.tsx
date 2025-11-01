@@ -1,6 +1,6 @@
 import { ROUTES } from '@shared/constants/routes';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
-import { InstanceContentType } from '@shared/dtos/instance.dto';
+import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
@@ -20,7 +20,7 @@ export interface OnToggleProps extends OnDeleteProps {
 }
 interface UseLibraryTableColumnsProps {
   data: ContentDto[];
-  contentType: InstanceContentType;
+  contentType: InstanceContentEnum;
   onToggle?: (props: OnToggleProps) => void;
   onDelete?: (props: OnDeleteProps) => void;
 }

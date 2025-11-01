@@ -20,8 +20,8 @@ function createParamDecorator(type: ParamType, key?: string) {
   };
 }
 
-export const Body = () => createParamDecorator('body');
+export const Body = (key?: string) => createParamDecorator('body', key);
 export const Query = (key?: string) => createParamDecorator('query', key);
 export const Param = (key?: string) => createParamDecorator('param', key);
-export const Payload = () => createParamDecorator('payload');
+export const Payload = (key?: string) => createParamDecorator('payload', key);
 export const Context = () => createParamDecorator('context');

@@ -1,16 +1,67 @@
 import {
   InstanceContentAddQueryDto,
+  InstanceContentDownloadQueryDto,
   InstanceContentQueryDto,
   InstanceContentRemoveQueryDto,
   InstanceContentToggleQueryDto,
   InstanceDto,
   InstanceQueryDto,
+  InstanceUpdateBodyDto,
 } from '@shared/dtos/instance.dto';
+import EventEmitter from 'events';
+import { Context as HonoContext } from 'hono';
 import { streamSSE } from 'hono/streaming';
 
 import { Body, Context, Controller, Delete, Get, Param, Post, Put, Query, Validate } from '~/common/decorators';
 
 import { instanceService } from './instance.service';
+
+export async function handleDownloaderSSE(
+  c: HonoContext,
+  event: EventEmitter | null | undefined,
+  noContentMsg = 'No contents to process',
+) {
+  if (!event) {
+    return streamSSE(c, async (stream) => {
+      await stream.writeSSE({ event: 'done', data: noContentMsg });
+      await stream.close();
+    });
+  }
+
+  return streamSSE(c, async (stream) => {
+    const done = new Promise<void>((resolve) => {
+      event
+        .on('progress', async (p) => await stream.writeSSE({ event: 'progress', data: p }))
+        // .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l })) // For Launcher
+        .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
+        .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
+        .on('extract', async (f) => await stream.writeSSE({ event: 'extract', data: f }))
+        .on('patch', async (p) => await stream.writeSSE({ event: 'patch', data: p }))
+        .on('done', async () => {
+          await stream.writeSSE({ event: 'done', data: 'Download complete' });
+          await stream.close();
+          resolve();
+        })
+        .on('cancelled', async () => {
+          await stream.writeSSE({ event: 'cancelled', data: 'Launch cancelled' });
+          await stream.close();
+          resolve();
+        }) // For Launcher
+        .on('close', async () => {
+          await stream.writeSSE({ event: 'close', data: 'Launch closed' });
+          await stream.close();
+          resolve();
+        }) // For Launcher
+        .on('error', async (err) => {
+          await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
+          await stream.close();
+          resolve();
+        });
+    });
+
+    await done;
+  });
+}
 
 @Controller('instances')
 export class InstanceController {
@@ -32,9 +83,9 @@ export class InstanceController {
   }
 
   @Put(':id')
-  @Validate(InstanceDto)
-  async update(@Body() body: InstanceDto, @Param('id') id: string) {
-    return instanceService.update({ ...body, id });
+  @Validate(InstanceUpdateBodyDto)
+  async update(@Body('data') body: Partial<InstanceDto>, @Param('id') id: string) {
+    return instanceService.update(id, body);
   }
 
   @Delete(':id')
@@ -54,43 +105,15 @@ export class InstanceController {
 
   @Get(':id/launch')
   async launch(@Param('id') id: string, @Context() c) {
-    const launcher = await instanceService.launch(id);
-
-    if (!launcher) {
+    try {
+      const event = await instanceService.launch(id);
+      return handleDownloaderSSE(c, event, 'No launch actions to perform');
+    } catch (err: any) {
       return streamSSE(c, async (stream) => {
-        await stream.writeSSE({ event: 'error', data: 'Cannot launch' });
+        await stream.writeSSE({ event: 'error', data: err.message });
         await stream.close();
       });
     }
-
-    return streamSSE(c, async (stream) => {
-      const done = new Promise<void>((resolve) =>
-        launcher
-          .on('progress', async (p) => await stream.writeSSE({ event: 'progress', data: p }))
-          .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l }))
-          .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
-          .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
-          .on('extract', async (e) => await stream.writeSSE({ event: 'extract', data: e }))
-          .on('patch', async (p) => await stream.writeSSE({ event: 'patch', data: p }))
-          .on('close', async () => {
-            await stream.writeSSE({ event: 'close', data: 'Launch closed' });
-            await stream.close();
-            resolve();
-          })
-          .on('cancelled', async () => {
-            await stream.writeSSE({ event: 'cancelled', data: 'Launch cancelled' });
-            await stream.close();
-            resolve();
-          })
-          .on('error', async (err) => {
-            await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
-            await stream.close();
-            resolve();
-          }),
-      );
-
-      await done;
-    });
   }
 
   @Get(':id/cancel')
@@ -98,59 +121,59 @@ export class InstanceController {
     return instanceService.cancel(id);
   }
 
-  @Get(':id/:contentType')
+  @Get(':id/contents')
   @Validate(InstanceContentQueryDto)
-  async getContents(@Param() param) {
-    return instanceService.getContents(param);
+  async getContents(@Param('id') id: string, @Query() query) {
+    const payload: InstanceContentQueryDto = { ...query, id };
+    return instanceService.getContents(payload);
   }
 
-  @Get(':id/:contentType/:contentId')
+  @Post(':id/contents')
   @Validate(InstanceContentAddQueryDto)
-  async addContents(@Param() param, @Query() query, @Context() c) {
-    const payload: InstanceContentAddQueryDto = { ...param, ...query };
-    const downloader = await instanceService.addContents(payload);
+  async addContents(@Param('id') id: string, @Body() body, @Context() c) {
+    const payload: InstanceContentAddQueryDto = { ...body, id };
 
-    if (!downloader) {
+    try {
+      const event = await instanceService.addContents(payload);
+      return handleDownloaderSSE(c, event, 'No contents to add');
+    } catch (err: any) {
       return streamSSE(c, async (stream) => {
-        await stream.writeSSE({ event: 'done', data: 'Already installed' });
+        await stream.writeSSE({ event: 'error', data: err.message });
         await stream.close();
       });
     }
-
-    return streamSSE(c, async (stream) => {
-      const done = new Promise<void>((resolve) => {
-        downloader
-          .on('progress', async (percent) => await stream.writeSSE({ event: 'progress', data: percent }))
-          .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
-          .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
-          .on('extract', async (f) => await stream.writeSSE({ event: 'extract', data: f }))
-          .on('done', async () => {
-            await stream.writeSSE({ event: 'done', data: 'Download complete' });
-            await stream.close();
-            resolve();
-          })
-          .on('error', async (err) => {
-            await stream.writeSSE({ event: 'error', data: JSON.stringify(err) });
-            await stream.close();
-            resolve();
-          });
-      });
-
-      await done;
-    });
   }
 
-  @Delete(':id/:contentType')
+  @Delete(':id/contents')
   @Validate(InstanceContentRemoveQueryDto)
-  async removeContents(@Param() param, @Query() query) {
-    const payload: InstanceContentRemoveQueryDto = { ...param, ...query };
+  async removeContents(@Param('id') id: string, @Query() query) {
+    const payload: InstanceContentRemoveQueryDto = { ...query, id };
     return instanceService.removeContents(payload);
   }
 
-  @Put(':id/:contentType')
+  @Put(':id/contents/toggle')
   @Validate(InstanceContentToggleQueryDto)
-  async toggleContents(@Param() param, @Body() body) {
-    const payload: InstanceContentToggleQueryDto = { ...param, ...body };
+  async toggleContents(@Param('id') id: string, @Body() body) {
+    const payload: InstanceContentToggleQueryDto = { ...body, id };
     return instanceService.toggleContents(payload);
+  }
+
+  @Get(':id/contents/check')
+  async checkContents() {}
+
+  @Post(':id/contents/download')
+  @Validate(InstanceContentDownloadQueryDto)
+  async downloadContents(@Param('id') id: string, @Body() body, @Context() c) {
+    const payload: InstanceContentDownloadQueryDto = { ...body, id };
+
+    try {
+      const event = await instanceService.downloadContents(payload);
+      return handleDownloaderSSE(c, event, 'No contents to download');
+    } catch (err: any) {
+      return streamSSE(c, async (stream) => {
+        await stream.writeSSE({ event: 'error', data: err.message || 'Unknown error' });
+        await stream.close();
+      });
+    }
   }
 }

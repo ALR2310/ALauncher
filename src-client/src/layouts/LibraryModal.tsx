@@ -44,7 +44,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
     if (id && instance) {
       setModpackName(instance.name);
       setLoaderType(instance.loader!.type);
-      setLoaderVersion(instance.loader!.version);
+      setLoaderVersion(instance.loader!.build);
       setGameVersion(instance.version);
     }
   }, [id, instance]);
@@ -63,12 +63,12 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
         version: gameVersion,
         loader: {
           type: loaderType,
-          version: loaderVersion,
+          build: loaderVersion,
         },
       };
 
-      if (id) await updateInstance(data);
-      else await createInstance(data);
+      if (!id) await createInstance(data);
+      else await updateInstance({ id, data });
 
       ref.current.close();
       setModpackName('');

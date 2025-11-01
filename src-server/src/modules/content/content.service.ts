@@ -10,7 +10,8 @@ import {
   ContentQueryDto,
   ContentResponseDto,
 } from '@shared/dtos/content.dto';
-import { InstanceContentDto, InstanceContentType } from '@shared/dtos/instance.dto';
+import { InstanceContentDto } from '@shared/dtos/instance.dto';
+import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
 import {
   CurseForgeFileReleaseType,
@@ -60,7 +61,7 @@ export const contentService = new (class ContentService {
       const installedContentsMap = new Map<number, InstanceContentDto>();
 
       if (instance) {
-        const types = Object.values(InstanceContentType);
+        const types = Object.values(InstanceContentEnum);
         for (const t of types) {
           const contents = instance[t];
           if (contents) {

@@ -30,6 +30,8 @@ export default function LibraryDetail() {
   const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
   const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
+  const setFileVersion = useContextSelector(DiscoverContext, (v) => v.setFileVersion);
+  const setFileLoader = useContextSelector(DiscoverContext, (v) => v.setFileLoader);
   const [localData, setLocalData] = useState<ContentDto[]>(contents?.data || []);
 
   // Sync contents data to local state
@@ -43,6 +45,8 @@ export default function LibraryDetail() {
       setGameVersion(instance.version);
       setCategoryType(tabs.find((t) => t.key === tab)?.value ?? CATEGORY_CLASS.Mods);
       setLoaderType(instance.loader ? instance.loader.type : 0);
+      setFileVersion(instance.version);
+      setFileLoader(instance.loader ? instance.loader.type : 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instance, tab]);

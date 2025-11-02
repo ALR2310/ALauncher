@@ -16,8 +16,12 @@ interface DiscoverContextType {
   gameVersion: string;
   loaderType: number;
   categoryIds: Set<number>;
-  allowAlphaFile: boolean;
-  pageSizeFile: number;
+  showAlphaFiles: boolean;
+  pageSize: number;
+  fileVersion: string;
+  fileLoader: number;
+  fileVersions: string[];
+  fileLoaders: string[];
   // Setters
   setContentId: Dispatch<SetStateAction<number | null>>;
   setInstanceId: Dispatch<SetStateAction<string | undefined>>;
@@ -27,8 +31,12 @@ interface DiscoverContextType {
   setGameVersion: Dispatch<SetStateAction<string>>;
   setLoaderType: Dispatch<SetStateAction<number>>;
   setCategoryIds: Dispatch<SetStateAction<Set<number>>>;
-  setAllowAlphaFile: Dispatch<SetStateAction<boolean>>;
-  setPageSizeFile: Dispatch<SetStateAction<number>>;
+  setShowAlphaFiles: Dispatch<SetStateAction<boolean>>;
+  setPageSize: Dispatch<SetStateAction<number>>;
+  setFileVersion: Dispatch<SetStateAction<string>>;
+  setFileLoader: Dispatch<SetStateAction<number>>;
+  setFileVersions: Dispatch<SetStateAction<string[]>>;
+  setFileLoaders: Dispatch<SetStateAction<string[]>>;
 }
 
 const DiscoverContext = createContext<DiscoverContextType>(null!);
@@ -39,7 +47,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
 
   // State for filtering
   const [instanceId, setInstanceId] = useState<string | undefined>(undefined);
-  const [sortField, setSortField] = useState<number>(SORT_FIELD.Featured);
+  const [sortField, setSortField] = useState<number>(SORT_FIELD.Popularity);
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [categoryType, setCategoryType] = useState<number>(CATEGORY_CLASS.Mods);
   const [gameVersion, setGameVersion] = useState<string>('');
@@ -48,16 +56,20 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   // State for detail page
   const [contentId, setContentId] = useState<number | null>(null);
   // State for files filtering
-  const [allowAlphaFile, setAllowAlphaFile] = useState<boolean>(true);
-  const [pageSizeFile, setPageSizeFile] = useState<number>(20);
+  const [fileVersions, setFileVersions] = useState<string[]>([]);
+  const [fileVersion, setFileVersion] = useState<string>('');
+  const [fileLoaders, setFileLoaders] = useState<string[]>([]);
+  const [fileLoader, setFileLoader] = useState<number>(MOD_LOADER.Any);
+  const [showAlphaFiles, setShowAlphaFiles] = useState<boolean>(true);
+  const [pageSize, setPageSize] = useState<number>(20);
 
   const { data: versions } = useVersionReleasesQuery();
 
-  // Sync from URL
+  // Sync from URL filtering
   useEffect(() => {
     if (location.pathname !== ROUTES.discover.path) return;
 
-    setSortField(Number(searchParams.get('sortField')) || SORT_FIELD.Featured);
+    setSortField(Number(searchParams.get('sortField')) || SORT_FIELD.Popularity);
     setCategoryType(Number(searchParams.get('categoryType')) || CATEGORY_CLASS.Mods);
     setLoaderType(Number(searchParams.get('loaderType')) || MOD_LOADER.Any);
     setGameVersion(searchParams.get('gameVersion') || '');
@@ -79,7 +91,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
     setGameVersion(versions[0].version);
   }, [gameVersion, versions]);
 
-  // Sync to URL
+  // Sync to URL filtering
   useEffect(() => {
     clearTimeout(debounceRef.current);
 
@@ -110,8 +122,13 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       loaderType,
       categoryIds,
       instanceId,
-      allowAlphaFile,
-      pageSizeFile,
+      showAlphaFiles,
+      pageSize,
+      fileVersion,
+      fileLoader,
+      fileVersions,
+      fileLoaders,
+      // Setters
       setContentId,
       setSortField,
       setSearchFilter,
@@ -120,8 +137,12 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       setLoaderType,
       setCategoryIds,
       setInstanceId,
-      setAllowAlphaFile,
-      setPageSizeFile,
+      setShowAlphaFiles,
+      setPageSize,
+      setFileVersion,
+      setFileLoader,
+      setFileVersions,
+      setFileLoaders,
     }),
     [
       contentId,
@@ -132,8 +153,12 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
       loaderType,
       categoryIds,
       instanceId,
-      allowAlphaFile,
-      pageSizeFile,
+      showAlphaFiles,
+      pageSize,
+      fileVersion,
+      fileLoader,
+      fileVersions,
+      fileLoaders,
     ],
   );
 

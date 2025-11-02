@@ -68,3 +68,17 @@ export function getEnumKeys<T extends Record<string, string | number>>(enumObj: 
 export function getEnumValues<T extends Record<string, string | number>>(enumObj: T): Array<T[keyof T]> {
   return getEnumKeys(enumObj).map((key) => enumObj[key]) as Array<T[keyof T]>;
 }
+
+export function splitEnum<T extends Record<string, string | number>>(enumObj: T) {
+  const keyToValue = {} as Record<Extract<keyof T, string>, T[keyof T]>;
+  const valueToKey = {} as Record<T[keyof T], Extract<keyof T, string>>;
+
+  for (const [key, value] of Object.entries(enumObj)) {
+    if (isNaN(Number(key))) {
+      (keyToValue as any)[key] = value;
+      (valueToKey as any)[value] = key;
+    }
+  }
+
+  return { keyToValue, valueToKey };
+}

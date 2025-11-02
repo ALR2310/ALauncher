@@ -20,6 +20,8 @@ export default function DiscoverDetailLayout() {
   const { slug } = useParams<{ slug: string }>();
   const { data, isLoading } = useContentDetailQuery({ slug: slug! });
   const setContentId = useContextSelector(DiscoverContext, (v) => v.setContentId);
+  const setFileVersions = useContextSelector(DiscoverContext, (v) => v.setFileVersions);
+  const setFileLoaders = useContextSelector(DiscoverContext, (v) => v.setFileLoaders);
 
   const currentPath = location.pathname;
   const isGalleryTab = currentPath.endsWith('/gallery');
@@ -30,7 +32,9 @@ export default function DiscoverDetailLayout() {
   useEffect(() => {
     if (isLoading || !data) return;
     setContentId(data.id);
-  }, [data, isLoading, setContentId]);
+    setFileVersions(data.gameVersions);
+    setFileLoaders(data.modLoaders);
+  }, [data, isLoading, setContentId, setFileLoaders, setFileVersions]);
 
   return (
     <div className="flex" style={{ height, width }}>

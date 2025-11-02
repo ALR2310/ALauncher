@@ -4,13 +4,10 @@ import { useState } from 'react';
 import { useParams } from 'react-router';
 
 import { useContentDetailQuery } from '~/hooks/api/useContentApi';
-import { splitVersionsAndLoaders } from '~/utils/discover.utils';
 
 export default function DiscoverDetailPanel() {
   const { slug } = useParams<{ slug: string }>();
   const { data } = useContentDetailQuery({ slug: slug! });
-
-  const { versions, loaders } = splitVersionsAndLoaders(data?.gameVersions || []);
 
   return (
     <div className="w-64 bg-base-200 flex flex-col overflow-auto">
@@ -28,14 +25,26 @@ export default function DiscoverDetailPanel() {
         dateReleased={data?.dateReleased}
       />
 
-      <div className="divider m-0">Game Versions</div>
-      <SectionGameVersions gameVersions={versions} />
+      {data?.gameVersions ? (
+        <>
+          <div className="divider m-0">Game Versions</div>
+          <SectionGameVersions gameVersions={data?.gameVersions} />
+        </>
+      ) : null}
 
-      <div className="divider m-0">Mod Loaders</div>
-      <SectionModLoaders modLoaders={loaders} />
+      {data?.modLoaders ? (
+        <>
+          <div className="divider m-0">Mod Loaders</div>
+          <SectionModLoaders modLoaders={data?.modLoaders} />
+        </>
+      ) : null}
 
-      <div className="divider m-0">Categories</div>
-      <SectionCategories categories={data?.categories || []} />
+      {data?.categories ? (
+        <>
+          <div className="divider m-0">Categories</div>
+          <SectionCategories categories={data?.categories} />
+        </>
+      ) : null}
     </div>
   );
 }

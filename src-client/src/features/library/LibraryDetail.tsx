@@ -61,6 +61,14 @@ export default function LibraryDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instance, tab]);
 
+  // Cleanup: Invalidate queries when leaving component to refresh data on return
+  useEffect(() => {
+    return () => {
+      queryClient.invalidateQueries({ queryKey: ['contents'] });
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
+    };
+  }, [queryClient]);
+
   const handleToggle = useCallback(({ contentIds, enable, error }: OnToggleProps) => {
     if (error) {
       setLocalData((prevData) =>

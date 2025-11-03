@@ -2230,7 +2230,8 @@ eslint-import-resolver-node@^0.3.9:
 
 eslint-js@eslint/js:
   version "1.0.0"
-  resolved "https://codeload.github.com/eslint/js/tar.gz/2ca4d9b424c0e0385128a826e86af9d4d56c4859"
+  uid "71f448d807fe128e4b93d8cb81b325465df13e4a"
+  resolved "https://codeload.github.com/eslint/js/tar.gz/71f448d807fe128e4b93d8cb81b325465df13e4a"
 
 eslint-module-utils@^2.12.1:
   version "2.12.1"

@@ -17,7 +17,6 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-  NODE_ENV: production
   VITE_PORT: ${{ secrets.VITE_PORT }}
 
 jobs:

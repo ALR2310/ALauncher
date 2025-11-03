@@ -41,8 +41,8 @@ export const instanceSchema = z.object({
 });
 
 const instanceQuerySchema = z.object({
-  sortDir: z.enum(['asc', 'desc']).default('desc'),
-  sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'lastPlayed', 'version']).default('lastPlayed'),
+  sortDir: z.enum(['asc', 'desc']).default('desc').optional(),
+  sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'lastPlayed', 'version']).optional(),
 });
 
 const instanceUpdateBodySchema = z.object({

@@ -10,6 +10,7 @@ import { Link } from 'react-router';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { useInstanceAddContentSSE } from '~/hooks/api/useInstanceApi';
+import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 import { toast } from '~/hooks/app/useToast';
 
 interface ContentCardProps {
@@ -24,6 +25,8 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
   const formattedDate = useMemo(() => new Date(data.dateModified).toLocaleDateString(), [data.dateModified]);
   const categoryName = useMemo(() => categoryMap.idToText[data.classId ?? 0], [data.classId]);
   const { addContent, progress, isDownloading, estimated, speed, isDone } = useInstanceAddContentSSE();
+
+  const { selectInstance } = useSelectInstance();
 
   const status = useMemo(() => {
     switch (data.instance?.status) {
@@ -55,11 +58,12 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
     }
   }, [isDone, instanceId, queryClient]);
 
-  const handleAddContent = useCallback(() => {
-    if (!instanceId) return toast.warning('Please select an instance to add content to.');
+  const handleAddContent = useCallback(async () => {
+    const id = instanceId ?? (await selectInstance());
+    if (!id) return toast.warning('Please select an instance to add content to.');
 
-    addContent({ id: instanceId, contentId: data.id, worlds: undefined });
-  }, [addContent, data.id, instanceId]);
+    addContent({ id, contentId: data.id, worlds: undefined });
+  }, [addContent, data.id, instanceId, selectInstance]);
 
   return (
     <div className="flex gap-4 p-3 h-[120px] bg-base-100 rounded-box">

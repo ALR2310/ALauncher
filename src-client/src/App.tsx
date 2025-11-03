@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
+import { SelectInstanceProvider } from './context/SelectInstanceContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { TooltipProvider } from './context/TooltipContext';
@@ -38,9 +39,11 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       <ToastProvider>
         <ConfirmProvider>
           <LibraryModalProvider>
-            <TooltipProvider>
-              <ThemeProvider>{children}</ThemeProvider>
-            </TooltipProvider>
+            <SelectInstanceProvider>
+              <TooltipProvider>
+                <ThemeProvider>{children}</ThemeProvider>
+              </TooltipProvider>
+            </SelectInstanceProvider>
           </LibraryModalProvider>
         </ConfirmProvider>
       </ToastProvider>

@@ -1,6 +1,8 @@
 import { ROUTES } from '@shared/constants/routes';
 import { ContentDto } from '@shared/dtos/content.dto';
 import { CategoryClassEnum, InstanceContentEnum } from '@shared/enums/general.enum';
+import { useQueryClient } from '@tanstack/react-query';
+import { RefreshCcw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -23,6 +25,8 @@ const tabs = [
 export default function LibraryDetail() {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState(CategoryClassEnum.Mods);
+
+  const queryClient = useQueryClient();
 
   const contentType = useMemo(
     () => CategoryClassEnum[tab].replace(/\s+/g, '').toLowerCase() as InstanceContentEnum,
@@ -99,7 +103,7 @@ export default function LibraryDetail() {
 
   const tableColumns = useLibraryTableColumns({
     data: localData,
-    contentType: tab as any,
+    contentType,
     onToggle: handleToggle,
     onDelete: handleDelete,
   });
@@ -111,18 +115,27 @@ export default function LibraryDetail() {
 
       {/* Tabs */}
       <div className="flex-1 flex flex-col min-h-0 gap-1">
-        <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
-          {tabs.map((t) => (
-            <input
-              key={t}
-              type="radio"
-              name="content_type"
-              className={`tab`}
-              aria-label={`${CategoryClassEnum[t]}${tab === t ? ` (${localData.length})` : ''}`}
-              onChange={() => setTab(t)}
-              defaultChecked={t === tab}
-            />
-          ))}
+        <div className="flex justify-between items-center">
+          <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
+            {tabs.map((t) => (
+              <input
+                key={t}
+                type="radio"
+                name="content_type"
+                className={`tab`}
+                aria-label={`${CategoryClassEnum[t]}${tab === t ? ` (${localData.length})` : ''}`}
+                onChange={() => setTab(t)}
+                defaultChecked={t === tab}
+              />
+            ))}
+          </div>
+
+          <button
+            className="btn btn-soft btn-sm"
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['contents'] })}
+          >
+            <RefreshCcw size={16} />
+          </button>
         </div>
 
         <DataTable

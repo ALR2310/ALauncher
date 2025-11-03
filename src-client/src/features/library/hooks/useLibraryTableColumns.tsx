@@ -210,7 +210,7 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
             ) : (
               <Link to={ROUTES.discover.path} className="btn btn-success btn-sm btn-soft btn-block">
                 <Plus size={20}></Plus>
-                Contents
+                Adds
               </Link>
             )}
           </div>

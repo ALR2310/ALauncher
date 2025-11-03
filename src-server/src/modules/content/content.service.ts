@@ -1,4 +1,3 @@
-import { MOD_LOADER } from '@shared/constants/curseforge.const';
 import {
   ContentDetailQueryDto,
   ContentDto,
@@ -26,21 +25,16 @@ import { BadRequestException } from '~/common/filters/exception.filter';
 import { curseForgeService } from '../curseforge/curseforge.service';
 import { instanceService } from '../instance/instance.service';
 
-function splitGameVersions(item: { gameVersions?: string[] }) {
-  const MOD_LOADER_NAMES = Object.keys(MOD_LOADER);
-
-  const all = item.gameVersions ?? [];
-
-  const gameVersions: string[] = [];
-  const modLoaders: string[] = [];
-
-  for (const v of all) {
-    if (MOD_LOADER_NAMES.includes(v)) modLoaders.push(v);
-    else gameVersions.push(v);
-  }
-
-  return { gameVersions, modLoaders };
-}
+const splitVersions = (arr: string[]) => {
+  const versionRegex = /^\d+(\.\d+)*$/;
+  return arr.reduce(
+    (acc, item) => {
+      (versionRegex.test(item) ? acc[0] : acc[1]).push(item);
+      return acc;
+    },
+    [[], []] as [string[], string[]],
+  );
+};
 
 export const contentService = new (class ContentService {
   async findAll(payload: ContentQueryDto): Promise<ContentResponseDto> {
@@ -158,8 +152,7 @@ export const contentService = new (class ContentService {
     const response = await curseForgeService.getModFile(id, fileId);
 
     const downloadUrl = this.getDownloadUrl(response.modId, response.id);
-
-    const { gameVersions, modLoaders } = splitGameVersions(response);
+    const [gameVersions, modLoaders] = splitVersions(response.gameVersions);
 
     const file: ContentFileDto = {
       id: response.id,
@@ -172,7 +165,7 @@ export const contentService = new (class ContentService {
       fileSize: formatBytes(response.fileLength),
       downloadCount: response.downloadCount,
       downloadUrl,
-      gameVersions: [...gameVersions].sort(compareVersion),
+      gameVersions: gameVersions.sort(compareVersion),
       modLoaders,
       hash: response.hashes[0].value,
       dependencies: response.dependencies,
@@ -194,7 +187,7 @@ export const contentService = new (class ContentService {
     const files = result.map((item) => {
       const downloadUrl = item.downloadUrl ?? this.getDownloadUrl(item.modId, item.id);
 
-      const { gameVersions, modLoaders } = splitGameVersions(item);
+      const [gameVersions, modLoaders] = splitVersions(item.gameVersions);
 
       const file: ContentFileDto = {
         id: item.id,
@@ -207,7 +200,7 @@ export const contentService = new (class ContentService {
         fileSize: formatBytes(item.fileLength),
         downloadCount: item.downloadCount,
         downloadUrl,
-        gameVersions: [...gameVersions].sort(compareVersion),
+        gameVersions: gameVersions.sort(compareVersion),
         modLoaders,
         hash: item.hashes[0].value,
         dependencies: item.dependencies,

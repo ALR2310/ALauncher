@@ -1,6 +1,6 @@
-import { SORT_FIELD } from '@shared/constants/curseforge.const';
+import { splitCamelCase } from '@shared/utils/general.utils';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { CurseForgeSortOrder } from 'curseforge-api';
+import { CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-api';
 import { Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useContextSelector } from 'use-context-selector';
@@ -14,6 +14,13 @@ import ContentCardSkeleton from './components/ContentCardSkeleton';
 import DiscoverFilterBar from './components/DiscoverFilterBar';
 
 const LoadingCount = Array.from({ length: 10 });
+
+const SortField = [
+  CurseForgeModsSearchSortField.Popularity,
+  CurseForgeModsSearchSortField.LastUpdated,
+  CurseForgeModsSearchSortField.TotalDownloads,
+  CurseForgeModsSearchSortField.ReleasedDate,
+];
 
 export default function DiscoverList() {
   const { height, width } = useContainer();
@@ -82,9 +89,9 @@ export default function DiscoverList() {
       <div className="flex-1 flex flex-col min-h-0 p-4 pe-1 gap-4">
         <div className="flex gap-4">
           <select className="select w-38" value={sortField} onChange={handleSortChange}>
-            {Object.entries(SORT_FIELD).map(([key, value]) => (
+            {SortField.map((value) => (
               <option key={value} value={value}>
-                {key}
+                {splitCamelCase(CurseForgeModsSearchSortField[value])}
               </option>
             ))}
           </select>

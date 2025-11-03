@@ -82,3 +82,7 @@ export function splitEnum<T extends Record<string, string | number>>(enumObj: T)
 
   return { keyToValue, valueToKey };
 }
+
+export function splitCamelCase(text: string): string {
+  return text.replace(/([a-z])([A-Z])/g, '$1 $2');
+}

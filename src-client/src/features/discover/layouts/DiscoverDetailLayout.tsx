@@ -1,5 +1,5 @@
-import { CATEGORY_CLASS_REVERSED } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
+import { CategoryClassEnum } from '@shared/enums/general.enum';
 import { capitalize } from '@shared/utils/general.utils';
 import { Download, ExternalLink } from 'lucide-react';
 import { useEffect } from 'react';
@@ -56,9 +56,7 @@ export default function DiscoverDetailLayout() {
 
                 <div className="divider divider-horizontal mx-2"></div>
 
-                {data?.classId && (
-                  <button className="btn btn-xs btn-outline">{CATEGORY_CLASS_REVERSED[data.classId]}</button>
-                )}
+                {data?.classId && <button className="btn btn-xs btn-outline">{CategoryClassEnum[data.classId]}</button>}
               </div>
             </div>
 

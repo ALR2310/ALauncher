@@ -1,4 +1,5 @@
-import { CATEGORY_CLASS, MOD_LOADER } from '@shared/constants/curseforge.const';
+import { CategoryClassEnum } from '@shared/enums/general.enum';
+import { CurseForgeModLoaderType } from 'curseforge-api';
 import { useEffect, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
@@ -6,6 +7,23 @@ import { DiscoverContext } from '~/context/DiscoverContext';
 import { useCategoryQuery } from '~/hooks/api/useCategoryApi';
 import { useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
 import { buildCategoryTree, CategoryNode } from '~/utils/discover.utils';
+
+const ClassCategories = [
+  CategoryClassEnum.Mods,
+  CategoryClassEnum['Resource Packs'],
+  CategoryClassEnum['Shader Packs'],
+  CategoryClassEnum['Data Packs'],
+  CategoryClassEnum.Worlds,
+  CategoryClassEnum.Modpacks,
+];
+
+const ModLoaders = [
+  CurseForgeModLoaderType.Any,
+  CurseForgeModLoaderType.Forge,
+  CurseForgeModLoaderType.Fabric,
+  CurseForgeModLoaderType.Quilt,
+  CurseForgeModLoaderType.NeoForge,
+];
 
 function MenuItem({ node }: { node: CategoryNode }) {
   const categoryIds = useContextSelector(DiscoverContext, (v) => v.categoryIds);
@@ -79,9 +97,9 @@ export default function DiscoverFilterBar() {
   }, [categories, categoryType]);
 
   useEffect(() => {
-    if (categoryType !== CATEGORY_CLASS.Mods) {
+    if (categoryType !== CategoryClassEnum.Mods) {
       setCategoryIds(new Set());
-      setLoaderType(MOD_LOADER.Any);
+      setLoaderType(CurseForgeModLoaderType.Any);
     }
   }, [categoryType, setCategoryIds, setLoaderType]);
 
@@ -97,9 +115,9 @@ export default function DiscoverFilterBar() {
             setCategoryIds(new Set());
           }}
         >
-          {Object.entries(CATEGORY_CLASS).map(([key, value]) => (
-            <option key={value} value={value} className="text-nowrap">
-              {key}
+          {ClassCategories.map((value) => (
+            <option key={value} value={value}>
+              {CategoryClassEnum[value]}
             </option>
           ))}
         </select>
@@ -119,14 +137,11 @@ export default function DiscoverFilterBar() {
       <div className="flex px-3">
         <span className="label flex-1/3">Loader</span>
         <select className="select flex-2/3" value={loaderType} onChange={(e) => setLoaderType(Number(e.target.value))}>
-          {Object.entries(MOD_LOADER).map(([key, value]) => {
-            const label = value === MOD_LOADER.Any ? 'All' : key;
-            return (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            );
-          })}
+          {ModLoaders.map((value) => (
+            <option key={value} value={value}>
+              {value === CurseForgeModLoaderType.Any ? 'All' : CurseForgeModLoaderType[value]}
+            </option>
+          ))}
         </select>
       </div>
 

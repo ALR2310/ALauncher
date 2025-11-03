@@ -1,5 +1,6 @@
-import { CATEGORY_CLASS, MOD_LOADER, SORT_FIELD } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
+import { CategoryClassEnum } from '@shared/enums/general.enum';
+import { CurseForgeModLoaderType, CurseForgeModsSearchSortField } from 'curseforge-api';
 import { Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { createContext } from 'use-context-selector';
@@ -10,31 +11,31 @@ interface DiscoverContextType {
   // State
   contentId: number | null;
   instanceId: string | undefined;
-  sortField: number;
+  sortField: CurseForgeModsSearchSortField;
   searchFilter: string;
-  categoryType: number;
+  categoryType: CategoryClassEnum;
   gameVersion: string;
-  loaderType: number;
+  loaderType: CurseForgeModLoaderType;
   categoryIds: Set<number>;
   showAlphaFiles: boolean;
   pageSize: number;
   fileVersion: string;
-  fileLoader: number;
+  fileLoader: CurseForgeModLoaderType;
   fileVersions: string[];
   fileLoaders: string[];
   // Setters
   setContentId: Dispatch<SetStateAction<number | null>>;
   setInstanceId: Dispatch<SetStateAction<string | undefined>>;
-  setSortField: Dispatch<SetStateAction<number>>;
+  setSortField: Dispatch<SetStateAction<CurseForgeModsSearchSortField>>;
   setSearchFilter: Dispatch<SetStateAction<string>>;
-  setCategoryType: Dispatch<SetStateAction<number>>;
+  setCategoryType: Dispatch<SetStateAction<CategoryClassEnum>>;
   setGameVersion: Dispatch<SetStateAction<string>>;
-  setLoaderType: Dispatch<SetStateAction<number>>;
+  setLoaderType: Dispatch<SetStateAction<CurseForgeModLoaderType>>;
   setCategoryIds: Dispatch<SetStateAction<Set<number>>>;
   setShowAlphaFiles: Dispatch<SetStateAction<boolean>>;
   setPageSize: Dispatch<SetStateAction<number>>;
   setFileVersion: Dispatch<SetStateAction<string>>;
-  setFileLoader: Dispatch<SetStateAction<number>>;
+  setFileLoader: Dispatch<SetStateAction<CurseForgeModLoaderType>>;
   setFileVersions: Dispatch<SetStateAction<string[]>>;
   setFileLoaders: Dispatch<SetStateAction<string[]>>;
 }
@@ -47,11 +48,11 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
 
   // State for filtering
   const [instanceId, setInstanceId] = useState<string | undefined>(undefined);
-  const [sortField, setSortField] = useState<number>(SORT_FIELD.Popularity);
+  const [sortField, setSortField] = useState(CurseForgeModsSearchSortField.Popularity);
   const [searchFilter, setSearchFilter] = useState<string>('');
-  const [categoryType, setCategoryType] = useState<number>(CATEGORY_CLASS.Mods);
+  const [categoryType, setCategoryType] = useState(CategoryClassEnum.Mods);
   const [gameVersion, setGameVersion] = useState<string>('');
-  const [loaderType, setLoaderType] = useState<number>(MOD_LOADER.Any);
+  const [loaderType, setLoaderType] = useState(CurseForgeModLoaderType.Any);
   const [categoryIds, setCategoryIds] = useState<Set<number>>(new Set());
   // State for detail page
   const [contentId, setContentId] = useState<number | null>(null);
@@ -59,7 +60,7 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   const [fileVersions, setFileVersions] = useState<string[]>([]);
   const [fileVersion, setFileVersion] = useState<string>('');
   const [fileLoaders, setFileLoaders] = useState<string[]>([]);
-  const [fileLoader, setFileLoader] = useState<number>(MOD_LOADER.Any);
+  const [fileLoader, setFileLoader] = useState(CurseForgeModLoaderType.Any);
   const [showAlphaFiles, setShowAlphaFiles] = useState<boolean>(true);
   const [pageSize, setPageSize] = useState<number>(20);
 
@@ -69,9 +70,9 @@ const DiscoverProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (location.pathname !== ROUTES.discover.path) return;
 
-    setSortField(Number(searchParams.get('sortField')) || SORT_FIELD.Popularity);
-    setCategoryType(Number(searchParams.get('categoryType')) || CATEGORY_CLASS.Mods);
-    setLoaderType(Number(searchParams.get('loaderType')) || MOD_LOADER.Any);
+    setSortField(Number(searchParams.get('sortField')) || CurseForgeModsSearchSortField.Popularity);
+    setCategoryType(Number(searchParams.get('categoryType')) || CategoryClassEnum.Mods);
+    setLoaderType(Number(searchParams.get('loaderType')) || CurseForgeModLoaderType.Any);
     setGameVersion(searchParams.get('gameVersion') || '');
     setSearchFilter(searchParams.get('searchFilter') || '');
     setInstanceId(searchParams.get('instance') || undefined);

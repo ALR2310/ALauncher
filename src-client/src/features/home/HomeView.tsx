@@ -1,4 +1,4 @@
-import { CATEGORY_CLASS } from '@shared/constants/curseforge.const';
+import { CategoryClassEnum } from '@shared/enums/general.enum';
 import { CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-api';
 
 import { useContentsQueries } from '~/hooks/api/useContentApi';
@@ -12,13 +12,13 @@ export default function HomeView() {
 
   const result = useContentsQueries([
     {
-      classId: CATEGORY_CLASS.Modpacks,
+      classId: CategoryClassEnum.Modpacks,
       sortField: CurseForgeModsSearchSortField.Popularity,
       sortOrder: CurseForgeSortOrder.Descending,
       pageSize: 4,
     },
     {
-      classId: CATEGORY_CLASS.Mods,
+      classId: CategoryClassEnum.Mods,
       sortField: CurseForgeModsSearchSortField.Popularity,
       sortOrder: CurseForgeSortOrder.Descending,
       pageSize: 4,

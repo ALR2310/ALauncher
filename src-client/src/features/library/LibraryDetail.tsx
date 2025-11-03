@@ -1,7 +1,7 @@
-import { CATEGORY_CLASS } from '@shared/constants/curseforge.const';
 import { ROUTES } from '@shared/constants/routes';
 import { ContentDto } from '@shared/dtos/content.dto';
-import { useCallback, useEffect, useState } from 'react';
+import { CategoryClassEnum, InstanceContentEnum } from '@shared/enums/general.enum';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -12,20 +12,26 @@ import { useInstanceGetContentsQuery, useInstanceOneQuery } from '~/hooks/api/us
 import LibraryDetailHeader from './components/LibraryDetailHeader';
 import { OnDeleteProps, OnToggleProps, useLibraryTableColumns } from './hooks/useLibraryTableColumns';
 
-const tabs = Object.entries(CATEGORY_CLASS)
-  .slice(0, 5)
-  .map(([title, value], index) => ({
-    key: title.replace(/\s+/g, '').toLowerCase(),
-    title,
-    value,
-    checked: index === 0,
-  }));
+const tabs = [
+  CategoryClassEnum.Mods,
+  CategoryClassEnum['Resource Packs'],
+  CategoryClassEnum['Shader Packs'],
+  CategoryClassEnum['Data Packs'],
+  CategoryClassEnum.Worlds,
+];
 
 export default function LibraryDetail() {
   const { id } = useParams<{ id: string }>();
-  const [tab, setTab] = useState('mods');
+  const [tab, setTab] = useState(CategoryClassEnum.Mods);
+
+  const contentType = useMemo(
+    () => CategoryClassEnum[tab].replace(/\s+/g, '').toLowerCase() as InstanceContentEnum,
+    [tab],
+  );
+
   const { data: instance, isLoading: isLoadingInstance } = useInstanceOneQuery(id!);
-  const { data: contents, isLoading } = useInstanceGetContentsQuery({ id: id!, contentType: tab as any });
+  const { data: contents, isLoading } = useInstanceGetContentsQuery({ id: id!, contentType });
+
   const setGameVersion = useContextSelector(DiscoverContext, (v) => v.setGameVersion);
   const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
   const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
@@ -43,7 +49,7 @@ export default function LibraryDetail() {
     if (instance) {
       setInstanceId(instance.id);
       setGameVersion(instance.version);
-      setCategoryType(tabs.find((t) => t.key === tab)?.value ?? CATEGORY_CLASS.Mods);
+      setCategoryType(tab);
       setLoaderType(instance.loader ? instance.loader.type : 0);
       setFileVersion(instance.version);
       setFileLoader(instance.loader ? instance.loader.type : 0);
@@ -108,13 +114,13 @@ export default function LibraryDetail() {
         <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
           {tabs.map((t) => (
             <input
-              key={t.key}
+              key={t}
               type="radio"
               name="content_type"
               className={`tab`}
-              aria-label={`${t.title}${tab === t.key ? ` (${localData.length})` : ''}`}
-              onChange={() => setTab(t.key)}
-              defaultChecked={t.checked}
+              aria-label={`${CategoryClassEnum[t]}${tab === t ? ` (${localData.length})` : ''}`}
+              onChange={() => setTab(t)}
+              defaultChecked={t === tab}
             />
           ))}
         </div>

@@ -9,7 +9,7 @@ import path from 'path';
 import { ENV } from '../../shared/enums/general.enum';
 
 const outfile = 'dist/data.bin';
-const target = 'node20'; 
+const target = 'node20';
 let define: Record<string, string> = {};
 
 if (existsSync('.env')) {
@@ -39,7 +39,7 @@ const isDev = process.env.NODE_ENV === ENV.Development;
       outfile,
       define,
       minify: !isDev,
-      metafile: true,
+      metafile: isDev,
       alias: {
         '@shared': path.resolve('shared'),
       },

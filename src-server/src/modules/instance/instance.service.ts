@@ -175,6 +175,11 @@ export const instanceService = new (class InstanceService {
     }
   }
 
+  /**
+   * Get the base directory for instances
+   *
+   * Example: `/path/to/minecraft/versions/<id>`
+   */
   async getDir(id?: string): Promise<string> {
     const config = await appService.getConfig();
 
@@ -184,11 +189,21 @@ export const instanceService = new (class InstanceService {
     return path.join(this.instanceDirCache, id ?? '');
   }
 
+  /**
+   * Get the full path to an instance's JSON file
+   *
+   * Example: `/path/to/minecraft/versions/<id>/instance.json`
+   */
   async getPath(id: string): Promise<string> {
     const instanceDir = await this.getDir();
     return path.resolve(instanceDir, id, 'instance.json');
   }
 
+  /**
+   * Get the directory for a specific content type within an instance
+   *
+   * Example: `/path/to/minecraft/versions/<id>/mods`
+   */
   async getContentDir(instanceId: string, contentType: InstanceContentEnum, worldName?: string) {
     const instanceDir = await this.getDir(instanceId);
     let contentDir: string;

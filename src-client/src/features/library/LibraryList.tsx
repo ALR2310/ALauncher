@@ -1,6 +1,7 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { ChevronDown, Copy, Gamepad2, Trash2, Upload } from 'lucide-react';
+import { useCallback } from 'react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -9,12 +10,22 @@ import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 export default function LibraryList() {
   const { data: instances } = useInstancesQuery();
 
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
   const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
+  const { selectInstanceFiles } = useSelectInstance();
+
+  const handleUpload = useCallback(
+    async (id: string) => {
+      const files = await selectInstanceFiles(id);
+      console.log('Selected files to upload:', files);
+    },
+    [selectInstanceFiles],
+  );
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
@@ -31,10 +42,9 @@ export default function LibraryList() {
             const speed = state?.speed;
 
             return (
-              <div className="relative group h-60 overflow-hidden bg-base-100 rounded-xl">
+              <div key={instance.id} className="relative group h-60 overflow-hidden bg-base-100 rounded-xl">
                 <Link
                   to={ROUTES.library.detail(instance.id)}
-                  key={instance.id}
                   className="absolute inset-0"
                   tabIndex={0}
                   style={{
@@ -103,19 +113,19 @@ export default function LibraryList() {
                           </button>
                           <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-40 p-2 shadow-sm">
                             <li>
-                              <p className="text-error">
+                              <button className="text-error">
                                 <Trash2 size={16} /> Delete
-                              </p>
+                              </button>
                             </li>
                             <li>
-                              <p>
+                              <button>
                                 <Copy size={16} /> Duplicate
-                              </p>
+                              </button>
                             </li>
                             <li>
-                              <p>
+                              <button onClick={() => handleUpload(instance.id)}>
                                 <Upload size={16} /> Upload
-                              </p>
+                              </button>
                             </li>
                           </ul>
                         </div>

@@ -7,6 +7,7 @@ import {
   InstanceContentRemoveResponseDto,
   InstanceContentToggleQueryDto,
   InstanceDto,
+  InstanceFolderTreeDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
   InstanceWorldDto,
@@ -43,6 +44,10 @@ export async function instanceFindWorlds(id: string) {
 
 export async function instanceOpenFolder(id: string) {
   return API.get(`${BASE_PATH}/${id}/folders`);
+}
+
+export async function instanceGetFolderTree(id: string) {
+  return API.get<InstanceFolderTreeDto>(`${BASE_PATH}/${id}/folders/tree`);
 }
 
 export function instanceLaunch(id: string) {

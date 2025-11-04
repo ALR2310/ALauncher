@@ -1,9 +1,17 @@
 import { useContext } from 'react';
 
-import { SelectInstanceContext } from '~/context/SelectInstanceContext';
+import { InstanceFileSelectContext } from '~/context/InstanceFileSelectContext';
+import { InstanceSelectContext } from '~/context/InstanceSelectContext';
 
 export function useSelectInstance() {
-  const ctx = useContext(SelectInstanceContext);
-  if (!ctx) throw new Error('useSelectInstance must be used within a SelectInstanceProvider');
-  return ctx;
+  const selectCtx = useContext(InstanceSelectContext);
+  const fileCtx = useContext(InstanceFileSelectContext);
+
+  if (!selectCtx) throw new Error('useSelectInstance must be used within an InstanceSelectProvider');
+  if (!fileCtx) throw new Error('useSelectInstance must be used within an InstanceFileSelectProvider');
+
+  return {
+    selectInstance: selectCtx.selectInstance,
+    selectInstanceFiles: fileCtx.selectInstanceFiles,
+  };
 }

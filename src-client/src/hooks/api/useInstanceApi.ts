@@ -11,6 +11,7 @@ import {
   instanceFindOne,
   instanceFindWorlds,
   instanceGetContents,
+  instanceGetFolderTree,
   instanceRemoveContent,
   instanceToggleContent,
   instanceUpdate,
@@ -55,6 +56,14 @@ export function useInstanceWorldsQuery(id: string) {
   return useQuery({
     queryKey: ['instanceWorlds', id],
     queryFn: () => instanceFindWorlds(id),
+    enabled: !!id,
+  });
+}
+
+export function useInstanceFolderTreeQuery(id: string) {
+  return useQuery({
+    queryKey: ['instanceFolderTree', id],
+    queryFn: () => instanceGetFolderTree(id),
     enabled: !!id,
   });
 }

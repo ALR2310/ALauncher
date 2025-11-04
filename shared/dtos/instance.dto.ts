@@ -4,6 +4,13 @@ import z from 'zod';
 
 import { createZodDto } from '../utils/zod.dto';
 
+interface InstanceFolderTree {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: InstanceFolderTree[];
+}
+
 const instanceContentSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -60,7 +67,7 @@ const instanceWorldSchema = z.object({
   path: z.string(),
 });
 
-const instanceFolderTreeSchema = z.lazy(() =>
+const instanceFolderTreeSchema: z.ZodType<InstanceFolderTree> = z.lazy(() =>
   z.object({
     name: z.string(),
     path: z.string(),

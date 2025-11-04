@@ -48,7 +48,7 @@
     "@octokit/rest": "^22.0.1",
     "@tailwindcss/vite": "^4.1.16",
     "@tauri-apps/cli": "^2.9.2",
-    "@types/adm-zip": "^0.5.7",
+    "@types/archiver": "^7.0.0",
     "@types/fs-extra": "^11.0.4",
     "@types/lodash": "^4.17.20",
     "@types/node": "^24.10.0",

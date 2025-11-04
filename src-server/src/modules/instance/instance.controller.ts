@@ -15,6 +15,7 @@ import { streamSSE } from 'hono/streaming';
 import { Body, Context, Controller, Delete, Get, Param, Post, Put, Query, Validate } from '~/common/decorators';
 
 import { instanceService } from './instance.service';
+import { instanceCloudService } from './instance-cloud.service';
 import { instanceContentService } from './instance-content.service';
 import { instanceFolderService } from './instance-folder.service';
 import { instanceLaunchService } from './instance-launch.service';
@@ -127,6 +128,17 @@ export class InstanceController {
   @Get(':id/cancel')
   async cancel(@Param('id') id: string) {
     return instanceLaunchService.cancel(id);
+  }
+
+  @Get(':id/download')
+  async download(@Param('id') id: string) {
+    return instanceCloudService.downloadInstance(id);
+  }
+
+  @Post(':id/upload')
+  async upload(@Param('id') id: string, @Body() body) {
+    const payload = { id, ...body };
+    return instanceCloudService.uploadInstance(payload);
   }
 
   @Get(':id/contents')

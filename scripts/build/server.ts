@@ -38,7 +38,7 @@ const isDev = process.env.NODE_ENV === ENV.Development;
       format: 'cjs',
       outfile,
       define,
-      minify: !isDev,
+      // minify: !isDev,
       metafile: isDev,
       alias: {
         '@shared': path.resolve('shared'),

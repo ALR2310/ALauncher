@@ -1,6 +1,6 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
-import { Gamepad2 } from 'lucide-react';
+import { ChevronDown, Copy, Gamepad2, Trash2, Upload } from 'lucide-react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -31,21 +31,23 @@ export default function LibraryList() {
             const speed = state?.speed;
 
             return (
-              <Link
-                to={ROUTES.library.detail(instance.id)}
-                key={instance.id}
-                className="relative group h-60 overflow-hidden bg-base-100 rounded-xl"
-                tabIndex={0}
-                style={{
-                  backgroundImage: `url(${import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo} )`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              >
-                <div className="flex items-center gap-2 absolute top-0 right-0 bg-base-300/60 m-1 p-1 rounded-box">
-                  <Gamepad2 size={20} />
-                  {`${instance.loader ? CurseForgeModLoaderType[instance.loader.type] : 'Release'} ${instance.version}`}
-                </div>
+              <div className="relative group h-60 overflow-hidden bg-base-100 rounded-xl">
+                <Link
+                  to={ROUTES.library.detail(instance.id)}
+                  key={instance.id}
+                  className="absolute inset-0"
+                  tabIndex={0}
+                  style={{
+                    backgroundImage: `url(${import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo} )`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  <div className="flex items-center gap-2 absolute top-0 right-0 bg-base-300/60 m-1 p-1 rounded-box">
+                    <Gamepad2 size={20} />
+                    {`${instance.loader ? CurseForgeModLoaderType[instance.loader.type] : 'Release'} ${instance.version}`}
+                  </div>
+                </Link>
 
                 <div
                   className={`absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-3 transform transition-transform duration-300 ${!isRunning && 'translate-y-[calc(100%-40px)]'} group-hover:translate-y-0 group-focus:translate-y-0`}
@@ -84,20 +86,45 @@ export default function LibraryList() {
                         />
                       </button>
                     ) : (
-                      <button
-                        className={`btn btn-success w-full ${isRunning ? 'btn-soft' : ''}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (isRunning) cancel(instance.id);
-                          else launch(instance.id);
-                        }}
-                      >
-                        {isRunning ? 'Cancel' : 'Launch'}
-                      </button>
+                      <div className="join">
+                        <button
+                          className={`btn btn-success join-item w-full ${isRunning ? 'btn-soft' : ''}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (isRunning) cancel(instance.id);
+                            else launch(instance.id);
+                          }}
+                        >
+                          {isRunning ? 'Cancel' : 'Launch'}
+                        </button>
+
+                        <div className="dropdown dropdown-top dropdown-end">
+                          <button className="btn btn-success join-item" onClick={(e) => e.preventDefault()}>
+                            <ChevronDown size={16} />
+                          </button>
+                          <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-40 p-2 shadow-sm">
+                            <li>
+                              <p className="text-error">
+                                <Trash2 size={16} /> Delete
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <Copy size={16} /> Duplicate
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <Upload size={16} /> Upload
+                              </p>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

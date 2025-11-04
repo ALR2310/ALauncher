@@ -60,6 +60,15 @@ const instanceWorldSchema = z.object({
   path: z.string(),
 });
 
+const instanceFolderTreeSchema = z.lazy(() =>
+  z.object({
+    name: z.string(),
+    path: z.string(),
+    type: z.enum(['file', 'directory']),
+    children: z.array(instanceFolderTreeSchema).optional(),
+  }),
+);
+
 const instanceContentQuerySchema = z.object({
   id: z.string(),
   contentType: z.enum(InstanceContentEnum).default(InstanceContentEnum.Mods),
@@ -98,6 +107,7 @@ export class InstanceDto extends createZodDto(instanceSchema) {}
 export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
 export class InstanceUpdateBodyDto extends createZodDto(instanceUpdateBodySchema) {}
 export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
+export class InstanceFolderTreeDto extends createZodDto(instanceFolderTreeSchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}

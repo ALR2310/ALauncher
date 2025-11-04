@@ -89,8 +89,7 @@ export default function LibraryList() {
                       <div className="join">
                         <button
                           className={`btn btn-success join-item w-full ${isRunning ? 'btn-soft' : ''}`}
-                          onClick={(e) => {
-                            e.preventDefault();
+                          onClick={() => {
                             if (isRunning) cancel(instance.id);
                             else launch(instance.id);
                           }}
@@ -99,7 +98,7 @@ export default function LibraryList() {
                         </button>
 
                         <div className="dropdown dropdown-top dropdown-end">
-                          <button className="btn btn-success join-item" onClick={(e) => e.preventDefault()}>
+                          <button className="btn btn-success join-item">
                             <ChevronDown size={16} />
                           </button>
                           <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-40 p-2 shadow-sm">

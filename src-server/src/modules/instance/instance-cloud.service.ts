@@ -1,8 +1,8 @@
 import archiver from 'archiver';
-import { createReadStream, createWriteStream } from 'fs';
+import { createWriteStream } from 'fs';
 import { mkdir, stat } from 'fs/promises';
 import path from 'path';
-import unzipper from 'unzipper';
+import { Open } from 'unzipper';
 
 import { instanceService } from './instance.service';
 
@@ -52,22 +52,20 @@ export const instanceCloudService = new (class InstanceCloudService {
   private async decompressInstance(filePath: string, outputDir: string) {
     await mkdir(outputDir, { recursive: true });
 
-    return new Promise<void>((resolve, reject) => {
-      createReadStream(filePath)
-        .pipe(unzipper.Parse())
-        .on('entry', async (entry) => {
-          const outPath = path.join(outputDir, entry.path);
-          if (entry.type === 'Directory') {
-            await mkdir(outPath, { recursive: true });
-            entry.autodrain();
-          } else {
-            await mkdir(path.dirname(outPath), { recursive: true });
-            entry.pipe(createWriteStream(outPath));
-          }
-        })
-        .on('close', resolve)
-        .on('error', reject);
-    });
+    const directory = await Open.file(filePath);
+
+    for (const entry of directory.files) {
+      const outPath = path.join(outputDir, entry.path);
+
+      if (entry.type === 'Directory') {
+        await mkdir(outPath, { recursive: true });
+      } else {
+        await mkdir(path.dirname(outPath), { recursive: true });
+        await new Promise<void>((resolve, reject) => {
+          entry.stream().pipe(createWriteStream(outPath)).on('close', resolve).on('error', reject);
+        });
+      }
+    }
   }
 
   private findCommonBaseDir(files: string[]): string {

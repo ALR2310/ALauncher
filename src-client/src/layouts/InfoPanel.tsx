@@ -1,12 +1,17 @@
+import { InstanceDto } from '@shared/dtos/instance.dto';
 import { ReleaseNoteDto } from '@shared/dtos/version.dto';
+import { InstanceStatusEnum } from '@shared/enums/general.enum';
+import { CurseForgeModLoaderType } from 'curseforge-api';
 import debounce from 'lodash/debounce';
-import { PencilLine } from 'lucide-react';
+import { Gamepad2, PencilLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 
+import instanceLogo from '~/assets/images/instance-logo.webp';
 import steveFace from '~/assets/images/steve-face.png';
 import Img from '~/components/Img';
 import { useAppGetConfigQuery, useAppSetConfigMutation } from '~/hooks/api/useAppApi';
+import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useVersionNotesInfinite } from '~/hooks/api/useVersionApi';
 
 const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
@@ -22,12 +27,41 @@ const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
   );
 };
 
+const ModpackCard = ({ data }: { data: InstanceDto }) => {
+  return (
+    <div
+      className="h-40 relative group overflow-hidden bg-base-100 rounded-xl"
+      style={{
+        backgroundImage: `url(${import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo} )`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="flex items-center gap-2 absolute top-0 right-0 bg-base-300/60 m-1 p-1 rounded-box">
+        <Gamepad2 size={20} />
+        {`${data.loader ? CurseForgeModLoaderType[data.loader.type] : 'Release'} ${data.version}`}
+      </div>
+
+      <div
+        className={`absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-3 translate-y-[calc(100%-40px)] transform transition-transform duration-300 group-hover:translate-y-0 group-focus:translate-y-0`}
+      >
+        <p className="font-semibold">{data.name}</p>
+        <div className="h-10 w-full">
+          <button className="btn btn-success btn-block">Download</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function InfoPanel() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useVersionNotesInfinite({ pageSize: 10 });
+  const { data: instances } = useInstancesQuery();
   const { data: config } = useAppGetConfigQuery();
   const { mutate } = useAppSetConfigMutation();
   const [username, setUsername] = useState('');
+  const [activeTab, setActiveTab] = useState('modpack');
   const configInit = useRef(false);
 
   const debouncedMutate = useMemo(() => debounce(mutate, 1000), [mutate]);
@@ -85,21 +119,49 @@ export default function InfoPanel() {
         </div>
       </div>
 
-      <div className="divider h-10">
+      <div className="divider">
         <div role="tablist" className="tabs tabs-border tabs-border-success gap-4 justify-center flex-nowrap">
-          <input type="radio" name="my_tabs_2" className="tab px-0" aria-label="Release Note" />
-          <input type="radio" name="my_tabs_2" className="tab px-0" aria-label="My Modpack" defaultChecked />
+          <input
+            type="radio"
+            name="info-panel-tab"
+            className="tab px-0"
+            aria-label="Release Note"
+            checked={activeTab === 'release'}
+            onChange={() => setActiveTab('release')}
+          />
+          <input
+            type="radio"
+            name="info-panel-tab"
+            className="tab px-0"
+            aria-label="My Modpack"
+            checked={activeTab === 'modpack'}
+            onChange={() => setActiveTab('modpack')}
+          />
         </div>
       </div>
 
       <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar space-y-4">
-        {notes.map((item, idx) => (
-          <ReleaseCard key={idx} data={item} />
-        ))}
+        {activeTab === 'modpack' && (
+          <>
+            {instances
+              ?.filter((item) => item.status === InstanceStatusEnum.NotInstalled)
+              .map((item, idx) => (
+                <ModpackCard key={idx} data={item} />
+              ))}
+          </>
+        )}
 
-        <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
-          {isFetchingNextPage ? 'Loading...' : hasNextPage ? 'Load more' : ''}
-        </div>
+        {activeTab === 'release' && (
+          <>
+            {notes.map((item, idx) => (
+              <ReleaseCard key={idx} data={item} />
+            ))}
+
+            <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
+              {isFetchingNextPage ? 'Loading...' : hasNextPage ? 'Load more' : ''}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

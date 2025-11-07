@@ -1,5 +1,5 @@
 import { InstanceDto, InstanceQueryDto, instanceSchema, InstanceWorldDto } from '@shared/dtos/instance.dto';
-import { InstanceContentEnum } from '@shared/enums/general.enum';
+import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.enum';
 import { existsSync } from 'fs';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'fs/promises';
 import pLimit from 'p-limit';
@@ -10,60 +10,142 @@ import { BadRequestException, NotFoundException } from '~/common/filters/excepti
 import { logger } from '~/common/logger';
 
 import { appService } from '../app/app.service';
+import { googleDriveService } from '../storage/drive.service';
 
 export const instanceService = new (class InstanceService {
   private instanceDirCache: string | null = null;
+  private folderId = process.env.FOLDER_ID!;
 
   async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
     const { sortBy = 'lastPlayed', sortDir = 'desc' } = payload;
 
-    try {
-      const instanceDir = await this.getDir();
-      const folders = await readdir(instanceDir, { withFileTypes: true });
-      const limiter = pLimit(10);
+    const cloudFiles = await googleDriveService.list({
+      fields: ['properties'],
+      q: `'${this.folderId}' in parents`,
+    });
 
-      const readTasks = folders
+    const cloudMap = new Map(
+      cloudFiles.map((file) => {
+        const p = file.properties ?? {};
+        const id = p.id || file.name.replace(/\.zip$/, '');
+        const updatedAt = p.updatedAt || file.modifiedTime || new Date().toISOString();
+        return [id, { ...p, updatedAt }];
+      }),
+    );
+
+    const instanceDir = await this.getDir();
+    const entries = await readdir(instanceDir, { withFileTypes: true });
+    const limiter = pLimit(10);
+
+    const localResults = await Promise.allSettled(
+      entries
         .filter((f) => f.isDirectory())
         .map((dir) =>
           limiter(async () => {
-            const instancePath = await this.getPath(dir.name);
             try {
-              const data = await readFile(instancePath, 'utf-8');
-              const parsed = instanceSchema.parse(JSON.parse(data));
-              return parsed;
-            } catch (err) {
-              console.log(err);
+              const json = await readFile(await this.getPath(dir.name), 'utf-8');
+              return instanceSchema.parse(JSON.parse(json));
+            } catch {
               logger(`Failed to read instance "${dir.name}"`);
               return null;
             }
           }),
-        );
+        ),
+    );
 
-      const instances = (await Promise.all(readTasks)).filter(Boolean) as InstanceDto[];
+    const locals = localResults
+      .filter((r): r is PromiseFulfilledResult<InstanceDto | null> => r.status === 'fulfilled')
+      .map((r) => r.value)
+      .filter(Boolean) as InstanceDto[];
 
-      const sorted = instances.sort((a, b) => {
-        const aVal = a[sortBy] ?? '';
-        const bVal = b[sortBy] ?? '';
-        if (sortDir === 'asc') return aVal > bVal ? 1 : -1;
-        return aVal < bVal ? 1 : -1;
-      });
+    const merged = locals.map((local) => {
+      const cloud = cloudMap.get(local.id);
+      if (!cloud) {
+        return { ...local, status: InstanceStatusEnum.Latest };
+      }
+      const localTime = new Date(local.updatedAt || local.createdAt).getTime();
+      const cloudTime = new Date(cloud.updatedAt).getTime();
+      return {
+        ...local,
+        status: localTime !== cloudTime ? InstanceStatusEnum.UpdateAvailable : InstanceStatusEnum.Latest,
+      };
+    });
 
-      return sorted;
-    } catch (err) {
-      throw new NotFoundException('No instances found');
-    }
+    const haveLocal = new Set(merged.map((i) => i.id));
+
+    const cloudOnly = Array.from(cloudMap.entries())
+      .filter(([id]) => !haveLocal.has(id))
+      .map(
+        ([id, c]) =>
+          ({
+            id,
+            name: c.name || id,
+            description: '',
+            createdAt: c.createdAt || new Date().toISOString(),
+            updatedAt: c.updatedAt,
+            version: c.version || '',
+            loader: c.loader,
+            status: InstanceStatusEnum.NotInstalled,
+          }) as InstanceDto,
+      );
+
+    const list = [...merged, ...cloudOnly];
+
+    list.sort((a, b) => {
+      const av = a[sortBy] ?? '';
+      const bv = b[sortBy] ?? '';
+      return sortDir === 'asc' ? (av > bv ? 1 : -1) : av < bv ? 1 : -1;
+    });
+
+    return list;
   }
 
   async findOne(id: string): Promise<InstanceDto> {
     if (!id) throw new NotFoundException('Instance ID is required');
 
+    const cloudFiles = await googleDriveService.list({
+      fields: ['properties'],
+      q: `'${this.folderId}' in parents and properties has { key='id' and value='${id}' }`,
+    });
+
+    const cloud = cloudFiles[0]?.properties ?? null;
+
+    let local: InstanceDto | null = null;
     try {
       const instancePath = await this.getPath(id);
-      const jsonString = await readFile(instancePath, 'utf-8');
-      return JSON.parse(jsonString);
-    } catch (err) {
-      throw new NotFoundException(`Instance with ID "${id}" not found`);
+      const json = await readFile(instancePath, 'utf-8');
+      local = instanceSchema.parse(JSON.parse(json));
+    } catch {
+      local = null;
     }
+
+    if (local && cloud) {
+      const localTime = new Date(local.updatedAt || local.createdAt).getTime();
+      const cloudTime = new Date(cloud.updatedAt || cloudFiles[0].modifiedTime).getTime();
+
+      const status = localTime !== cloudTime ? InstanceStatusEnum.UpdateAvailable : InstanceStatusEnum.Latest;
+
+      return { ...local, status };
+    }
+
+    if (local && !cloud) {
+      return { ...local, status: InstanceStatusEnum.Latest };
+    }
+
+    if (!local && cloud) {
+      return {
+        id,
+        name: cloud.name || id,
+        description: '',
+        createdAt: cloud.createdAt || new Date().toISOString(),
+        updatedAt: cloud.updatedAt || cloudFiles[0].modifiedTime,
+        version: cloud.version || '',
+        loader: cloud.loader,
+        status: InstanceStatusEnum.NotInstalled,
+      };
+    }
+
+    throw new NotFoundException(`Instance with ID "${id}" not found`);
   }
 
   async create(instance: InstanceDto) {

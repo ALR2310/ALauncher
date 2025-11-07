@@ -11,7 +11,7 @@ import { googleDriveService } from '../storage/drive.service';
 import { instanceService } from './instance.service';
 
 export const instanceStorageService = new (class InstanceCloudService {
-  private folderId = '1UBORna56WrEmdKL82Gk3sTmFiXaI6fuN';
+  private folderId = process.env.FOLDER_ID!;
 
   async uploadInstance(payload: InstanceUploadQueryDto) {
     const { id, filesPath } = payload;
@@ -35,6 +35,9 @@ export const instanceStorageService = new (class InstanceCloudService {
       properties: {
         id: instance.id,
         name: instance.name,
+        version: instance.version,
+        loader: instance.loader,
+        createdAt: instance.createdAt,
         updatedAt: instance.updatedAt,
       },
     });

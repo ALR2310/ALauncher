@@ -85,7 +85,12 @@ export default function InfoPanel() {
         </div>
       </div>
 
-      <div className="divider"></div>
+      <div className="divider h-10">
+        <div role="tablist" className="tabs tabs-border tabs-border-success gap-4 justify-center flex-nowrap">
+          <input type="radio" name="my_tabs_2" className="tab px-0" aria-label="Release Note" />
+          <input type="radio" name="my_tabs_2" className="tab px-0" aria-label="My Modpack" defaultChecked />
+        </div>
+      </div>
 
       <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar space-y-4">
         {notes.map((item, idx) => (

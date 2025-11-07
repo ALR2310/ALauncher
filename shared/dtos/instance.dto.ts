@@ -1,4 +1,4 @@
-import { InstanceContentEnum } from '@shared/enums/general.enum';
+import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.enum';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
@@ -31,6 +31,7 @@ export const instanceSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string().optional(),
   lastPlayed: z.string().optional(),
+  status: z.enum(InstanceStatusEnum).optional(),
   // Version
   version: z.string(),
   loader: z

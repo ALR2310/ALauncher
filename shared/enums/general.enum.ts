@@ -23,3 +23,9 @@ export enum InstanceContentEnum {
   DataPacks = 'datapacks',
   Worlds = 'worlds',
 }
+
+export enum InstanceStatusEnum {
+  Latest = 'Latest',
+  UpdateAvailable = 'Update Available',
+  NotInstalled = 'Not Installed',
+}

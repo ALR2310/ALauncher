@@ -1,4 +1,5 @@
 import { InstanceDto } from '@shared/dtos/instance.dto';
+import { InstanceStatusEnum } from '@shared/enums/general.enum';
 import { formatToSlug } from '@shared/utils/general.utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
@@ -60,6 +61,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
         name: modpackName,
         createdAt: dateNow,
         updatedAt: dateNow,
+        status: InstanceStatusEnum.Latest,
         version: gameVersion,
         loader: {
           type: loaderType,

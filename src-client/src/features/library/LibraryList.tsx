@@ -1,9 +1,10 @@
 import { ROUTES } from '@shared/constants/routes';
+import { InstanceDto } from '@shared/dtos/instance.dto';
 import { InstanceStatusEnum } from '@shared/enums/general.enum';
 import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { ChevronDown, Copy, FolderOpen, Gamepad2, Trash2, Upload } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
@@ -17,7 +18,8 @@ import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 import { toast } from '~/hooks/app/useToast';
 
 export default function LibraryList() {
-  const { data: instances } = useInstancesQuery();
+  const { data, isLoading: isLoadingInstances } = useInstancesQuery();
+  const [instances, setInstances] = useState<InstanceDto[]>([]);
 
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
   const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
@@ -25,6 +27,11 @@ export default function LibraryList() {
 
   const queryClient = useQueryClient();
   const { mutateAsync: deleteInstance, isPending: isDeleting } = useInstanceDeleteMutation();
+
+  useEffect(() => {
+    if (isLoadingInstances) return;
+    setInstances(data?.filter((item) => item.status !== InstanceStatusEnum.NotInstalled) || []);
+  }, [data, isLoadingInstances]);
 
   const handleUpload = useCallback(
     async (id: string) => {

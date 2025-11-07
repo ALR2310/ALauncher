@@ -2,13 +2,13 @@ import { ROUTES } from '@shared/constants/routes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
+import { ToastContainer } from 'react-toastify';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { InstanceFileSelectProvider } from './context/InstanceFileSelectContext';
 import { InstanceSelectProvider } from './context/InstanceSelectContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { ToastProvider } from './context/ToastContext';
 import { TooltipProvider } from './context/TooltipContext';
 import DiscoverDescription from './features/discover/DiscoverDescription';
 import DiscoverFiles from './features/discover/DiscoverFiles';
@@ -37,19 +37,20 @@ const queryClient = new QueryClient({
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <LibraryModalProvider>
-            <InstanceSelectProvider>
-              <InstanceFileSelectProvider>
-                <TooltipProvider>
-                  <ThemeProvider>{children}</ThemeProvider>
-                </TooltipProvider>
-              </InstanceFileSelectProvider>
-            </InstanceSelectProvider>
-          </LibraryModalProvider>
-        </ConfirmProvider>
-      </ToastProvider>
+      <ConfirmProvider>
+        <LibraryModalProvider>
+          <InstanceSelectProvider>
+            <InstanceFileSelectProvider>
+              <TooltipProvider>
+                <ThemeProvider>
+                  {children}
+                  <ToastContainer autoClose={3000} theme="dark" pauseOnHover={false} />
+                </ThemeProvider>
+              </TooltipProvider>
+            </InstanceFileSelectProvider>
+          </InstanceSelectProvider>
+        </LibraryModalProvider>
+      </ConfirmProvider>
     </QueryClientProvider>
   );
 };

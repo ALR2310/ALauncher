@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen, Trash2, Upload } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 import { useContextSelector } from 'use-context-selector';
 
 import { instanceOpenFolder } from '~/api';
@@ -16,7 +17,6 @@ import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstanceDeleteMutation, useInstanceUploadMutation } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
-import { toast } from '~/hooks/app/useToast';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto | undefined;

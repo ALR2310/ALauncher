@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { appCheckForUpdates, appInstallUpdates, FetchEventSource } from '~/api';
-
-import { toast } from './useToast';
 
 export function useUpdater() {
   const evtRef = useRef<FetchEventSource | null>(null);

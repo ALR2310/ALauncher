@@ -1,6 +1,7 @@
 import { InstanceContentAddQueryDto, InstanceContentQueryDto, InstanceQueryDto } from '@shared/dtos/instance.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { FetchEventSource } from '~/api';
 import {
@@ -18,8 +19,6 @@ import {
   instanceUpdate,
   instanceUpload,
 } from '~/api/instance.api';
-
-import { toast } from '../app/useToast';
 
 export function useInstancesQuery(param?: InstanceQueryDto) {
   return useQuery({

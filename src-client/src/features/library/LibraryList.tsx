@@ -6,6 +6,7 @@ import { CurseForgeModLoaderType } from 'curseforge-api';
 import { ChevronDown, Copy, FolderOpen, Gamepad2, Trash2, Upload } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { toast } from 'react-toastify';
 import { useContextSelector } from 'use-context-selector';
 
 import { instanceOpenFolder } from '~/api';
@@ -15,7 +16,6 @@ import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstanceDeleteMutation, useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
-import { toast } from '~/hooks/app/useToast';
 
 export default function LibraryList() {
   const { data, isLoading: isLoadingInstances } = useInstancesQuery();

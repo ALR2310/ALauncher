@@ -6,6 +6,7 @@ import debounce from 'lodash/debounce';
 import { Gamepad2, PencilLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
+import { toast } from 'react-toastify';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import steveFace from '~/assets/images/steve-face.png';
@@ -47,7 +48,14 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
       >
         <p className="font-semibold">{data.name}</p>
         <div className="h-10 w-full">
-          <button className="btn btn-success btn-block">Download</button>
+          <button
+            className="btn btn-success btn-block"
+            onClick={() => {
+              toast.success('Download started');
+            }}
+          >
+            Download
+          </button>
         </div>
       </div>
     </div>

@@ -2,11 +2,15 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { PassThrough, Readable } from 'stream';
 
+import { BadRequestException } from '~/common/filters/exception.filter';
+
 interface UploadOptions {
   data: Buffer | Readable;
   fileName: string;
   mimeType?: string;
   parents?: string[];
+  properties?: Record<string, any>;
+  appProperties?: Record<string, any>;
 }
 
 interface FileResponse {
@@ -18,9 +22,9 @@ interface FileResponse {
   [key: string]: any;
 }
 
-interface ListOptions {
-  q: string;
-  fields?: string[];
+interface ListOptions<F extends string = string> {
+  q?: string;
+  fields?: F[];
   spaces?: 'drive' | 'appDataFolder';
   orderBy?: string;
   pageSize?: number;
@@ -58,13 +62,15 @@ export const googleDriveService = new (class GoogleDriveService {
   }
 
   async upload(options: UploadOptions): Promise<string> {
-    const { data, fileName, mimeType, parents = [] } = options;
+    const { data, fileName, mimeType, parents = [], properties, appProperties } = options;
 
     const token = await this.getToken();
 
     const metadata = {
       name: fileName,
       ...(parents.length > 0 ? { parents } : {}),
+      ...(properties ? { properties } : {}),
+      ...(appProperties ? { appProperties } : {}),
     };
 
     const form = new FormData();
@@ -133,24 +139,29 @@ export const googleDriveService = new (class GoogleDriveService {
     return data;
   }
 
-  async list(options: ListOptions): Promise<FileResponse[]> {
-    const token = await this.getToken();
+  async list<F extends string = never>(options: ListOptions<F>): Promise<Array<FileResponse & Record<F, any>>> {
     const { q, fields, spaces = 'drive', orderBy, pageSize = 100, pageToken } = options;
+    try {
+      const token = await this.getToken();
 
-    const fieldsQuery = Array.from(new Set([...defaultFields, ...(fields ?? [])])).join(',');
+      const fieldsQuery = Array.from(new Set([...defaultFields, ...(fields ?? [])])).join(',');
 
-    const params = new URLSearchParams();
-    if (q) params.append('q', q);
-    if (orderBy) params.append('orderBy', orderBy);
-    if (pageToken) params.append('pageToken', pageToken);
-    params.append('spaces', spaces);
-    params.append('pageSize', pageSize.toString());
-    params.append('fields', `files(${fieldsQuery})`);
+      const params = new URLSearchParams();
+      if (q) params.append('q', q);
+      if (orderBy) params.append('orderBy', orderBy);
+      if (pageToken) params.append('pageToken', pageToken);
+      params.append('spaces', spaces);
+      params.append('pageSize', pageSize.toString());
+      params.append('fields', `files(${fieldsQuery})`);
 
-    const { data } = await axios.get(`${this.API_URL}/files?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const { data } = await axios.get(`${this.API_URL}/files?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    return data.files;
+      return data.files;
+    } catch (err: any) {
+      console.dir(err.response?.data || err.message, { depth: null });
+      throw new BadRequestException(err.message);
+    }
   }
 })();

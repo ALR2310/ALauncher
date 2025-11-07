@@ -76,6 +76,11 @@ const instanceFolderTreeSchema: z.ZodType<InstanceFolderTree> = z.lazy(() =>
   }),
 );
 
+const instanceUploadQuerySchema = z.object({
+  id: z.string(),
+  filesPath: z.array(z.string()),
+});
+
 const instanceContentQuerySchema = z.object({
   id: z.string(),
   contentType: z.enum(InstanceContentEnum).default(InstanceContentEnum.Mods),
@@ -115,6 +120,7 @@ export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
 export class InstanceUpdateBodyDto extends createZodDto(instanceUpdateBodySchema) {}
 export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
 export class InstanceFolderTreeDto extends createZodDto(instanceFolderTreeSchema) {}
+export class InstanceUploadQueryDto extends createZodDto(instanceUploadQuerySchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}

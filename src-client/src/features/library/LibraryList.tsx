@@ -1,10 +1,11 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CurseForgeModLoaderType } from 'curseforge-api';
-import { ChevronDown, Copy, Gamepad2, Trash2, Upload } from 'lucide-react';
+import { ChevronDown, Copy, FolderOpen, Gamepad2, Trash2, Upload } from 'lucide-react';
 import { useCallback } from 'react';
 import { Link } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
 
+import { instanceOpenFolder } from '~/api';
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
@@ -111,10 +112,15 @@ export default function LibraryList() {
                           <button className="btn btn-success join-item">
                             <ChevronDown size={16} />
                           </button>
-                          <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-40 p-2 shadow-sm">
+                          <ul className="menu dropdown-content bg-base-100 rounded-box z-1 min-w-40 p-2 shadow-sm">
                             <li>
                               <button className="text-error">
                                 <Trash2 size={16} /> Delete
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={() => instanceOpenFolder(instance.id)}>
+                                <FolderOpen size={16} /> Open Folder
                               </button>
                             </li>
                             <li>

@@ -10,6 +10,7 @@ import {
   InstanceFolderTreeDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
+  InstanceUploadQueryDto,
   InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
 
@@ -56,6 +57,14 @@ export function instanceLaunch(id: string) {
 
 export async function instanceCancel(id: string) {
   return API.get(`${BASE_PATH}/${id}/cancel`);
+}
+
+export async function instanceUpload(params: InstanceUploadQueryDto) {
+  return API.post(`${BASE_PATH}/${params.id}/upload`, params);
+}
+
+export async function instanceDownload(id: string) {
+  return API.get(`${BASE_PATH}/${id}/download`);
 }
 
 export async function instanceGetContents(params: InstanceContentQueryDto) {

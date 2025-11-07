@@ -7,6 +7,7 @@ import {
   instanceAddContent,
   instanceCreate,
   instanceDelete,
+  instanceDownload,
   instanceFindAll,
   instanceFindOne,
   instanceFindWorlds,
@@ -15,6 +16,7 @@ import {
   instanceRemoveContent,
   instanceToggleContent,
   instanceUpdate,
+  instanceUpload,
 } from '~/api/instance.api';
 
 import { toast } from '../app/useToast';
@@ -65,6 +67,18 @@ export function useInstanceFolderTreeQuery(id: string) {
     queryKey: ['instanceFolderTree', id],
     queryFn: () => instanceGetFolderTree(id),
     enabled: !!id,
+  });
+}
+
+export function useInstanceUploadMutation() {
+  return useMutation({
+    mutationFn: instanceUpload,
+  });
+}
+
+export function useInstanceDownloadMutation() {
+  return useMutation({
+    mutationFn: instanceDownload,
   });
 }
 

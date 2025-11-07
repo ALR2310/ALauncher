@@ -7,6 +7,7 @@ import {
   InstanceDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
+  InstanceUploadQueryDto,
 } from '@shared/dtos/instance.dto';
 import EventEmitter from 'events';
 import { Context as HonoContext } from 'hono';
@@ -15,10 +16,10 @@ import { streamSSE } from 'hono/streaming';
 import { Body, Context, Controller, Delete, Get, Param, Post, Put, Query, Validate } from '~/common/decorators';
 
 import { instanceService } from './instance.service';
-import { instanceCloudService } from './instance-cloud.service';
 import { instanceContentService } from './instance-content.service';
 import { instanceFolderService } from './instance-folder.service';
 import { instanceLaunchService } from './instance-launch.service';
+import { instanceStorageService } from './instance-storage.service';
 
 export async function handleDownloaderSSE(
   c: HonoContext,
@@ -132,13 +133,14 @@ export class InstanceController {
 
   @Get(':id/download')
   async download(@Param('id') id: string) {
-    return instanceCloudService.downloadInstance(id);
+    return instanceStorageService.downloadInstance(id);
   }
 
   @Post(':id/upload')
+  @Validate(InstanceUploadQueryDto)
   async upload(@Param('id') id: string, @Body() body) {
-    const payload = { id, ...body };
-    return instanceCloudService.uploadInstance(payload);
+    const payload: InstanceUploadQueryDto = { id, ...body };
+    return instanceStorageService.uploadInstance(payload);
   }
 
   @Get(':id/contents')

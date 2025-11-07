@@ -1,5 +1,6 @@
 import { ROUTES } from '@shared/constants/routes';
 import { InstanceStatusEnum } from '@shared/enums/general.enum';
+import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { ChevronDown, Copy, FolderOpen, Gamepad2, Trash2, Upload } from 'lucide-react';
 import { useCallback } from 'react';
@@ -11,8 +12,9 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useInstanceDeleteMutation, useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
+import { toast } from '~/hooks/app/useToast';
 
 export default function LibraryList() {
   const { data: instances } = useInstancesQuery();
@@ -20,6 +22,9 @@ export default function LibraryList() {
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
   const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
   const { selectInstanceFiles } = useSelectInstance();
+
+  const queryClient = useQueryClient();
+  const { mutateAsync: deleteInstance, isPending: isDeleting } = useInstanceDeleteMutation();
 
   const handleUpload = useCallback(
     async (id: string) => {
@@ -117,8 +122,20 @@ export default function LibraryList() {
                             </button>
                             <ul className="menu dropdown-content bg-base-100 rounded-box z-1 min-w-40 p-2 shadow-sm">
                               <li>
-                                <button className="text-error">
-                                  <Trash2 size={16} /> Delete
+                                <button
+                                  className="text-error"
+                                  disabled={isDeleting}
+                                  onClick={() =>
+                                    deleteInstance(instance.id)
+                                      .catch(() => toast.error('Failed to delete instance'))
+                                      .then(() => {
+                                        queryClient.invalidateQueries({ queryKey: ['instances'] });
+                                        queryClient.invalidateQueries({ queryKey: ['instance', instance.id] });
+                                      })
+                                  }
+                                >
+                                  {isDeleting ? <div className="loading loading-spinner"></div> : <Trash2 size={16} />}{' '}
+                                  Delete
                                 </button>
                               </li>
                               <li>

@@ -61,7 +61,7 @@ export default function InfoPanel() {
   const { data: config } = useAppGetConfigQuery();
   const { mutate } = useAppSetConfigMutation();
   const [username, setUsername] = useState('');
-  const [activeTab, setActiveTab] = useState('modpack');
+  const [activeTab, setActiveTab] = useState('release');
   const configInit = useRef(false);
 
   const debouncedMutate = useMemo(() => debounce(mutate, 1000), [mutate]);

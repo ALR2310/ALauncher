@@ -17,7 +17,7 @@ export const instanceService = new (class InstanceService {
   private folderId = process.env.FOLDER_ID!;
 
   async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
-    const { sortBy = 'lastPlayed', sortDir = 'desc' } = payload;
+    const { sortBy = 'lastPlayed', sortDir = 'desc', type = 'local' } = payload;
 
     const cloudFiles = await googleDriveService.list({
       fields: ['properties'],
@@ -34,7 +34,7 @@ export const instanceService = new (class InstanceService {
     );
 
     const instanceDir = await this.getDir();
-    const entries = await readdir(instanceDir, { withFileTypes: true });
+    const entries = await readdir(instanceDir, { withFileTypes: true }).catch(() => []);
     const limiter = pLimit(10);
 
     const localResults = await Promise.allSettled(
@@ -89,7 +89,14 @@ export const instanceService = new (class InstanceService {
           }) as InstanceDto,
       );
 
-    const list = [...merged, ...cloudOnly];
+    let list: InstanceDto[];
+    if (type === 'local') {
+      list = merged;
+    } else if (type === 'cloud') {
+      list = cloudOnly;
+    } else {
+      list = [...merged, ...cloudOnly];
+    }
 
     list.sort((a, b) => {
       const av = a[sortBy] ?? '';
@@ -204,9 +211,12 @@ export const instanceService = new (class InstanceService {
     try {
       const instanceDir = await this.getDir(id);
       const worldDir = path.resolve(instanceDir, 'worlds');
-      const limit = pLimit(10);
 
-      const entries = await readdir(worldDir, { withFileTypes: true });
+      const entries = await readdir(worldDir, { withFileTypes: true }).catch(() => []);
+
+      if (entries.length === 0) return [];
+
+      const limit = pLimit(10);
       const readTasks = entries
         .filter((e) => e.isDirectory())
         .map((dir) =>

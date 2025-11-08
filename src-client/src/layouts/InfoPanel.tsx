@@ -77,7 +77,7 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
 export default function InfoPanel() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useVersionNotesInfinite({ pageSize: 10 });
-  const { data: instances } = useInstancesQuery();
+  const { data: instances } = useInstancesQuery({ type: 'cloud' });
   const { data: config } = useAppGetConfigQuery();
   const { mutate } = useAppSetConfigMutation();
   const [username, setUsername] = useState('');

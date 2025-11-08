@@ -44,7 +44,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
               <TooltipProvider>
                 <ThemeProvider>
                   {children}
-                  <ToastContainer autoClose={3000} theme="dark" pauseOnHover={false} />
+                  <ToastContainer autoClose={2000} theme="dark" pauseOnHover={false} />
                 </ThemeProvider>
               </TooltipProvider>
             </InstanceFileSelectProvider>

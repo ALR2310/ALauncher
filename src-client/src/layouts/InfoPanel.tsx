@@ -1,6 +1,7 @@
 import { InstanceDto } from '@shared/dtos/instance.dto';
 import { ReleaseNoteDto } from '@shared/dtos/version.dto';
 import { InstanceStatusEnum } from '@shared/enums/general.enum';
+import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import debounce from 'lodash/debounce';
 import { Gamepad2, PencilLine } from 'lucide-react';
@@ -12,7 +13,7 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import steveFace from '~/assets/images/steve-face.png';
 import Img from '~/components/Img';
 import { useAppGetConfigQuery, useAppSetConfigMutation } from '~/hooks/api/useAppApi';
-import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useInstanceDownloadMutation, useInstancesQuery } from '~/hooks/api/useInstanceApi';
 import { useVersionNotesInfinite } from '~/hooks/api/useVersionApi';
 
 const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
@@ -29,6 +30,9 @@ const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
 };
 
 const ModpackCard = ({ data }: { data: InstanceDto }) => {
+  const queryClient = useQueryClient();
+  const { mutateAsync: downloadModpack, isPending } = useInstanceDownloadMutation();
+
   return (
     <div
       className="h-40 relative group overflow-hidden bg-base-100 rounded-xl"
@@ -51,10 +55,18 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
           <button
             className="btn btn-success btn-block"
             onClick={() => {
-              toast.success('Download started');
+              downloadModpack(data.id)
+                .catch((err) => {
+                  toast.error(`Download failed: ${err.message}`);
+                })
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ['instances'] });
+                  toast.success('Download successfully');
+                });
             }}
+            disabled={isPending}
           >
-            Download
+            {isPending && <span className="loading loading-spinner"></span>} Download
           </button>
         </div>
       </div>

@@ -84,19 +84,18 @@ export const instanceService = new (class InstanceService {
             createdAt: c.createdAt || new Date().toISOString(),
             updatedAt: c.updatedAt,
             version: c.version || '',
-            loader: c.loader,
+            loader: {
+              type: c.loaderType || '',
+              build: c.loaderBuild || '',
+            },
             status: InstanceStatusEnum.NotInstalled,
           }) as InstanceDto,
       );
 
     let list: InstanceDto[];
-    if (type === 'local') {
-      list = merged;
-    } else if (type === 'cloud') {
-      list = cloudOnly;
-    } else {
-      list = [...merged, ...cloudOnly];
-    }
+    if (type === 'local') list = merged;
+    else if (type === 'cloud') list = cloudOnly;
+    else list = [...merged, ...cloudOnly];
 
     list.sort((a, b) => {
       const av = a[sortBy] ?? '';
@@ -147,7 +146,10 @@ export const instanceService = new (class InstanceService {
         createdAt: cloud.createdAt || new Date().toISOString(),
         updatedAt: cloud.updatedAt || cloudFiles[0].modifiedTime,
         version: cloud.version || '',
-        loader: cloud.loader,
+        loader: {
+          type: cloud.loaderType || '',
+          build: cloud.loaderBuild || '',
+        },
         status: InstanceStatusEnum.NotInstalled,
       };
     }

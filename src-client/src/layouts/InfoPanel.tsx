@@ -163,11 +163,13 @@ export default function InfoPanel() {
       <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar space-y-4">
         {activeTab === 'modpack' && (
           <>
-            {instances
-              ?.filter((item) => item.status === InstanceStatusEnum.NotInstalled)
-              .map((item, idx) => (
-                <ModpackCard key={idx} data={item} />
-              ))}
+            {instances?.length ? (
+              instances
+                .filter((item) => item.status === InstanceStatusEnum.NotInstalled)
+                .map((item, idx) => <ModpackCard key={idx} data={item} />)
+            ) : (
+              <p className="text-center opacity-70">No modpack found.</p>
+            )}
           </>
         )}
 

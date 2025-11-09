@@ -46,7 +46,7 @@ export const instanceService = new (class InstanceService {
               const json = await readFile(await this.getPath(dir.name), 'utf-8');
               return instanceSchema.parse(JSON.parse(json));
             } catch {
-              logger(`Failed to read instance "${dir.name}"`);
+              console.log(`Failed to read instance "${dir.name}"`);
               return null;
             }
           }),

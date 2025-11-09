@@ -19,6 +19,7 @@ import HomeView from './features/home/HomeView';
 import LibraryLayout from './features/library/layouts/LibraryLayout';
 import LibraryDetail from './features/library/LibraryDetail';
 import LibraryList from './features/library/LibraryList';
+import { useWindow } from './hooks/app/useWindow';
 import MainLayout from './layouts/MainLayout';
 
 const isTauri = window.isTauri;
@@ -80,6 +81,8 @@ const AppRoutes = () => {
 };
 
 export default function App() {
+  const { createTrayIcon } = useWindow();
+
   useEffect(() => {
     if (isTauri) {
       const handler = (e: MouseEvent) => e.preventDefault();
@@ -87,6 +90,11 @@ export default function App() {
       return () => document.removeEventListener('contextmenu', handler);
     }
   }, []);
+
+  // Create Tray
+  useEffect(() => {
+    createTrayIcon();
+  }, [createTrayIcon]);
 
   return (
     <AppProvider>

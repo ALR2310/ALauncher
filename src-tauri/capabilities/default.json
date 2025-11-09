@@ -13,7 +13,13 @@
     "core:window:allow-minimize",
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
+    "core:window:allow-start-dragging",
+    "core:app:allow-default-window-icon",
     "core:window:allow-close",
-    "core:window:allow-start-dragging"
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:webview:allow-webview-close",
+    "core:webview:allow-webview-hide",
+    "core:webview:allow-webview-show"
   ]
 }

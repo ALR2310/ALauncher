@@ -37,7 +37,7 @@ export async function handleDownloaderSSE(
     const done = new Promise<void>((resolve) => {
       event
         .on('progress', async (p) => await stream.writeSSE({ event: 'progress', data: p }))
-        // .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l })) // For Launcher
+        .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l })) // For Launcher
         .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
         .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
         .on('extract', async (f) => await stream.writeSSE({ event: 'extract', data: f }))

@@ -1,5 +1,5 @@
-mod windows;
 mod log;
+mod windows;
 
 #[tauri::command]
 async fn get_pid() -> u32 {
@@ -9,7 +9,7 @@ async fn get_pid() -> u32 {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     dotenvy::from_filename(".env").ok();
-    
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![get_pid])
         .setup(|app| {

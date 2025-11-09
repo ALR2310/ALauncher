@@ -13,7 +13,7 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceDeleteMutation, useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useInstanceDeleteMutation, useInstancesQuery, useInstanceUploadMutation } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 export default function LibraryList() {
@@ -25,13 +25,24 @@ export default function LibraryList() {
 
   const queryClient = useQueryClient();
   const { mutateAsync: deleteInstance, isPending: isDeleting } = useInstanceDeleteMutation();
+  const { mutateAsync: uploadInstance } = useInstanceUploadMutation();
 
   const handleUpload = useCallback(
     async (id: string) => {
       const files = await selectInstanceFiles(id);
-      console.log('Selected files to upload:', files);
+      if (files && files.length > 0) {
+        toast.promise(uploadInstance({ id, filesPath: files }), {
+          pending: 'Uploading...',
+          success: 'Upload successfully',
+          error: {
+            render({ err }: any) {
+              return `Upload failed: ${err?.message || 'Unknown error'}`;
+            },
+          },
+        });
+      }
     },
-    [selectInstanceFiles],
+    [selectInstanceFiles, uploadInstance],
   );
 
   return (

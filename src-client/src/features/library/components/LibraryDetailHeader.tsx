@@ -45,13 +45,15 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
     async (id: string) => {
       const files = await selectInstanceFiles(id);
       if (files && files.length > 0) {
-        uploadInstance({ id, filesPath: files })
-          .then(() => {
-            toast.success('Upload successful');
-          })
-          .catch((err) => {
-            toast.error(`Upload failed: ${err.message}`);
-          });
+        toast.promise(uploadInstance({ id, filesPath: files }), {
+          pending: 'Uploading...',
+          success: 'Upload successfully',
+          error: {
+            render({ err }: any) {
+              return `Upload failed: ${err?.message || 'Unknown error'}`;
+            },
+          },
+        });
       }
     },
     [selectInstanceFiles, uploadInstance],

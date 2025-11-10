@@ -137,12 +137,10 @@ export default function LibraryList() {
                                   className="text-error"
                                   disabled={isDeleting}
                                   onClick={() =>
-                                    deleteInstance(instance.id)
-                                      .catch(() => toast.error('Failed to delete instance'))
-                                      .then(() => {
-                                        queryClient.invalidateQueries({ queryKey: ['instances'] });
-                                        queryClient.invalidateQueries({ queryKey: ['instance', instance.id] });
-                                      })
+                                    deleteInstance(instance.id).then(() => {
+                                      queryClient.invalidateQueries({ queryKey: ['instances'] });
+                                      queryClient.invalidateQueries({ queryKey: ['instance', instance.id] });
+                                    })
                                   }
                                 >
                                   {isDeleting ? <div className="loading loading-spinner"></div> : <Trash2 size={16} />}{' '}

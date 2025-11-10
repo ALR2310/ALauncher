@@ -4,7 +4,6 @@ import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { toast } from 'react-toastify';
 
 import { instanceRemoveContent, instanceToggleContent } from '~/api';
 import { Column } from '~/components/DataTable';
@@ -100,7 +99,6 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
       } catch (err) {
         console.error(err);
         onToggle?.({ contentIds: ids, enable: enable!, error: err });
-        toast.error('Failed to toggle selected contents.');
       }
     },
     [contentIds, contentType, instanceId, onToggle],
@@ -121,7 +119,6 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
       } catch (err) {
         console.error(err);
         onDelete?.({ contentIds: ids, error: err });
-        toast.error('Failed to delete selected contents.');
       }
     },
     [contentIds, contentType, instanceId, onDelete],

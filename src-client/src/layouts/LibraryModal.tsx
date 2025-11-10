@@ -82,7 +82,6 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
       queryClient.invalidateQueries({ queryKey: ['instance'] });
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message);
     }
   };
 

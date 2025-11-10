@@ -1,8 +1,8 @@
 import { ROUTES } from '@shared/constants/routes';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 
 import { ConfirmProvider } from './context/ConfirmContext';
 import { InstanceFileSelectProvider } from './context/InstanceFileSelectContext';
@@ -33,6 +33,16 @@ const queryClient = new QueryClient({
       staleTime: Infinity,
     },
   },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  }),
 });
 
 const AppProvider = ({ children }: { children: React.ReactNode }) => {

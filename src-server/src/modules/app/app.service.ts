@@ -176,13 +176,17 @@ export const appService = new (class AppService {
 
             if (p >= s) {
               try {
-                event.emit('done');
                 await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
                 await this.decompress(path.resolve(fileName), path.resolve());
                 await rm(path.resolve(fileName), { force: true });
+
                 this.updateCache = null;
                 this.cacheTimestamp = null;
-                this.reloadRuntime();
+
+                event.emit('done');
+                setTimeout(() => {
+                  this.reloadRuntime();
+                }, 100);
               } catch (err) {
                 event.emit('error', err);
               }

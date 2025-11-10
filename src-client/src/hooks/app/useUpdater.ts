@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
 
 import { appCheckForUpdates, appInstallUpdates, FetchEventSource } from '~/api';
 
@@ -20,10 +19,14 @@ export function useUpdater() {
         setProgress(parseFloat(e.data));
       });
       evtRef.current.addEventListener('done', () => {
+        console.log('Update installed successfully, restarting app...');
         setIsUpdating(false);
         setProgress(undefined);
         evtRef?.current?.close();
-        toast.success('Updated successfully');
+        setTimeout(() => {
+          console.log('App will restart to apply updates');
+          location.replace(location.pathname + '?v=' + Date.now());
+        }, 100);
       });
       evtRef.current.addEventListener('error', () => {
         setIsUpdating(false);

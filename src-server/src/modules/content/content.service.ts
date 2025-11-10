@@ -211,7 +211,7 @@ export const contentService = new (class ContentService {
     return { data: files, pagination };
   }
 
-  private getDownloadUrl(id: number, fileId: number): string {
+  getDownloadUrl(id: number, fileId: number): string {
     return `https://www.curseforge.com/api/v1/mods/${id}/files/${fileId}/download`;
   }
 })();

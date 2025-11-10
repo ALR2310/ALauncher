@@ -1,8 +1,15 @@
-import { InstanceContentEnum } from '@shared/enums/general.enum';
+import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.enum';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
 import { createZodDto } from '../utils/zod.dto';
+
+interface InstanceFolderTree {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: InstanceFolderTree[];
+}
 
 const instanceContentSchema = z.object({
   id: z.number(),
@@ -24,6 +31,7 @@ export const instanceSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string().optional(),
   lastPlayed: z.string().optional(),
+  status: z.enum(InstanceStatusEnum).optional(),
   // Version
   version: z.string(),
   loader: z
@@ -43,6 +51,7 @@ export const instanceSchema = z.object({
 const instanceQuerySchema = z.object({
   sortDir: z.enum(['asc', 'desc']).default('desc').optional(),
   sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'lastPlayed', 'version']).optional(),
+  type: z.enum(['local', 'cloud', 'both']).default('local').optional(),
 });
 
 const instanceUpdateBodySchema = z.object({
@@ -58,6 +67,20 @@ const instanceWorldSchema = z.object({
   icon: z.string().nullish(),
   gameType: z.number(),
   path: z.string(),
+});
+
+const instanceFolderTreeSchema: z.ZodType<InstanceFolderTree> = z.lazy(() =>
+  z.object({
+    name: z.string(),
+    path: z.string(),
+    type: z.enum(['file', 'directory']),
+    children: z.array(instanceFolderTreeSchema).optional(),
+  }),
+);
+
+const instanceUploadQuerySchema = z.object({
+  id: z.string(),
+  filesPath: z.array(z.string()),
 });
 
 const instanceContentQuerySchema = z.object({
@@ -98,6 +121,8 @@ export class InstanceDto extends createZodDto(instanceSchema) {}
 export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
 export class InstanceUpdateBodyDto extends createZodDto(instanceUpdateBodySchema) {}
 export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
+export class InstanceFolderTreeDto extends createZodDto(instanceFolderTreeSchema) {}
+export class InstanceUploadQueryDto extends createZodDto(instanceUploadQuerySchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}

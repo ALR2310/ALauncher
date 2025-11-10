@@ -4,12 +4,12 @@ import { Mutex } from 'async-mutex';
 import axios from 'axios';
 import { spawn } from 'child_process';
 import EventEmitter from 'events';
-import { unzipSync } from 'fflate';
-import { mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { readFile, rm, writeFile } from 'fs/promises';
 import set from 'lodash/set';
 import throttle from 'lodash/throttle';
 import path from 'path';
 import semver from 'semver';
+import { Open } from 'unzipper';
 
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 
@@ -176,13 +176,17 @@ export const appService = new (class AppService {
 
             if (p >= s) {
               try {
-                event.emit('done');
                 await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
                 await this.decompress(path.resolve(fileName), path.resolve());
                 await rm(path.resolve(fileName), { force: true });
+
                 this.updateCache = null;
                 this.cacheTimestamp = null;
-                this.reloadRuntime();
+
+                event.emit('done');
+                setTimeout(() => {
+                  this.reloadRuntime();
+                }, 100);
               } catch (err) {
                 event.emit('error', err);
               }
@@ -204,20 +208,8 @@ export const appService = new (class AppService {
   }
 
   private async decompress(filePath: string, outDir: string) {
-    const data = await readFile(filePath);
-    const unzipped = unzipSync(new Uint8Array(data));
-    const entries = Object.keys(unzipped);
-
-    for (const entry of entries) {
-      if (entry.endsWith('/')) continue;
-
-      const content = unzipped[entry];
-      const outFile = path.join(outDir, entry);
-      const dir = path.dirname(outFile);
-
-      await mkdir(dir, { recursive: true });
-      await writeFile(outFile, content);
-    }
+    const directory = await Open.file(filePath);
+    await directory.extract({ path: outDir });
   }
 
   private reloadRuntime() {

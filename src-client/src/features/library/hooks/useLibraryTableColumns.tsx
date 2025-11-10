@@ -4,11 +4,11 @@ import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { toast } from 'react-toastify';
 
 import { instanceRemoveContent, instanceToggleContent } from '~/api';
 import { Column } from '~/components/DataTable';
 import Img from '~/components/Img';
-import { toast } from '~/hooks/app/useToast';
 
 export interface OnDeleteProps {
   contentIds: number[];

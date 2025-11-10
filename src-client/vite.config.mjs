@@ -6,7 +6,6 @@ import { defineConfig } from 'vite';
 import { ENV } from '../shared/enums/general.enum';
 import { analyzer } from 'vite-bundle-analyzer';
 
-
 config({ quiet: true, path: resolve('..', '.env') });
 
 const host = process.env.TAURI_DEV_HOST;

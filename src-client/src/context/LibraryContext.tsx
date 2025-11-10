@@ -2,6 +2,7 @@ import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createContext } from 'use-context-selector';
 
 import { FetchEventSource, instanceCancel, instanceLaunch } from '~/api';
+import { useWindow } from '~/hooks/app/useWindow';
 
 type Patch = Partial<InstanceLaunchState> | ((prev: InstanceLaunchState) => Partial<InstanceLaunchState>);
 
@@ -27,6 +28,7 @@ const LibraryContext = createContext<LibraryContextType>(null!);
 const LibraryProvider = ({ children }: { children: ReactNode }) => {
   const [instances, setInstances] = useState<Map<string, InstanceLaunchState>>(new Map());
   const refs = useRef<Map<string, FetchEventSource>>(new Map());
+  const { hide, show } = useWindow();
 
   const updateState = useCallback((id: string, patch: Patch) => {
     setInstances((prev) => {
@@ -48,13 +50,17 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const cleanup = useCallback((id: string) => {
-    const evt = refs.current.get(id);
-    if (evt) {
-      evt.close();
-      refs.current.delete(id);
-    }
-  }, []);
+  const cleanup = useCallback(
+    (id: string) => {
+      const evt = refs.current.get(id);
+      if (evt) {
+        evt.close();
+        refs.current.delete(id);
+      }
+      show();
+    },
+    [show],
+  );
 
   const launch = useCallback(
     (id: string) => {
@@ -74,13 +80,16 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
       refs.current.set(id, evt);
 
       evt.addEventListener('progress', (e) => updateState(id, { progress: Number(e.data) }));
-      evt.addEventListener('log', (e) =>
+      evt.addEventListener('log', (e) => {
         updateState(id, (prev) => ({
           logs: [...(prev.logs ?? []).slice(-499), e.data],
           isDownloading: false,
           progress: undefined,
-        })),
-      );
+        }));
+
+        // Hidden app
+        hide();
+      });
       evt.addEventListener('speed', (e) => updateState(id, { speed: e.data }));
       evt.addEventListener('estimated', (e) => updateState(id, { estimated: e.data }));
       evt.addEventListener('extract', (e) => updateState(id, { extract: e.data }));
@@ -95,7 +104,7 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
         cleanup(id);
       });
     },
-    [cleanup, updateState],
+    [cleanup, hide, updateState],
   );
 
   const cancel = useCallback(

@@ -7,6 +7,7 @@ import {
   InstanceDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
+  InstanceUploadQueryDto,
 } from '@shared/dtos/instance.dto';
 import EventEmitter from 'events';
 import { Context as HonoContext } from 'hono';
@@ -15,6 +16,10 @@ import { streamSSE } from 'hono/streaming';
 import { Body, Context, Controller, Delete, Get, Param, Post, Put, Query, Validate } from '~/common/decorators';
 
 import { instanceService } from './instance.service';
+import { instanceContentService } from './instance-content.service';
+import { instanceFolderService } from './instance-folder.service';
+import { instanceLaunchService } from './instance-launch.service';
+import { instanceStorageService } from './instance-storage.service';
 
 export async function handleDownloaderSSE(
   c: HonoContext,
@@ -32,7 +37,7 @@ export async function handleDownloaderSSE(
     const done = new Promise<void>((resolve) => {
       event
         .on('progress', async (p) => await stream.writeSSE({ event: 'progress', data: p }))
-        // .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l })) // For Launcher
+        .on('log', async (l) => await stream.writeSSE({ event: 'log', data: l })) // For Launcher
         .on('speed', async (s) => await stream.writeSSE({ event: 'speed', data: s }))
         .on('estimated', async (e) => await stream.writeSSE({ event: 'estimated', data: e }))
         .on('extract', async (f) => await stream.writeSSE({ event: 'extract', data: f }))
@@ -100,13 +105,18 @@ export class InstanceController {
 
   @Get(':id/folders')
   async openFolder(@Param('id') id: string) {
-    return instanceService.openFolder(id);
+    return instanceFolderService.openFolder(id);
+  }
+
+  @Get(':id/folders/tree')
+  async getFolderTree(@Param('id') id: string) {
+    return instanceFolderService.getFolderTree(id);
   }
 
   @Get(':id/launch')
   async launch(@Param('id') id: string, @Context() c) {
     try {
-      const event = await instanceService.launch(id);
+      const event = await instanceLaunchService.launch(id);
       return handleDownloaderSSE(c, event, 'No launch actions to perform');
     } catch (err: any) {
       return streamSSE(c, async (stream) => {
@@ -118,14 +128,26 @@ export class InstanceController {
 
   @Get(':id/cancel')
   async cancel(@Param('id') id: string) {
-    return instanceService.cancel(id);
+    return instanceLaunchService.cancel(id);
+  }
+
+  @Get(':id/download')
+  async download(@Param('id') id: string) {
+    return instanceStorageService.downloadInstance(id);
+  }
+
+  @Post(':id/upload')
+  @Validate(InstanceUploadQueryDto)
+  async upload(@Param('id') id: string, @Body() body) {
+    const payload: InstanceUploadQueryDto = { id, ...body };
+    return instanceStorageService.uploadInstance(payload);
   }
 
   @Get(':id/contents')
   @Validate(InstanceContentQueryDto)
   async getContents(@Param('id') id: string, @Query() query) {
     const payload: InstanceContentQueryDto = { ...query, id };
-    return instanceService.getContents(payload);
+    return instanceContentService.getContents(payload);
   }
 
   @Post(':id/contents')
@@ -134,7 +156,7 @@ export class InstanceController {
     const payload: InstanceContentAddQueryDto = { ...body, id };
 
     try {
-      const event = await instanceService.addContents(payload);
+      const event = await instanceContentService.addContents(payload);
       return handleDownloaderSSE(c, event, 'No contents to add');
     } catch (err: any) {
       return streamSSE(c, async (stream) => {
@@ -148,14 +170,14 @@ export class InstanceController {
   @Validate(InstanceContentRemoveQueryDto)
   async removeContents(@Param('id') id: string, @Query() query) {
     const payload: InstanceContentRemoveQueryDto = { ...query, id };
-    return instanceService.removeContents(payload);
+    return instanceContentService.removeContents(payload);
   }
 
   @Put(':id/contents/toggle')
   @Validate(InstanceContentToggleQueryDto)
   async toggleContents(@Param('id') id: string, @Body() body) {
     const payload: InstanceContentToggleQueryDto = { ...body, id };
-    return instanceService.toggleContents(payload);
+    return instanceContentService.toggleContents(payload);
   }
 
   @Get(':id/contents/check')
@@ -167,7 +189,7 @@ export class InstanceController {
     const payload: InstanceContentDownloadQueryDto = { ...body, id };
 
     try {
-      const event = await instanceService.downloadContents(payload);
+      const event = await instanceContentService.downloadContents(payload);
       return handleDownloaderSSE(c, event, 'No contents to download');
     } catch (err: any) {
       return streamSSE(c, async (stream) => {

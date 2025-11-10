@@ -1,6 +1,7 @@
 import { ContentFileDto } from '@shared/dtos/content.dto';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useContextSelector } from 'use-context-selector';
 
 import { Column } from '~/components/DataTable';
@@ -8,7 +9,6 @@ import Tooltip from '~/components/Tooltip';
 import { DiscoverContext } from '~/context/DiscoverContext';
 import { useInstanceAddContentSSE, useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
-import { toast } from '~/hooks/app/useToast';
 
 type FileStatus = 'idle' | 'installing' | 'installed';
 

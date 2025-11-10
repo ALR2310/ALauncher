@@ -6,12 +6,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, Download, Gamepad2, HardDrive } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
+import { toast } from 'react-toastify';
 
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { useInstanceAddContentSSE } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
-import { toast } from '~/hooks/app/useToast';
 
 interface ContentCardProps {
   data: ContentDto;

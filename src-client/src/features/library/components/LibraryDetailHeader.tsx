@@ -3,9 +3,10 @@ import { InstanceDto } from '@shared/dtos/instance.dto';
 import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
-import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen, Trash2 } from 'lucide-react';
-import { memo } from 'react';
+import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen, Trash2, Upload } from 'lucide-react';
+import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 import { useContextSelector } from 'use-context-selector';
 
 import { instanceOpenFolder } from '~/api';
@@ -14,8 +15,8 @@ import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceDeleteMutation } from '~/hooks/api/useInstanceApi';
-import { toast } from '~/hooks/app/useToast';
+import { useInstanceDeleteMutation, useInstanceUploadMutation } from '~/hooks/api/useInstanceApi';
+import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto | undefined;
@@ -25,6 +26,7 @@ interface LibraryDetailHeaderProps {
 const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
   const navigation = useNavigate();
 
+  const { selectInstanceFiles } = useSelectInstance();
   const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
   const { launch, cancel, getState } = useContextSelector(LibraryContext, (v) => v);
 
@@ -36,7 +38,26 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
   const speed = state?.speed;
 
   const { mutateAsync: deleteInstance } = useInstanceDeleteMutation();
+  const { mutateAsync: uploadInstance } = useInstanceUploadMutation();
   const queryClient = useQueryClient();
+
+  const handleUpload = useCallback(
+    async (id: string) => {
+      const files = await selectInstanceFiles(id);
+      if (files && files.length > 0) {
+        toast.promise(uploadInstance({ id, filesPath: files }), {
+          pending: 'Uploading...',
+          success: 'Upload successfully',
+          error: {
+            render({ err }: any) {
+              return `Upload failed: ${err?.message || 'Unknown error'}`;
+            },
+          },
+        });
+      }
+    },
+    [selectInstanceFiles, uploadInstance],
+  );
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
@@ -70,11 +91,17 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
               {isRunning ? 'Cancel' : 'Play'}
             </button>
 
-            <div className="dropdown dropdown-end">
+            <div className="dropdown dropdown-end z-10">
               <button className="btn btn-soft btn-circle">
                 <EllipsisVertical />
               </button>
               <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 min-w-38 shadow mt-3">
+                <li>
+                  <button className="text-nowrap" onClick={() => handleUpload(data!.id)}>
+                    <Upload size={16} />
+                    Upload modpack
+                  </button>
+                </li>
                 <li>
                   <button onClick={() => instanceOpenFolder(data!.id)}>
                     <FolderOpen size={16} />
@@ -84,12 +111,12 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
                 <li>
                   <button onClick={() => instanceModal.open(data?.id)}>
                     <SquarePen size={16} />
-                    Edit instance
+                    Edit modpack
                   </button>
                 </li>
                 <li>
                   <button
-                    className="text-nowrap"
+                    className="text-nowrap text-error"
                     onClick={async () => {
                       try {
                         await deleteInstance(data!.id);

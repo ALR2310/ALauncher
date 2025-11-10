@@ -1,22 +1,24 @@
 import { InstanceContentAddQueryDto, InstanceContentQueryDto, InstanceQueryDto } from '@shared/dtos/instance.dto';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { FetchEventSource } from '~/api';
 import {
   instanceAddContent,
   instanceCreate,
   instanceDelete,
+  instanceDownload,
   instanceFindAll,
   instanceFindOne,
   instanceFindWorlds,
   instanceGetContents,
+  instanceGetFolderTree,
   instanceRemoveContent,
   instanceToggleContent,
   instanceUpdate,
+  instanceUpload,
 } from '~/api/instance.api';
-
-import { toast } from '../app/useToast';
 
 export function useInstancesQuery(param?: InstanceQueryDto) {
   return useQuery({
@@ -56,6 +58,26 @@ export function useInstanceWorldsQuery(id: string) {
     queryKey: ['instanceWorlds', id],
     queryFn: () => instanceFindWorlds(id),
     enabled: !!id,
+  });
+}
+
+export function useInstanceFolderTreeQuery(id: string) {
+  return useQuery({
+    queryKey: ['instanceFolderTree', id],
+    queryFn: () => instanceGetFolderTree(id),
+    enabled: !!id,
+  });
+}
+
+export function useInstanceUploadMutation() {
+  return useMutation({
+    mutationFn: instanceUpload,
+  });
+}
+
+export function useInstanceDownloadMutation() {
+  return useMutation({
+    mutationFn: instanceDownload,
   });
 }
 

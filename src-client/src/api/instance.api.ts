@@ -7,8 +7,10 @@ import {
   InstanceContentRemoveResponseDto,
   InstanceContentToggleQueryDto,
   InstanceDto,
+  InstanceFolderTreeDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
+  InstanceUploadQueryDto,
   InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
 
@@ -45,12 +47,24 @@ export async function instanceOpenFolder(id: string) {
   return API.get(`${BASE_PATH}/${id}/folders`);
 }
 
+export async function instanceGetFolderTree(id: string) {
+  return API.get<InstanceFolderTreeDto>(`${BASE_PATH}/${id}/folders/tree`);
+}
+
 export function instanceLaunch(id: string) {
   return API.getSSE(`${BASE_PATH}/${id}/launch`);
 }
 
 export async function instanceCancel(id: string) {
   return API.get(`${BASE_PATH}/${id}/cancel`);
+}
+
+export async function instanceUpload(params: InstanceUploadQueryDto) {
+  return API.post(`${BASE_PATH}/${params.id}/upload`, params);
+}
+
+export async function instanceDownload(id: string) {
+  return API.get(`${BASE_PATH}/${id}/download`);
 }
 
 export async function instanceGetContents(params: InstanceContentQueryDto) {

@@ -1,9 +1,10 @@
 import 'dotenv/config';
 
 import { Octokit } from '@octokit/rest';
+import archiver from 'archiver';
 import axios from 'axios';
 import { execSync } from 'child_process';
-import { zipSync } from 'fflate';
+import { createWriteStream, readdirSync, statSync } from 'fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
 import path from 'path';
 import * as ResEdit from 'resedit';
@@ -59,30 +60,26 @@ async function prepareNodeRuntime() {
   await writeFile('dist/runtime.bin', Buffer.from(modifiedExe));
 }
 
-async function collectFiles(dir: string, baseDir = dir): Promise<Record<string, Uint8Array>> {
-  const entries = await readdir(dir, { withFileTypes: true });
-  let files: Record<string, Uint8Array> = {};
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
-
-    if (entry.isDirectory()) {
-      const subFiles = await collectFiles(fullPath, baseDir);
-      files = { ...files, ...subFiles };
-    } else {
-      const data = await readFile(fullPath);
-      files[relPath] = data;
-    }
-  }
-
-  return files;
-}
-
 export async function compress(srcDir: string, outFile: string) {
-  const files = await collectFiles(srcDir);
-  const zipped = zipSync(files, { level: 9 });
-  await writeFile(outFile, zipped);
+  return new Promise<void>((resolve, reject) => {
+    const output = createWriteStream(outFile);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    output.on('close', resolve);
+    archive.on('error', reject);
+    archive.pipe(output);
+
+    const base = path.basename(outFile);
+    for (const entry of readdirSync(srcDir)) {
+      if (entry === base) continue;
+      const full = path.join(srcDir, entry);
+      const stat = statSync(full);
+      if (stat.isDirectory()) archive.directory(full, entry);
+      else archive.file(full, { name: entry });
+    }
+
+    archive.finalize();
+  });
 }
 
 //================= Github method =================//
@@ -233,6 +230,9 @@ async function uploadRelease(version: string, changelogs: string) {
 
       // Prepare Node.js runtime
       await prepareNodeRuntime();
+
+      // Clean up stats files
+      await rm('dist/stats.html', { force: true }).catch(() => {});
 
       // Build tauri app
       execSync('yarn tauri build', { stdio: 'inherit' });

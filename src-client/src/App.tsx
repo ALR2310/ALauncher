@@ -2,12 +2,13 @@ import { ROUTES } from '@shared/constants/routes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
+import { ToastContainer } from 'react-toastify';
 
 import { ConfirmProvider } from './context/ConfirmContext';
+import { InstanceFileSelectProvider } from './context/InstanceFileSelectContext';
+import { InstanceSelectProvider } from './context/InstanceSelectContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
-import { SelectInstanceProvider } from './context/SelectInstanceContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { ToastProvider } from './context/ToastContext';
 import { TooltipProvider } from './context/TooltipContext';
 import DiscoverDescription from './features/discover/DiscoverDescription';
 import DiscoverFiles from './features/discover/DiscoverFiles';
@@ -18,6 +19,7 @@ import HomeView from './features/home/HomeView';
 import LibraryLayout from './features/library/layouts/LibraryLayout';
 import LibraryDetail from './features/library/LibraryDetail';
 import LibraryList from './features/library/LibraryList';
+import { useWindow } from './hooks/app/useWindow';
 import MainLayout from './layouts/MainLayout';
 
 const isTauri = window.isTauri;
@@ -36,17 +38,20 @@ const queryClient = new QueryClient({
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <LibraryModalProvider>
-            <SelectInstanceProvider>
+      <ConfirmProvider>
+        <LibraryModalProvider>
+          <InstanceSelectProvider>
+            <InstanceFileSelectProvider>
               <TooltipProvider>
-                <ThemeProvider>{children}</ThemeProvider>
+                <ThemeProvider>
+                  {children}
+                  <ToastContainer autoClose={2000} theme="dark" pauseOnHover={false} />
+                </ThemeProvider>
               </TooltipProvider>
-            </SelectInstanceProvider>
-          </LibraryModalProvider>
-        </ConfirmProvider>
-      </ToastProvider>
+            </InstanceFileSelectProvider>
+          </InstanceSelectProvider>
+        </LibraryModalProvider>
+      </ConfirmProvider>
     </QueryClientProvider>
   );
 };
@@ -76,6 +81,8 @@ const AppRoutes = () => {
 };
 
 export default function App() {
+  const { createTrayIcon } = useWindow();
+
   useEffect(() => {
     if (isTauri) {
       const handler = (e: MouseEvent) => e.preventDefault();
@@ -83,6 +90,11 @@ export default function App() {
       return () => document.removeEventListener('contextmenu', handler);
     }
   }, []);
+
+  // Create Tray
+  useEffect(() => {
+    createTrayIcon();
+  }, [createTrayIcon]);
 
   return (
     <AppProvider>

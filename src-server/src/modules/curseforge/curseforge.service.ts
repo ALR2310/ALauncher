@@ -53,6 +53,10 @@ class CurseForgeService {
       (res) => res.data.data as CurseForgeMinecraftModLoaderIndex[],
     );
   }
+
+  async getFingerprintsMatches(fingerprints: number[]) {
+    return this.client.getFingerprintsMatches(fingerprints);
+  }
 }
 
 export const curseForgeService = new CurseForgeService();

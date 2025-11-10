@@ -1,8 +1,10 @@
 import { InstanceDto } from '@shared/dtos/instance.dto';
+import { InstanceStatusEnum } from '@shared/enums/general.enum';
 import { formatToSlug } from '@shared/utils/general.utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { RefObject, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import fabricLogo from '~/assets/images/logos/fabric.png';
@@ -14,7 +16,6 @@ import Modal from '~/components/Modal';
 import Select from '~/components/Select';
 import { useInstanceCreateMutation, useInstanceOneQuery, useInstanceUpdateMutation } from '~/hooks/api/useInstanceApi';
 import { useVersionLoadersQuery, useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
-import { toast } from '~/hooks/app/useToast';
 
 interface LibraryModalProps {
   ref: RefObject<HTMLDialogElement>;
@@ -60,6 +61,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
         name: modpackName,
         createdAt: dateNow,
         updatedAt: dateNow,
+        status: InstanceStatusEnum.Latest,
         version: gameVersion,
         loader: {
           type: loaderType,

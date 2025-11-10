@@ -231,6 +231,9 @@ async function uploadRelease(version: string, changelogs: string) {
       // Prepare Node.js runtime
       await prepareNodeRuntime();
 
+      // Clean up stats files
+      await rm('dist/stats.html', { force: true }).catch(() => {});
+
       // Build tauri app
       execSync('yarn tauri build', { stdio: 'inherit' });
 

@@ -16,8 +16,9 @@ import { createHash } from 'crypto';
 import { CurseForgeFileRelationType } from 'curseforge-api';
 import EventEmitter from 'events';
 import { createReadStream, existsSync } from 'fs';
-import { access, constants, mkdir, rename, rm } from 'fs/promises';
+import { access, constants, mkdir, readdir, rename, rm, stat } from 'fs/promises';
 import throttle from 'lodash/throttle';
+import pLimit from 'p-limit';
 import path from 'path';
 import unzipper from 'unzipper';
 
@@ -25,6 +26,7 @@ import { NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
+import { getFingerprints } from '~/utils/fingerprint';
 
 import { appService } from '../app/app.service';
 import { contentService } from '../content/content.service';
@@ -39,19 +41,76 @@ export const instanceContentService = new (class InstanceContentService {
     const { id, contentType } = payload;
 
     const instance = await instanceService.findOne(id);
+    const contentDir = await instanceService.getContentDir(id, contentType);
 
-    const contentIds = (instance[contentType]?.map((c) => c.id) || []).join(',');
+    const current = instance[contentType] ?? [];
+    const metaMap = new Map(current.map((c) => [c.fileName + ':' + c.fileLength, c]));
 
-    if (!contentIds)
+    const files = await readdir(contentDir, { withFileTypes: true }).catch(() => []);
+    const ext = contentType === InstanceContentEnum.Mods ? '.jar' : '.zip';
+
+    const entries = files.filter((f) => f.isFile() && f.name.endsWith(ext));
+    const filePaths = entries.map((j) => path.join(contentDir, j.name));
+
+    const limit = pLimit(8);
+    const fingerprintTargets = await Promise.all(
+      filePaths.map((filePath) =>
+        limit(async () => {
+          const { size } = await stat(filePath);
+          const key = path.basename(filePath) + ':' + size;
+          return metaMap.has(key) ? null : filePath;
+        }),
+      ),
+    ).then((list) => list.filter(Boolean) as string[]);
+
+    if (fingerprintTargets.length > 0) {
+      const fingerprinters = await getFingerprints(fingerprintTargets);
+      const fingerResponse = await curseForgeService.getFingerprintsMatches(fingerprinters);
+
+      const fpToPath = new Map<string, string>();
+      fingerprinters.forEach((fp, i) => {
+        fpToPath.set(String(fp), fingerprintTargets[i]);
+      });
+
+      for (const match of fingerResponse.exactMatches) {
+        const m = match.file;
+        const filePath = fpToPath.get(String(m.fileFingerprint));
+        if (!filePath) continue;
+
+        const { size } = await stat(filePath);
+        const key = m.fileName + ':' + size;
+
+        if (!metaMap.has(key)) {
+          metaMap.set(key, {
+            id: match.id,
+            name: m.displayName,
+            fileId: m.id,
+            fileName: m.fileName,
+            fileUrl: m.downloadUrl || contentService.getDownloadUrl(match.id, m.id),
+            fileLength: m.fileLength,
+            enabled: true,
+            hash: m.hashes[0].value,
+          });
+        }
+      }
+    }
+
+    const newList = [...metaMap.values()];
+
+    if (newList.length !== current.length) {
+      instance[contentType] = newList;
+      instanceService.update(id, instance);
+    }
+
+    const contentIds = newList.map((c) => c.id).join(',');
+    if (!contentIds) {
       return {
         data: [],
         pagination: { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 },
       };
+    }
 
-    return await contentService.findAll({
-      instance: id,
-      ids: contentIds,
-    });
+    return await contentService.findAll({ instance: id, ids: contentIds });
   }
 
   async addContents(payload: InstanceContentAddQueryDto) {

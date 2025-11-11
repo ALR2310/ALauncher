@@ -12,7 +12,6 @@ import {
 } from '@shared/dtos/instance.dto';
 import { CategoryClassEnum, InstanceContentEnum } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
-import { createHash } from 'crypto';
 import { CurseForgeFileRelationType } from 'curseforge-api';
 import EventEmitter from 'events';
 import { createReadStream, existsSync } from 'fs';
@@ -27,6 +26,7 @@ import { logger } from '~/common/logger';
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
 import { getFingerprints } from '~/utils/fingerprint';
+import { getHash } from '~/utils/hashes';
 
 import { appService } from '../app/app.service';
 import { contentService } from '../content/content.service';
@@ -485,17 +485,13 @@ export const instanceContentService = new (class InstanceContentService {
       return true;
     }
 
-    return new Promise<boolean>((resolve) => {
-      const hash = createHash(algorithm);
-      const stream = createReadStream(filePath);
-
-      stream.on('data', (chunk) => hash.update(chunk));
-      stream.on('end', () => {
-        const digest = hash.digest('hex');
-        resolve(digest !== expectedHash);
-      });
-      stream.on('error', () => resolve(true));
-    });
+    try {
+      const digest = await getHash(filePath, algorithm);
+      return digest.toLowerCase() !== expectedHash.toLowerCase();
+    } catch (err) {
+      logger(`Failed to calculate hash for ${filePath}:`, err);
+      return true;
+    }
   }
 
   private instanceLock(id: string) {

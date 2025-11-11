@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { createZodDto } from '../utils/zod.dto';
+import { createZodDto } from '../utils/zod.utils';
 
 export const categoryMap = {
   keyToText: {

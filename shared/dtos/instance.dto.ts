@@ -2,7 +2,7 @@ import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.e
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
-import { createZodDto } from '../utils/zod.dto';
+import { createZodDto } from '../utils/zod.utils';
 
 interface InstanceFolderTree {
   name: string;

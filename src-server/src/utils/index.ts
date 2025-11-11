@@ -1,2 +1,2 @@
-export * from './fingerprint';
-export * from './hashes';
+export * from './fingerprint.utils';
+export * from './hashes.utils';

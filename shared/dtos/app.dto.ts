@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { createZodDto } from '../utils/zod.dto';
+import { createZodDto } from '../utils/zod.utils';
 
 export enum JAVA_TYPE {
   JDK = 'jdk',

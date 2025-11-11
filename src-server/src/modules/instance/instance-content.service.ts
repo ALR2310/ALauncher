@@ -25,8 +25,8 @@ import { NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
-import { getFingerprints } from '~/utils/fingerprint';
-import { getHash } from '~/utils/hashes';
+import { getFingerprints } from '~/utils/fingerprint.utils';
+import { getHash } from '~/utils/hashes.utils';
 
 import { appService } from '../app/app.service';
 import { contentService } from '../content/content.service';

@@ -1,10 +1,10 @@
 import { InstanceDto, InstanceQueryDto, instanceSchema, InstanceWorldDto } from '@shared/dtos/instance.dto';
 import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.enum';
+import { deserialize } from '@xmcl/nbt';
 import { existsSync } from 'fs';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'fs/promises';
 import pLimit from 'p-limit';
 import path from 'path';
-import { parse } from 'prismarine-nbt';
 
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
@@ -14,6 +14,7 @@ import { instanceCloudService } from './instance-cloud.service';
 
 export const instanceService = new (class InstanceService {
   private instanceDirCache: string | null = null;
+  private readonly limit = pLimit(10);
 
   async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
     const { sortBy = 'lastPlayed', sortDir = 'desc', checkStatus = false } = payload;
@@ -145,30 +146,20 @@ export const instanceService = new (class InstanceService {
     if (!id) throw new NotFoundException('Instance ID is required');
 
     try {
-      const instanceDir = await this.getDir(id);
-      const worldDir = path.resolve(instanceDir, 'worlds');
+      const worldDir = await this.getContentDir(id, InstanceContentEnum.Worlds);
 
       const entries = await readdir(worldDir, { withFileTypes: true }).catch(() => []);
 
       if (entries.length === 0) return [];
 
-      const limit = pLimit(10);
       const readTasks = entries
         .filter((e) => e.isDirectory())
         .map((dir) =>
-          limit(async () => {
-            const levelDatPath = path.resolve(worldDir, dir.name, 'level.dat');
-
+          this.limit(async () => {
             try {
-              const buffer = await readFile(levelDatPath);
-              const { parsed } = await parse(buffer);
-
-              const data: any = parsed.value.Data?.value;
-
-              if (!data || typeof data !== 'object' || Array.isArray(data)) {
-                logger(`Invalid NBT data in ${dir.name}/level.dat`);
-                return null;
-              }
+              const filePath = path.join(worldDir, dir.name, 'level.dat');
+              const fileData = await readFile(filePath);
+              const world = await deserialize(fileData, { compressed: true }).then((res: any) => res.Data);
 
               const iconPath = path.join(worldDir, dir.name, 'icon.png');
               let iconBase64: string | undefined;
@@ -180,11 +171,14 @@ export const instanceService = new (class InstanceService {
 
               const result: InstanceWorldDto = {
                 instanceId: id,
-                name: data.LevelName?.value ?? 'Unknown',
-                folderName: dir.name,
-                version: data.Version?.value?.Name?.value ?? 'Unknown',
+                worldName: world.LevelName,
+                worldVersion: world.Version.Name,
+                gameType: world.GameType,
+                gameDifficulty: world.Difficulty,
+                allowCommands: world.allowCommands === 1,
+                hardcore: world.Hardcore === 1,
+                seed: world.WorldGenSettings.seed,
                 icon: iconBase64,
-                gameType: data.GameType?.value ?? 0,
                 path: path.join(worldDir, dir.name),
               };
 
@@ -238,7 +232,9 @@ export const instanceService = new (class InstanceService {
 
     if (contentType === InstanceContentEnum.DataPacks) {
       if (!worldName?.trim()) throw new BadRequestException('World name is required for datapacks');
-      contentDir = path.resolve(instanceDir, InstanceContentEnum.Worlds, worldName, contentType);
+      contentDir = path.resolve(instanceDir, 'saves', worldName, contentType);
+    } else if (contentType === InstanceContentEnum.Worlds) {
+      contentDir = path.resolve(instanceDir, 'saves');
     } else {
       contentDir = path.resolve(instanceDir, contentType);
     }

@@ -62,11 +62,14 @@ const instanceUpdateBodySchema = z.object({
 
 const instanceWorldSchema = z.object({
   instanceId: z.string().nullish(),
-  name: z.string(),
-  folderName: z.string(),
-  version: z.string(),
-  icon: z.string().nullish(),
+  worldName: z.string(),
+  worldVersion: z.string(),
   gameType: z.number(),
+  gameDifficulty: z.number(),
+  allowCommands: z.boolean(),
+  hardcore: z.boolean(),
+  seed: z.number().nullish(),
+  icon: z.string().nullish(),
   path: z.string(),
 });
 

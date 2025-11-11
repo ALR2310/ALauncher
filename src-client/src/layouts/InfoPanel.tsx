@@ -13,7 +13,7 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import steveFace from '~/assets/images/steve-face.png';
 import Img from '~/components/Img';
 import { useAppGetConfigQuery, useAppSetConfigMutation } from '~/hooks/api/useAppApi';
-import { useInstanceDownloadMutation, useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useInstanceCloudDownloadMutation, useInstancesCloudQuery } from '~/hooks/api/useInstanceApi';
 import { useVersionNotesInfinite } from '~/hooks/api/useVersionApi';
 
 const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
@@ -31,7 +31,7 @@ const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
 
 const ModpackCard = ({ data }: { data: InstanceDto }) => {
   const queryClient = useQueryClient();
-  const { mutateAsync: downloadModpack, isPending } = useInstanceDownloadMutation();
+  const { mutateAsync: downloadInstance, isPending } = useInstanceCloudDownloadMutation();
 
   return (
     <div
@@ -55,7 +55,7 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
           <button
             className="btn btn-success btn-block"
             onClick={() => {
-              downloadModpack(data.id)
+              downloadInstance(data.id)
                 .catch((err) => {
                   toast.error(`Download failed: ${err.message}`);
                 })
@@ -77,7 +77,7 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
 export default function InfoPanel() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useVersionNotesInfinite({ pageSize: 10 });
-  const { data: instances } = useInstancesQuery({ type: 'cloud' });
+  const { data: instancesCloud } = useInstancesCloudQuery();
   const { data: config } = useAppGetConfigQuery();
   const { mutate } = useAppSetConfigMutation();
   const [username, setUsername] = useState('');
@@ -163,8 +163,8 @@ export default function InfoPanel() {
       <div id="release-scroll" className="flex-1 overflow-y-auto no-scrollbar space-y-4">
         {activeTab === 'modpack' && (
           <>
-            {instances?.length ? (
-              instances
+            {instancesCloud?.length ? (
+              instancesCloud
                 .filter((item) => item.status === InstanceStatusEnum.NotInstalled)
                 .map((item, idx) => <ModpackCard key={idx} data={item} />)
             ) : (

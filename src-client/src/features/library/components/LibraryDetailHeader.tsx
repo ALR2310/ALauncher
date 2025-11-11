@@ -15,7 +15,7 @@ import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceDeleteMutation, useInstanceUploadMutation } from '~/hooks/api/useInstanceApi';
+import { useInstanceCloudUploadMutation, useInstanceDeleteMutation } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 interface LibraryDetailHeaderProps {
@@ -38,7 +38,7 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
   const speed = state?.speed;
 
   const { mutateAsync: deleteInstance } = useInstanceDeleteMutation();
-  const { mutateAsync: uploadInstance } = useInstanceUploadMutation();
+  const { mutateAsync: uploadInstance } = useInstanceCloudUploadMutation();
   const queryClient = useQueryClient();
 
   const handleUpload = useCallback(

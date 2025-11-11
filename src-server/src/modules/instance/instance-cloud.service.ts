@@ -1,5 +1,12 @@
-import { InstanceCloudDto, InstanceDto, InstanceUploadQueryDto } from '@shared/dtos/instance.dto';
-import { InstanceContentEnum } from '@shared/enums/general.enum';
+import { BaseResponseDto } from '@shared/dtos/base.dto';
+import {
+  InstanceCloudDownloadResponseDto,
+  InstanceCloudDto,
+  InstanceCloudUploadQueryDto,
+  InstanceCloudUploadResponseDto,
+  InstanceDto,
+} from '@shared/dtos/instance.dto';
+import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.enum';
 import { cp, readdir, readFile, rm } from 'fs/promises';
 import pLimit from 'p-limit';
 import path from 'path';
@@ -21,7 +28,17 @@ export const instanceCloudService = new (class InstanceCloudService {
       fields: ['properties'],
     });
 
-    return files.map((file) => this.mapCloudToInstance(file));
+    const cloudInstances = files.map((file) => this.mapCloudFile(file));
+
+    const localInstances = await instanceService.findAll({}).catch(() => []);
+    const localMap = new Map(localInstances.map((local: InstanceDto) => [local.id, local]) as [string, InstanceDto][]);
+
+    const result = cloudInstances.map((cloud) => {
+      const local = localMap.get(cloud.id);
+      return this.mapCloudData(cloud, local);
+    });
+
+    return result;
   }
 
   async findOne(id: string): Promise<InstanceCloudDto> {
@@ -36,25 +53,29 @@ export const instanceCloudService = new (class InstanceCloudService {
       throw new NotFoundException('Not found instance in cloud storage');
     }
 
-    return this.mapCloudToInstance(file);
+    const cloud = this.mapCloudFile(file);
+
+    const local = await instanceService.findOne(id).catch(() => undefined);
+
+    return this.mapCloudData(cloud, local);
   }
 
-  async upload(payload: InstanceUploadQueryDto) {
+  async upload(payload: InstanceCloudUploadQueryDto) {
     const { id, filesPath } = payload;
 
     const instance = await instanceService.findOne(id);
 
-    const files = await googleDriveService.list({
+    const fileExisting = await googleDriveService.list({
       q: `'${this.folderId}' in parents and properties has { key='id' and value='${id}' }`,
     });
 
-    if (files.length > 0) {
-      await googleDriveService.delete(files[0].id);
+    if (fileExisting.length > 0) {
+      await googleDriveService.delete(fileExisting[0].id);
     }
 
     const dataStream = compressInstance(filesPath);
 
-    const result = await googleDriveService.upload({
+    const fileId = await googleDriveService.upload({
       data: dataStream,
       fileName: `${id}.zip`,
       parents: [this.folderId],
@@ -69,7 +90,16 @@ export const instanceCloudService = new (class InstanceCloudService {
       },
     });
 
-    return result;
+    const file = await googleDriveService.get(fileId);
+
+    return {
+      message: 'Upload completed',
+      data: {
+        name: file.name,
+        size: Number(file.size),
+        path: `drive://${this.folderId}/${file.id}`,
+      },
+    } as InstanceCloudUploadResponseDto;
   }
 
   async download(id: string, outDir?: string) {
@@ -92,13 +122,13 @@ export const instanceCloudService = new (class InstanceCloudService {
       message: 'Download and extraction completed',
       data: {
         name: fileMetadata.name,
-        size: fileMetadata.size,
+        size: Number(fileMetadata.size),
         path: targetDir,
       },
-    };
+    } as InstanceCloudDownloadResponseDto;
   }
 
-  async sync(id: string) {
+  async sync(id: string): Promise<BaseResponseDto> {
     const instanceDir = await instanceService.getDir(id);
     const instanceTempDir = `${instanceDir}_temp`;
 
@@ -142,15 +172,10 @@ export const instanceCloudService = new (class InstanceCloudService {
     await cp(instanceTempDir, instanceDir, { recursive: true, force: true });
     await rm(instanceTempDir, { recursive: true, force: true });
 
-    return {
-      message: 'Sync completed',
-      data: {
-        path: instanceDir,
-      },
-    };
+    return { message: 'Sync instance completed' };
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<BaseResponseDto> {
     try {
       await googleDriveService.delete(id);
       return { message: 'Instance cloud deleted successfully' };
@@ -159,7 +184,7 @@ export const instanceCloudService = new (class InstanceCloudService {
     }
   }
 
-  private mapCloudToInstance(file: FileResponse): InstanceCloudDto {
+  private mapCloudFile(file: FileResponse): InstanceCloudDto {
     return {
       id: file.properties.id,
       name: file.properties.name,
@@ -180,5 +205,17 @@ export const instanceCloudService = new (class InstanceCloudService {
       mimeType: file.mimeType,
       modifiedTime: file.modifiedTime,
     };
+  }
+
+  private mapCloudData(cloud: InstanceCloudDto, local?: InstanceDto): InstanceCloudDto {
+    if (!local) {
+      return { ...cloud, status: InstanceStatusEnum.NotInstalled };
+    }
+
+    const localTime = new Date(local.updatedAt || local.createdAt).getTime();
+    const cloudTime = new Date(cloud.updatedAt || cloud.modifiedTime).getTime();
+    const status = localTime !== cloudTime ? InstanceStatusEnum.UpdateAvailable : InstanceStatusEnum.Latest;
+
+    return { ...cloud, status };
   }
 })();

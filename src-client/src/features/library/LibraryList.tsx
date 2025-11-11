@@ -13,11 +13,15 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceDeleteMutation, useInstancesQuery, useInstanceUploadMutation } from '~/hooks/api/useInstanceApi';
+import {
+  useInstanceCloudUploadMutation,
+  useInstanceDeleteMutation,
+  useInstancesQuery,
+} from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 export default function LibraryList() {
-  const { data: instances } = useInstancesQuery();
+  const { data: instances } = useInstancesQuery({ checkStatus: true });
 
   const libraryModal = useContextSelector(LibraryModalContext, (ctx) => ctx);
   const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
@@ -25,7 +29,7 @@ export default function LibraryList() {
 
   const queryClient = useQueryClient();
   const { mutateAsync: deleteInstance, isPending: isDeleting } = useInstanceDeleteMutation();
-  const { mutateAsync: uploadInstance } = useInstanceUploadMutation();
+  const { mutateAsync: uploadInstance } = useInstanceCloudUploadMutation();
 
   const handleUpload = useCallback(
     async (id: string) => {

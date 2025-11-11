@@ -8,7 +8,7 @@ import {
 import z from 'zod';
 
 import { createZodDto } from '../utils/zod.utils';
-import { baseResponseSchema } from './base.dto';
+import { paginateResponseSchema } from './base.dto';
 
 export enum ContentInstanceStatus {
   NOT_INSTALLED = 'not_installed',
@@ -87,7 +87,7 @@ const contentSchema = z.object({
     .nullish(),
 });
 
-const contentResponseSchema = baseResponseSchema.extend({
+const contentResponseSchema = paginateResponseSchema.extend({
   data: z.array(contentSchema),
 });
 
@@ -154,7 +154,7 @@ const contentFilesQuerySchema = z.object({
   pageSize: z.coerce.number().max(50).optional(),
 });
 
-const contentFilesResponseSchema = baseResponseSchema.extend({
+const contentFilesResponseSchema = paginateResponseSchema.extend({
   data: z.array(contentFileSchema),
 });
 

@@ -1,7 +1,12 @@
+import { createZodDto } from '@shared/utils/zod.utils';
 import z from 'zod';
 
 export const baseResponseSchema = z.object({
-  data: z.any(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+});
+
+export const paginateResponseSchema = baseResponseSchema.extend({
   pagination: z.object({
     index: z.number(),
     pageSize: z.number(),
@@ -9,3 +14,6 @@ export const baseResponseSchema = z.object({
     totalCount: z.number(),
   }),
 });
+
+export class BaseResponseDto extends createZodDto(baseResponseSchema) {}
+export class PaginateResponseDto extends createZodDto(paginateResponseSchema) {}

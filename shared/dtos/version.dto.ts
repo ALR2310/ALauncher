@@ -2,7 +2,7 @@ import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
 import { createZodDto } from '../utils/zod.utils';
-import { baseResponseSchema } from './base.dto';
+import { paginateResponseSchema } from './base.dto';
 
 export enum VERSION_TYPE {
   RELEASE = 'release',
@@ -45,7 +45,7 @@ const releaseNoteSchema = z.object({
   shortText: z.string(),
 });
 
-const releaseNoteResponseSchema = baseResponseSchema.extend({
+const releaseNoteResponseSchema = paginateResponseSchema.extend({
   data: z.array(releaseNoteSchema),
 });
 

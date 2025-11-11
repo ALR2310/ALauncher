@@ -1,5 +1,10 @@
+import { BaseResponseDto } from '@shared/dtos/base.dto';
 import { ContentResponseDto } from '@shared/dtos/content.dto';
 import {
+  InstanceCloudDownloadResponseDto,
+  InstanceCloudDto,
+  InstanceCloudUploadQueryDto,
+  InstanceCloudUploadResponseDto,
   InstanceContentAddQueryDto,
   InstanceContentDownloadQueryDto,
   InstanceContentQueryDto,
@@ -10,7 +15,6 @@ import {
   InstanceFolderTreeDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
-  InstanceUploadQueryDto,
   InstanceWorldDto,
 } from '@shared/dtos/instance.dto';
 
@@ -59,14 +63,6 @@ export async function instanceCancel(id: string) {
   return API.get(`${BASE_PATH}/${id}/cancel`);
 }
 
-export async function instanceUpload(params: InstanceUploadQueryDto) {
-  return API.post(`${BASE_PATH}/${params.id}/upload`, params);
-}
-
-export async function instanceDownload(id: string) {
-  return API.get(`${BASE_PATH}/${id}/download`);
-}
-
 export async function instanceGetContents(params: InstanceContentQueryDto) {
   const { id, ...rest } = params;
   return API.get<ContentResponseDto>(`${BASE_PATH}/${id}/contents`, rest);
@@ -90,4 +86,29 @@ export async function instanceToggleContent(params: InstanceContentToggleQueryDt
 export async function instanceDownloadContent(params: InstanceContentDownloadQueryDto) {
   const { id, ...rest } = params;
   return API.postSSE(`${BASE_PATH}/${id}/contents/download`, rest);
+}
+
+export async function instanceCloudFindAll() {
+  return API.get<InstanceCloudDto[]>(`${BASE_PATH}/cloud`);
+}
+
+export async function instanceCloudFindOne(id: string) {
+  return API.get<InstanceCloudDto>(`${BASE_PATH}/cloud/${id}`);
+}
+
+export async function instanceCloudUpload(params: InstanceCloudUploadQueryDto) {
+  const { id, ...rest } = params;
+  return API.post<InstanceCloudUploadResponseDto>(`${BASE_PATH}/cloud/${id}/upload`, rest);
+}
+
+export async function instanceCloudDownload(id: string) {
+  return API.get<InstanceCloudDownloadResponseDto>(`${BASE_PATH}/cloud/${id}/download`);
+}
+
+export async function instanceCloudSync(id: string) {
+  return API.get<BaseResponseDto>(`${BASE_PATH}/cloud/${id}/sync`);
+}
+
+export async function instanceCloudDelete(id: string) {
+  return API.delete<BaseResponseDto>(`${BASE_PATH}/cloud/${id}/delete`);
 }

@@ -1,4 +1,5 @@
 import {
+  InstanceCloudUploadQueryDto,
   InstanceContentAddQueryDto,
   InstanceContentDownloadQueryDto,
   InstanceContentQueryDto,
@@ -7,7 +8,6 @@ import {
   InstanceDto,
   InstanceQueryDto,
   InstanceUpdateBodyDto,
-  InstanceUploadQueryDto,
 } from '@shared/dtos/instance.dto';
 import EventEmitter from 'events';
 import { Context as HonoContext } from 'hono';
@@ -198,9 +198,9 @@ export class InstanceController {
   }
 
   @Post('cloud/:id/upload')
-  @Validate(InstanceUploadQueryDto)
+  @Validate(InstanceCloudUploadQueryDto)
   async uploadCloud(@Param('id') id: string, @Body() body) {
-    const payload: InstanceUploadQueryDto = { id, ...body };
+    const payload: InstanceCloudUploadQueryDto = { id, ...body };
     return instanceCloudService.upload(payload);
   }
 

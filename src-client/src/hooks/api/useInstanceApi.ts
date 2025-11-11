@@ -6,9 +6,13 @@ import { toast } from 'react-toastify';
 import { FetchEventSource } from '~/api';
 import {
   instanceAddContent,
+  instanceCloudDelete,
+  instanceCloudDownload,
+  instanceCloudFindAll,
+  instanceCloudSync,
+  instanceCloudUpload,
   instanceCreate,
   instanceDelete,
-  instanceDownload,
   instanceFindAll,
   instanceFindOne,
   instanceFindWorlds,
@@ -17,7 +21,6 @@ import {
   instanceRemoveContent,
   instanceToggleContent,
   instanceUpdate,
-  instanceUpload,
 } from '~/api/instance.api';
 
 export function useInstancesQuery(param?: InstanceQueryDto) {
@@ -66,18 +69,6 @@ export function useInstanceFolderTreeQuery(id: string) {
     queryKey: ['instanceFolderTree', id],
     queryFn: () => instanceGetFolderTree(id),
     enabled: !!id,
-  });
-}
-
-export function useInstanceUploadMutation() {
-  return useMutation({
-    mutationFn: instanceUpload,
-  });
-}
-
-export function useInstanceDownloadMutation() {
-  return useMutation({
-    mutationFn: instanceDownload,
   });
 }
 
@@ -140,5 +131,44 @@ export function useInstanceRemoveContentMutation() {
 export function useInstanceToggleContentMutation() {
   return useMutation({
     mutationFn: instanceToggleContent,
+  });
+}
+
+export function useInstancesCloudQuery() {
+  return useQuery({
+    queryKey: ['instancesCloud'],
+    queryFn: () => instanceCloudFindAll(),
+  });
+}
+
+export function useInstanceCloudOneQuery(id: string) {
+  return useQuery({
+    queryKey: ['instanceCloud', id],
+    queryFn: () => instanceFindOne(id),
+    enabled: !!id,
+  });
+}
+
+export function useInstanceCloudUploadMutation() {
+  return useMutation({
+    mutationFn: instanceCloudUpload,
+  });
+}
+
+export function useInstanceCloudDownloadMutation() {
+  return useMutation({
+    mutationFn: instanceCloudDownload,
+  });
+}
+
+export function useInstanceCloudSyncMutation() {
+  return useMutation({
+    mutationFn: instanceCloudSync,
+  });
+}
+
+export function useInstanceCloudDeleteMutation() {
+  return useMutation({
+    mutationFn: instanceCloudDelete,
   });
 }

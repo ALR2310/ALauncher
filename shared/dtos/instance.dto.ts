@@ -3,6 +3,7 @@ import { CurseForgeModLoaderType } from 'curseforge-api';
 import z from 'zod';
 
 import { createZodDto } from '../utils/zod.utils';
+import { baseResponseSchema } from './base.dto';
 
 interface InstanceFolderTree {
   name: string;
@@ -51,7 +52,7 @@ export const instanceSchema = z.object({
 const instanceQuerySchema = z.object({
   sortDir: z.enum(['asc', 'desc']).default('desc').optional(),
   sortBy: z.enum(['name', 'createdAt', 'updatedAt', 'lastPlayed', 'version']).optional(),
-  type: z.enum(['local', 'cloud', 'both']).default('local').optional(),
+  checkStatus: z.coerce.boolean().default(false).optional(),
 });
 
 const instanceUpdateBodySchema = z.object({
@@ -78,11 +79,6 @@ const instanceFolderTreeSchema: z.ZodType<InstanceFolderTree> = z.lazy(() =>
   }),
 );
 
-const instanceUploadQuerySchema = z.object({
-  id: z.string(),
-  filesPath: z.array(z.string()),
-});
-
 const instanceCloudSchema = instanceSchema
   .pick({
     id: true,
@@ -91,6 +87,7 @@ const instanceCloudSchema = instanceSchema
     loader: true,
     createdAt: true,
     updatedAt: true,
+    status: true,
   })
   .extend({
     // Cloud properties
@@ -100,6 +97,21 @@ const instanceCloudSchema = instanceSchema
     mimeType: z.string(),
     modifiedTime: z.string(),
   });
+
+const instanceCloudUploadQuerySchema = z.object({
+  id: z.string(),
+  filesPath: z.array(z.string()),
+});
+
+const instanceCloudDownloadResponseSchema = baseResponseSchema.extend({
+  data: z.object({
+    name: z.string(),
+    size: z.number(),
+    path: z.string(),
+  }),
+});
+
+const instanceCloudUploadResponseSchema = instanceCloudDownloadResponseSchema;
 
 const instanceContentQuerySchema = z.object({
   id: z.string(),
@@ -140,8 +152,12 @@ export class InstanceQueryDto extends createZodDto(instanceQuerySchema) {}
 export class InstanceUpdateBodyDto extends createZodDto(instanceUpdateBodySchema) {}
 export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
 export class InstanceFolderTreeDto extends createZodDto(instanceFolderTreeSchema) {}
-export class InstanceUploadQueryDto extends createZodDto(instanceUploadQuerySchema) {}
+
 export class InstanceCloudDto extends createZodDto(instanceCloudSchema) {}
+export class InstanceCloudUploadQueryDto extends createZodDto(instanceCloudUploadQuerySchema) {}
+export class InstanceCloudUploadResponseDto extends createZodDto(instanceCloudUploadResponseSchema) {}
+export class InstanceCloudDownloadResponseDto extends createZodDto(instanceCloudDownloadResponseSchema) {}
+
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}

@@ -4,7 +4,7 @@ import { cp, readdir, readFile, rm } from 'fs/promises';
 import pLimit from 'p-limit';
 import path from 'path';
 
-import { NotFoundException } from '~/common/filters/exception.filter';
+import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { getHash } from '~/utils';
 import { compressInstance, decompressInstance } from '~/utils/compress.utils';
 
@@ -150,7 +150,14 @@ export const instanceCloudService = new (class InstanceCloudService {
     };
   }
 
-  async delete(id: string) {}
+  async delete(id: string) {
+    try {
+      await googleDriveService.delete(id);
+      return { message: 'Instance cloud deleted successfully' };
+    } catch (err: any) {
+      throw new BadRequestException(err.message);
+    }
+  }
 
   private mapCloudToInstance(file: FileResponse): InstanceCloudDto {
     return {

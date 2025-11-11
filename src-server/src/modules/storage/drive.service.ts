@@ -2,8 +2,6 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { PassThrough, Readable } from 'stream';
 
-import { BadRequestException } from '~/common/filters/exception.filter';
-
 interface UploadOptions {
   data: Buffer | Readable;
   fileName: string;
@@ -51,14 +49,18 @@ export const googleDriveService = new (class GoogleDriveService {
     params.append('client_secret', process.env.GOOGLE_CLIENT_SECRET!);
     params.append('refresh_token', process.env.GOOGLE_REFRESH_TOKEN!);
 
-    const { data } = await axios.post(this.TOKEN_URL, params.toString(), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+    try {
+      const { data } = await axios.post(this.TOKEN_URL, params.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
 
-    this.accessToken = data.access_token;
-    this.tokenExpiry = Date.now() + data.expires_in * 1000;
+      this.accessToken = data.access_token;
+      this.tokenExpiry = Date.now() + data.expires_in * 1000;
 
-    return this.accessToken!;
+      return this.accessToken!;
+    } catch (err: any) {
+      throw err.response?.data.error || err;
+    }
   }
 
   async upload(options: UploadOptions): Promise<string> {
@@ -89,42 +91,47 @@ export const googleDriveService = new (class GoogleDriveService {
       contentType: mimeType ?? 'application/octet-stream',
     });
 
-    const response = await axios.post(`${this.API_UPLOAD_URL}?uploadType=multipart`, form, {
-      headers: {
-        ...form.getHeaders(),
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const response = await axios.post(`${this.API_UPLOAD_URL}?uploadType=multipart`, form, {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    return response.data.id;
+      return response.data.id;
+    } catch (err: any) {
+      throw err.response?.data.error || err;
+    }
   }
 
   async download(fileId: string): Promise<Readable> {
     const token = await this.getToken();
 
-    const response = await axios.get(`${this.API_URL}/files/${fileId}?alt=media`, {
-      headers: { Authorization: `Bearer ${token}` },
-      responseType: 'stream',
-    });
+    try {
+      const response = await axios.get(`${this.API_URL}/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'stream',
+      });
 
-    const pass = new PassThrough();
-    response.data.pipe(pass);
+      const pass = new PassThrough();
+      response.data.pipe(pass);
 
-    return pass;
+      return pass;
+    } catch (err: any) {
+      throw err.response?.data.error || err;
+    }
   }
 
-  async delete(fileId: string): Promise<boolean> {
+  async delete(fileId: string): Promise<void> {
     try {
       const token = await this.getToken();
 
       await axios.delete(`${this.API_URL}/files/${fileId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      return true;
-    } catch (err) {
-      console.error(err);
-      return false;
+    } catch (err: any) {
+      throw err.response?.data.error || err;
     }
   }
 
@@ -132,15 +139,20 @@ export const googleDriveService = new (class GoogleDriveService {
     const fieldsQuery = Array.from(new Set([...defaultFields, ...(fields ?? [])])).join(',');
     const token = await this.getToken();
 
-    const { data } = await axios.get(`${this.API_URL}/files/${fileId}?fields=${fieldsQuery}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const { data } = await axios.get(`${this.API_URL}/files/${fileId}?fields=${fieldsQuery}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    return data;
+      return data;
+    } catch (err: any) {
+      throw err.response?.data.error || err;
+    }
   }
 
   async list<F extends string = never>(options: ListOptions<F>): Promise<Array<FileResponse & Record<F, any>>> {
     const { q, fields, spaces = 'drive', orderBy, pageSize = 100, pageToken } = options;
+
     try {
       const token = await this.getToken();
 
@@ -160,8 +172,7 @@ export const googleDriveService = new (class GoogleDriveService {
 
       return data.files;
     } catch (err: any) {
-      console.dir(err.response?.data || err.message, { depth: null });
-      throw new BadRequestException(err.message);
+      throw err.response?.data.error || err;
     }
   }
 })();

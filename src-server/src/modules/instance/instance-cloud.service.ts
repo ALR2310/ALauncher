@@ -15,6 +15,10 @@ export const instanceCloudService = new (class InstanceCloudService {
   private folderId = process.env.FOLDER_ID!;
   private readonly limit = 8;
 
+  async findAll() {}
+
+  async findOne(id: string) {}
+
   async upload(payload: InstanceUploadQueryDto) {
     const { id, filesPath } = payload;
 
@@ -48,7 +52,7 @@ export const instanceCloudService = new (class InstanceCloudService {
     return result;
   }
 
-  async download(id: string) {
+  async download(id: string, outDir?: string) {
     const files = await googleDriveService.list({
       q: `'${this.folderId}' in parents and properties has { key='id' and value='${id}' }`,
     });
@@ -58,12 +62,28 @@ export const instanceCloudService = new (class InstanceCloudService {
     }
 
     const fileMetadata = files[0];
+    const targetDir = outDir || (await instanceService.getDir(id));
+
+    // Download and extract to target directory
+    const dataStream = await googleDriveService.download(fileMetadata.id);
+    await decompressInstance(dataStream, targetDir);
+
+    return {
+      message: 'Download and extraction completed',
+      data: {
+        name: fileMetadata.name,
+        size: fileMetadata.size,
+        path: targetDir,
+      },
+    };
+  }
+
+  async sync(id: string) {
     const instanceDir = await instanceService.getDir(id);
     const instanceTempDir = `${instanceDir}_temp`;
 
-    // Download and extract to temp directory
-    const dataStream = await googleDriveService.download(fileMetadata.id);
-    await decompressInstance(dataStream, instanceTempDir);
+    // Download to temp directory
+    await this.download(id, instanceTempDir);
 
     const instanceTemp: InstanceDto = JSON.parse(await readFile(await instanceService.getPath(`${id}_temp`), 'utf-8'));
     const contentTypes = [InstanceContentEnum.Mods, InstanceContentEnum.ResourcePacks, InstanceContentEnum.ShaderPacks];
@@ -103,12 +123,12 @@ export const instanceCloudService = new (class InstanceCloudService {
     await rm(instanceTempDir, { recursive: true, force: true });
 
     return {
-      message: 'Download and extraction completed',
+      message: 'Sync completed',
       data: {
-        name: fileMetadata.name,
-        size: fileMetadata.size,
         path: instanceDir,
       },
     };
   }
+
+  async delete(id: string) {}
 })();

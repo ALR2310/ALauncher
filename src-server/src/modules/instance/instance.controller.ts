@@ -188,11 +188,13 @@ export class InstanceController {
   }
 
   @Get('cloud')
-  async findAllCloud() {}
+  async findAllCloud() {
+    return instanceCloudService.findAll();
+  }
 
   @Get('cloud/:id')
   async findOneCloud(@Param('id') id: string) {
-    return id;
+    return instanceCloudService.findOne(id);
   }
 
   @Post('cloud/:id/upload')
@@ -207,8 +209,13 @@ export class InstanceController {
     return instanceCloudService.download(id);
   }
 
+  @Get('cloud/:id/sync')
+  async syncCloud(@Param('id') id: string) {
+    return instanceCloudService.sync(id);
+  }
+
   @Delete('cloud/:id/delete')
   async deleteCloud(@Param('id') id: string) {
-    return id;
+    return instanceCloudService.delete(id);
   }
 }

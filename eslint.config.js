@@ -5,6 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import eslintImport from 'eslint-plugin-import';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import importZod from "eslint-plugin-import-zod";
+import { defineConfig } from 'eslint/config';
 
 const baseRules = {
   'no-empty': 'off',
@@ -15,9 +17,10 @@ const baseRules = {
   'no-unused-vars': 'off',
   '@typescript-eslint/no-unused-vars': 'off',
   '@typescript-eslint/no-explicit-any': 'off',
+  "import-zod/prefer-zod-namespace": "warn",
 };
 
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['dist'] },
   // FE (React)
   {
@@ -36,6 +39,7 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
       import: eslintImport,
       'simple-import-sort': simpleImportSort,
+      'import-zod': importZod,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -59,6 +63,7 @@ export default tseslint.config(
     plugins: {
       import: eslintImport,
       'simple-import-sort': simpleImportSort,
+      'import-zod': importZod,
     },
     rules: {
       ...baseRules,

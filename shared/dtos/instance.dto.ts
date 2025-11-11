@@ -1,7 +1,7 @@
-import { InstanceContentEnum, InstanceStatusEnum } from '@shared/enums/general.enum';
 import { CurseForgeModLoaderType } from 'curseforge-api';
-import z from 'zod';
+import * as z from 'zod';
 
+import { InstanceContentEnum, InstanceStatusEnum } from '../enums/general.enum';
 import { createZodDto } from '../utils/zod.utils';
 import { baseResponseSchema } from './base.dto';
 

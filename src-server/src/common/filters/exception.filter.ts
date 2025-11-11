@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { ContentfulStatusCode } from 'hono/utils/http-status';
-import z from 'zod';
+import * as z from 'zod/v4';
 
 import { logger } from '../logger';
 

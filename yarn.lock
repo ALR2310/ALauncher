@@ -2242,7 +2242,6 @@ eslint-import-resolver-node@^0.3.9:
 
 eslint-js@eslint/js:
   version "1.0.0"
-  uid "71f448d807fe128e4b93d8cb81b325465df13e4a"
   resolved "https://codeload.github.com/eslint/js/tar.gz/71f448d807fe128e4b93d8cb81b325465df13e4a"
 
 eslint-module-utils@^2.12.1:
@@ -2251,6 +2250,11 @@ eslint-module-utils@^2.12.1:
   integrity sha512-L8jSWTze7K2mTg0vos/RuLRS5soomksDPoJLXIslC7c8Wmut3bx7CPpJijDcBZtxQ5lrbUdM+s0OlNbz0DCDNw==
   dependencies:
     debug "^3.2.7"
+
+eslint-plugin-import-zod@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-import-zod/-/eslint-plugin-import-zod-1.2.0.tgz#9741c9bd6253dabb44e48a94a89a34a2cea80f5a"
+  integrity sha512-OeKApiywijXDhK6h0V55N6J8lwxCGHfJ+vwGMhc911TwEomfCbXJRkFY5bIz/9/yM+54eDHzU3ByoRhzpZEE2w==
 
 eslint-plugin-import@^2.32.0:
   version "2.32.0"

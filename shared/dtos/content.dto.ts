@@ -5,7 +5,7 @@ import {
   CurseForgeModsSearchSortField,
   CurseForgeSortOrder,
 } from 'curseforge-api';
-import z from 'zod';
+import * as z from 'zod';
 
 import { createZodDto } from '../utils/zod.utils';
 import { paginateResponseSchema } from './base.dto';

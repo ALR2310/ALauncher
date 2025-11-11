@@ -1,5 +1,6 @@
-import { createZodDto } from '@shared/utils/zod.utils';
-import z from 'zod';
+import * as z from 'zod';
+
+import { createZodDto } from '../utils/zod.utils';
 
 export const baseResponseSchema = z.object({
   message: z.string().optional(),

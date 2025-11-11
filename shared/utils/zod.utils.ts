@@ -1,4 +1,5 @@
-import z, { ZodNumber, ZodType } from 'zod';
+import * as z from 'zod/v4';
+import { ZodNumber, ZodType } from 'zod/v4';
 
 ZodNumber.prototype.enum = function <E extends Record<string, unknown>>(enumObj: E) {
   const values = Object.values(enumObj).filter((v) => typeof v === 'number') as number[];

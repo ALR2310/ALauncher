@@ -13,7 +13,7 @@ interface UploadOptions {
   appProperties?: Record<string, any>;
 }
 
-interface FileResponse {
+export interface FileResponse {
   id: string;
   name: string;
   size: string;

@@ -83,6 +83,24 @@ const instanceUploadQuerySchema = z.object({
   filesPath: z.array(z.string()),
 });
 
+const instanceCloudSchema = instanceSchema
+  .pick({
+    id: true,
+    name: true,
+    version: true,
+    loader: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    // Cloud properties
+    fileId: z.string(),
+    fileName: z.string(),
+    fileSize: z.number(),
+    mimeType: z.string(),
+    modifiedTime: z.string(),
+  });
+
 const instanceContentQuerySchema = z.object({
   id: z.string(),
   contentType: z.enum(InstanceContentEnum).default(InstanceContentEnum.Mods),
@@ -123,6 +141,7 @@ export class InstanceUpdateBodyDto extends createZodDto(instanceUpdateBodySchema
 export class InstanceWorldDto extends createZodDto(instanceWorldSchema) {}
 export class InstanceFolderTreeDto extends createZodDto(instanceFolderTreeSchema) {}
 export class InstanceUploadQueryDto extends createZodDto(instanceUploadQuerySchema) {}
+export class InstanceCloudDto extends createZodDto(instanceCloudSchema) {}
 export class InstanceContentDto extends createZodDto(instanceContentSchema) {}
 export class InstanceContentQueryDto extends createZodDto(instanceContentQuerySchema) {}
 export class InstanceContentAddQueryDto extends createZodDto(instanceContentAddQuerySchema) {}

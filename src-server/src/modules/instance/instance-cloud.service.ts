@@ -1,4 +1,4 @@
-import { InstanceDto, InstanceUploadQueryDto } from '@shared/dtos/instance.dto';
+import { InstanceCloudDto, InstanceDto, InstanceUploadQueryDto } from '@shared/dtos/instance.dto';
 import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { cp, readdir, readFile, rm } from 'fs/promises';
 import pLimit from 'p-limit';
@@ -8,16 +8,36 @@ import { NotFoundException } from '~/common/filters/exception.filter';
 import { getHash } from '~/utils';
 import { compressInstance, decompressInstance } from '~/utils/compress.utils';
 
-import { googleDriveService } from '../storage/drive.service';
+import { FileResponse, googleDriveService } from '../storage/drive.service';
 import { instanceService } from './instance.service';
 
 export const instanceCloudService = new (class InstanceCloudService {
   private folderId = process.env.FOLDER_ID!;
   private readonly limit = 8;
 
-  async findAll() {}
+  async findAll(): Promise<InstanceCloudDto[]> {
+    const files = await googleDriveService.list({
+      q: `'${this.folderId}' in parents`,
+      fields: ['properties'],
+    });
 
-  async findOne(id: string) {}
+    return files.map((file) => this.mapCloudToInstance(file));
+  }
+
+  async findOne(id: string): Promise<InstanceCloudDto> {
+    const file = await googleDriveService
+      .list({
+        q: `'${this.folderId}' in parents and properties has { key='id' and value='${id}' }`,
+        fields: ['properties'],
+      })
+      .then((res) => (res.length > 0 ? res[0] : null));
+
+    if (!file) {
+      throw new NotFoundException('Not found instance in cloud storage');
+    }
+
+    return this.mapCloudToInstance(file);
+  }
 
   async upload(payload: InstanceUploadQueryDto) {
     const { id, filesPath } = payload;
@@ -131,4 +151,27 @@ export const instanceCloudService = new (class InstanceCloudService {
   }
 
   async delete(id: string) {}
+
+  private mapCloudToInstance(file: FileResponse): InstanceCloudDto {
+    return {
+      id: file.properties.id,
+      name: file.properties.name,
+      version: file.properties.version,
+      loader:
+        file.properties.loaderType && file.properties.loaderBuild
+          ? {
+              type: Number(file.properties.loaderType),
+              build: file.properties.loaderBuild,
+            }
+          : undefined,
+      createdAt: file.properties.createdAt,
+      updatedAt: file.properties.updatedAt,
+      // Cloud metadata
+      fileId: file.id,
+      fileName: file.name,
+      fileSize: Number(file.size),
+      mimeType: file.mimeType,
+      modifiedTime: file.modifiedTime,
+    };
+  }
 })();

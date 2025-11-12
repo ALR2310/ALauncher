@@ -9,8 +9,8 @@ import {
   VersionDto,
 } from '@shared/dtos/version.dto';
 import { capitalize } from '@shared/utils/general.utils';
-import axios from 'axios';
 import { CurseForgeModLoaderType } from 'curseforge-api';
+import axios from 'redaxios';
 
 import { NotFoundException } from '~/common/filters/exception.filter';
 
@@ -67,14 +67,7 @@ export const versionService = new (class VersionService {
 
     if (!this.noteCache.length) {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-
-        const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`, {
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeout);
+        const { data } = await axios.get(`${this.NOTE_API_URL}javaPatchNotes.json`);
 
         this.noteCache = data.entries.map((note: any) => ({
           ...note,

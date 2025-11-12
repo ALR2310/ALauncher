@@ -1,13 +1,13 @@
 import { AppConfigDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
 import { ENV } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
-import axios from 'axios';
 import { spawn } from 'child_process';
 import EventEmitter from 'events';
 import { readFile, rm, writeFile } from 'fs/promises';
 import set from 'lodash/set';
 import throttle from 'lodash/throttle';
 import path from 'path';
+import axios from 'redaxios';
 import semver from 'semver';
 import { Open } from 'unzipper';
 

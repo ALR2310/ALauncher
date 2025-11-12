@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { CurseForgeClient } from 'curseforge-api';
 import {
   CurseForgeGetCategoriesOptions,
@@ -7,6 +6,7 @@ import {
   CurseForgeSearchModsOptions,
 } from 'curseforge-api/v1/Options';
 import { CurseForgeMinecraftModLoaderIndex } from 'curseforge-api/v1/Types';
+import axios from 'redaxios';
 
 const API_KEY = process.env.CURSEFORGE_API_KEY ?? '';
 

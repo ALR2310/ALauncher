@@ -1,5 +1,4 @@
-import axios from 'axios';
-import FormData from 'form-data';
+import axios from 'redaxios';
 import { PassThrough, Readable } from 'stream';
 
 interface UploadOptions {
@@ -65,7 +64,6 @@ export const googleDriveService = new (class GoogleDriveService {
 
   async upload(options: UploadOptions): Promise<string> {
     const { data, fileName, mimeType, parents = [], properties, appProperties } = options;
-
     const token = await this.getToken();
 
     const metadata = {
@@ -76,33 +74,27 @@ export const googleDriveService = new (class GoogleDriveService {
     };
 
     const form = new FormData();
-    form.append('metadata', JSON.stringify(metadata), { contentType: 'application/json' });
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
 
     const pass = new PassThrough();
+    if (Buffer.isBuffer(data)) pass.end(data);
+    else data.pipe(pass);
 
-    if (Buffer.isBuffer(data)) {
-      pass.end(data);
-    } else {
-      data.pipe(pass);
-    }
+    form.append(
+      'file',
+      new Blob([await this.streamToBuffer(pass)], { type: mimeType ?? 'application/octet-stream' }),
+      fileName,
+    );
 
-    form.append('file', pass, {
-      filename: fileName,
-      contentType: mimeType ?? 'application/octet-stream',
+    const res = await fetch(`${this.API_UPLOAD_URL}?uploadType=multipart`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
     });
 
-    try {
-      const response = await axios.post(`${this.API_UPLOAD_URL}?uploadType=multipart`, form, {
-        headers: {
-          ...form.getHeaders(),
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      return response.data.id;
-    } catch (err: any) {
-      throw err.response?.data.error || err;
-    }
+    if (!res.ok) throw await res.json();
+    const json = await res.json();
+    return json.id;
   }
 
   async download(fileId: string): Promise<Readable> {
@@ -174,5 +166,11 @@ export const googleDriveService = new (class GoogleDriveService {
     } catch (err: any) {
       throw err.response?.data.error || err;
     }
+  }
+
+  private async streamToBuffer(stream: NodeJS.ReadableStream) {
+    const chunks: any[] = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    return Buffer.concat(chunks);
   }
 })();

@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import debounce from 'lodash/debounce';
 import { Gamepad2, PencilLine } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'react-toastify';
 
@@ -33,6 +33,20 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
   const queryClient = useQueryClient();
   const { mutateAsync: downloadInstance, isPending } = useInstanceCloudDownloadMutation();
 
+  const handleDownload = useCallback(() => {
+    toast.promise(
+      downloadInstance(data.id).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['instances'] });
+        queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
+      }),
+      {
+        pending: 'Downloading...',
+        success: 'Download successfully',
+        error: 'Download failed',
+      },
+    );
+  }, [data.id, downloadInstance, queryClient]);
+
   return (
     <div
       className="h-40 relative group overflow-hidden bg-base-100 rounded-xl"
@@ -54,19 +68,11 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
         <div className="h-10 w-full">
           <button
             className="btn btn-success btn-block"
-            onClick={() => {
-              downloadInstance(data.id)
-                .catch((err) => {
-                  toast.error(`Download failed: ${err.message}`);
-                })
-                .then(() => {
-                  queryClient.invalidateQueries({ queryKey: ['instances'] });
-                  toast.success('Download successfully');
-                });
-            }}
-            disabled={isPending}
+            onClick={handleDownload}
+            disabled={data.status === InstanceStatusEnum.Latest || isPending}
           >
-            {isPending && <span className="loading loading-spinner"></span>} Download
+            {isPending && <span className="loading loading-spinner"></span>}{' '}
+            {data.status === InstanceStatusEnum.Latest ? 'Downloaded' : 'Download'}
           </button>
         </div>
       </div>
@@ -164,9 +170,7 @@ export default function InfoPanel() {
         {activeTab === 'modpack' && (
           <>
             {instancesCloud?.length ? (
-              instancesCloud
-                .filter((item) => item.status === InstanceStatusEnum.NotInstalled)
-                .map((item, idx) => <ModpackCard key={idx} data={item} />)
+              instancesCloud.map((item, idx) => <ModpackCard key={idx} data={item} />)
             ) : (
               <p className="text-center opacity-70">No modpack found.</p>
             )}

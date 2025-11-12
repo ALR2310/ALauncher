@@ -79,7 +79,7 @@ export default function LibraryModal({ ref, id }: LibraryModalProps) {
       setGameVersion(releaseVersions?.[0].version ?? '');
       toast.success(`Modpack ${id ? 'updated' : 'created'} successfully`);
       queryClient.invalidateQueries({ queryKey: ['instances'] });
-      queryClient.invalidateQueries({ queryKey: ['instance'] });
+      queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
     } catch (error: any) {
       console.error(error);
     }

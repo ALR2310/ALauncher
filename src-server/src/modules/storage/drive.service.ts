@@ -101,14 +101,17 @@ export const googleDriveService = new (class GoogleDriveService {
     const token = await this.getToken();
 
     try {
-      const response = await axios.get(`${this.API_URL}/files/${fileId}?alt=media`, {
+      const res = await fetch(`${this.API_URL}/files/${fileId}?alt=media`, {
         headers: { Authorization: `Bearer ${token}` },
-        responseType: 'stream',
       });
 
-      const pass = new PassThrough();
-      response.data.pipe(pass);
+      if (!res.ok) throw new Error(`Download failed: ${res.statusText}`);
+      if (!res.body) throw new Error('No body received');
 
+      const nodeStream = Readable.fromWeb(res.body as any);
+
+      const pass = new PassThrough();
+      nodeStream.pipe(pass);
       return pass;
     } catch (err: any) {
       throw err.response?.data.error || err;

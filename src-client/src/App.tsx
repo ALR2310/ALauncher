@@ -1,5 +1,5 @@
 import { ROUTES } from '@shared/constants/routes';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
@@ -34,11 +34,6 @@ const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  }),
-  mutationCache: new MutationCache({
     onError: (error) => {
       toast.error(error.message);
     },

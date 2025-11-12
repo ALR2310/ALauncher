@@ -1,19 +1,17 @@
 import { ROUTES } from '@shared/constants/routes';
 import { InstanceDto } from '@shared/dtos/instance.dto';
-import { useQueryClient } from '@tanstack/react-query';
+import { InstanceStatusEnum } from '@shared/enums/general.enum';
 import { CurseForgeModLoaderType } from 'curseforge-api';
-import { ChevronDown, Copy, FolderOpen, Gamepad2, Trash2, Upload } from 'lucide-react';
-import { memo, useCallback } from 'react';
+import { ChevronDown, Gamepad2 } from 'lucide-react';
+import { memo } from 'react';
 import { Link } from 'react-router';
-import { toast } from 'react-toastify';
 import { useContextSelector } from 'use-context-selector';
 
-import { instanceOpenFolder } from '~/api';
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
-import { useInstanceCloudUploadMutation, useInstanceDeleteMutation } from '~/hooks/api/useInstanceApi';
-import { useSelectInstance } from '~/hooks/app/useSelectInstance';
+
+import { ModpackActionMenu } from './ModpackActionMenu';
 
 const BACKGROUND_IMAGE = import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo;
 
@@ -22,43 +20,21 @@ interface ModpackCardProps {
   name: string;
   version: string;
   loader: InstanceDto['loader'];
+  status?: InstanceStatusEnum;
 }
 
-function ModpackCardComponent({ id, name, loader, version }: ModpackCardProps) {
-  const queryClient = useQueryClient();
-
-  const { getState, launch, cancel } = useContextSelector(LibraryContext, (v) => v);
-  const { selectInstanceFiles } = useSelectInstance();
-
-  const { mutateAsync: deleteInstance, isPending: isDeleting } = useInstanceDeleteMutation();
-  const { mutateAsync: uploadInstance } = useInstanceCloudUploadMutation();
+function ModpackCardComponent({ id, name, loader, version, status }: ModpackCardProps) {
+  const { getState, launch, cancel, update } = useContextSelector(LibraryContext, (v) => v);
 
   const state = getState(id);
   const isRunning = state?.isRunning;
   const isDownloading = state?.isDownloading;
+  const isUpdating = state?.isUpdating;
   const progress = state?.progress;
   const extract = state?.extract;
   const patch = state?.patch;
   const estimated = state?.estimated;
   const speed = state?.speed;
-
-  const handleUpload = useCallback(
-    async (id: string) => {
-      const files = await selectInstanceFiles(id);
-      if (files && files.length > 0) {
-        toast.promise(uploadInstance({ id, filesPath: files }), {
-          pending: 'Uploading...',
-          success: 'Upload successfully',
-          error: {
-            render({ err }: any) {
-              return `Upload failed: ${err?.message || 'Unknown error'}`;
-            },
-          },
-        });
-      }
-    },
-    [selectInstanceFiles, uploadInstance],
-  );
 
   return (
     <div className="relative group h-60 overflow-hidden bg-base-100 rounded-xl">
@@ -116,51 +92,28 @@ function ModpackCardComponent({ id, name, loader, version }: ModpackCardProps) {
             </button>
           ) : (
             <div className="join">
-              <button
-                className={`btn btn-success join-item w-full ${isRunning ? 'btn-soft' : ''}`}
-                onClick={() => {
-                  if (isRunning) cancel(id);
-                  else launch(id);
-                }}
-              >
-                {isRunning ? 'Cancel' : 'Launch'}
-              </button>
+              {status === InstanceStatusEnum.UpdateAvailable ? (
+                <button className="btn btn-success join-item w-full" onClick={() => update(id)} disabled={isUpdating}>
+                  {isUpdating && <span className="loading loading-spinner"></span>}
+                  {isUpdating ? 'Updating...' : 'Update'}
+                </button>
+              ) : (
+                <button
+                  className={`btn btn-success join-item w-full ${isRunning ? 'btn-soft' : ''}`}
+                  onClick={() => {
+                    if (isRunning) cancel(id);
+                    else launch(id);
+                  }}
+                >
+                  {isRunning ? 'Cancel' : 'Launch'}
+                </button>
+              )}
 
               <div className="dropdown dropdown-top dropdown-end">
                 <button className="btn btn-success join-item">
                   <ChevronDown size={16} />
                 </button>
-                <ul className="menu dropdown-content bg-base-100 rounded-box z-1 min-w-40 p-2 shadow-sm">
-                  <li>
-                    <button
-                      className="text-error"
-                      disabled={isDeleting}
-                      onClick={() =>
-                        deleteInstance(id).then(() => {
-                          queryClient.invalidateQueries({ queryKey: ['instances'] });
-                          queryClient.invalidateQueries({ queryKey: ['instance', id] });
-                        })
-                      }
-                    >
-                      {isDeleting ? <div className="loading loading-spinner"></div> : <Trash2 size={16} />} Delete
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => instanceOpenFolder(id)}>
-                      <FolderOpen size={16} /> Open Folder
-                    </button>
-                  </li>
-                  <li>
-                    <button>
-                      <Copy size={16} /> Duplicate
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => handleUpload(id)}>
-                      <Upload size={16} /> Upload
-                    </button>
-                  </li>
-                </ul>
+                <ModpackActionMenu className="bg-base-100 rounded-box z-1 min-w-40 p-2 shadow-sm" instanceId={id} />
               </div>
             </div>
           )}

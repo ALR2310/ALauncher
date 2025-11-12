@@ -283,7 +283,7 @@ export const instanceService = new (class InstanceService {
 
     const localTime = new Date(instanceLocal.updatedAt || instanceLocal.createdAt).getTime();
     const cloudTime = new Date(instanceCloud.updatedAt || instanceCloud.modifiedTime || '').getTime();
-    const status = localTime !== cloudTime ? InstanceStatusEnum.UpdateAvailable : InstanceStatusEnum.Latest;
+    const status = localTime < cloudTime ? InstanceStatusEnum.UpdateAvailable : InstanceStatusEnum.Latest;
 
     return { ...instanceLocal, status };
   }

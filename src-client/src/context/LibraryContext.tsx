@@ -1,7 +1,10 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { createContext } from 'use-context-selector';
 
 import { FetchEventSource, instanceCancel, instanceLaunch } from '~/api';
+import { useInstanceCloudSyncMutation } from '~/hooks/api/useInstanceApi';
 import { useWindow } from '~/hooks/app/useWindow';
 
 type Patch = Partial<InstanceLaunchState> | ((prev: InstanceLaunchState) => Partial<InstanceLaunchState>);
@@ -15,17 +18,21 @@ interface InstanceLaunchState {
   patch: string;
   isRunning: boolean;
   isDownloading: boolean;
+  isUpdating?: boolean;
 }
 
 interface LibraryContextType {
   getState: (id: string) => InstanceLaunchState | undefined;
   launch: (id: string) => void;
   cancel: (id: string) => void;
+  update: (id: string) => void;
 }
 
 const LibraryContext = createContext<LibraryContextType>(null!);
 
 const LibraryProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
+  const { mutateAsync: instanceCloudSync } = useInstanceCloudSyncMutation();
   const [instances, setInstances] = useState<Map<string, InstanceLaunchState>>(new Map());
   const refs = useRef<Map<string, FetchEventSource>>(new Map());
   const { hide, show } = useWindow();
@@ -130,7 +137,31 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  return <LibraryContext.Provider value={{ getState, launch, cancel }}>{children}</LibraryContext.Provider>;
+  const update = useCallback(
+    async (id: string) => {
+      updateState(id, { isUpdating: true });
+
+      try {
+        await instanceCloudSync(id);
+
+        queryClient.invalidateQueries({ queryKey: ['instances'] });
+        queryClient.invalidateQueries({ queryKey: ['instance', id] });
+        queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
+
+        launch(id);
+      } catch (error) {
+        console.log(error);
+        toast.error('Failed to update modpack', {});
+      } finally {
+        updateState(id, { isUpdating: false });
+      }
+    },
+    [instanceCloudSync, launch, queryClient, updateState],
+  );
+
+  const ctx = useMemo(() => ({ getState, launch, cancel, update }), [getState, launch, cancel, update]);
+
+  return <LibraryContext.Provider value={ctx}>{children}</LibraryContext.Provider>;
 };
 
 export { LibraryContext, LibraryProvider };

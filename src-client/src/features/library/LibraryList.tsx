@@ -31,6 +31,7 @@ export default function LibraryList() {
               name={instance.name}
               version={instance.version}
               loader={instance.loader}
+              status={instance.status}
             />
           ))}
         </div>

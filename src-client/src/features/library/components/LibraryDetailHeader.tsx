@@ -1,22 +1,17 @@
-import { ROUTES } from '@shared/constants/routes';
 import { InstanceDto } from '@shared/dtos/instance.dto';
-import { useQueryClient } from '@tanstack/react-query';
+import { InstanceStatusEnum } from '@shared/enums/general.enum';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import { formatDistanceToNow } from 'date-fns';
-import { EllipsisVertical, FolderOpen, Gamepad2, History, SquarePen, Trash2, Upload } from 'lucide-react';
-import { memo, useCallback } from 'react';
-import { useNavigate } from 'react-router';
-import { toast } from 'react-toastify';
+import { EllipsisVertical, Gamepad2, History } from 'lucide-react';
+import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 
-import { instanceOpenFolder } from '~/api';
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
-import { LibraryModalContext } from '~/context/LibraryModalContext';
-import { useInstanceCloudUploadMutation, useInstanceDeleteMutation } from '~/hooks/api/useInstanceApi';
-import { useSelectInstance } from '~/hooks/app/useSelectInstance';
+
+import { ModpackActionMenu } from './ModpackActionMenu';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto | undefined;
@@ -24,40 +19,15 @@ interface LibraryDetailHeaderProps {
 }
 
 const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps) => {
-  const navigation = useNavigate();
-
-  const { selectInstanceFiles } = useSelectInstance();
-  const instanceModal = useContextSelector(LibraryModalContext, (v) => v);
-  const { launch, cancel, getState } = useContextSelector(LibraryContext, (v) => v);
+  const { launch, cancel, getState, update } = useContextSelector(LibraryContext, (v) => v);
 
   const state = getState(data?.id || '');
   const isRunning = state?.isRunning;
   const isDownloading = state?.isDownloading;
+  const isUpdating = state?.isUpdating;
   const progress = state?.progress;
   const estimated = state?.estimated;
   const speed = state?.speed;
-
-  const { mutateAsync: deleteInstance } = useInstanceDeleteMutation();
-  const { mutateAsync: uploadInstance } = useInstanceCloudUploadMutation();
-  const queryClient = useQueryClient();
-
-  const handleUpload = useCallback(
-    async (id: string) => {
-      const files = await selectInstanceFiles(id);
-      if (files && files.length > 0) {
-        toast.promise(uploadInstance({ id, filesPath: files }), {
-          pending: 'Uploading...',
-          success: 'Upload successfully',
-          error: {
-            render({ err }: any) {
-              return `Upload failed: ${err?.message || 'Unknown error'}`;
-            },
-          },
-        });
-      }
-    },
-    [selectInstanceFiles, uploadInstance],
-  );
 
   return (
     <div className="flex rounded-xl bg-base-100 gap-4 p-3 border border-base-content/10">
@@ -78,62 +48,35 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
           </div>
 
           <div className="flex gap-2">
-            <button
-              className={`btn btn-success w-28 ${isRunning ? 'btn-outline' : ''}`}
-              onClick={() => {
-                if (isRunning && data?.id) {
-                  cancel(data.id);
-                } else if (data?.id) {
-                  launch(data.id);
-                }
-              }}
-            >
-              {isRunning ? 'Cancel' : 'Play'}
-            </button>
+            {data?.status === InstanceStatusEnum.UpdateAvailable ? (
+              <button className="btn btn-success w-28" onClick={() => update(data.id)} disabled={isUpdating}>
+                {isUpdating && <span className="loading loading-spinner"></span>}
+                {isUpdating ? 'Updating...' : 'Update'}
+              </button>
+            ) : (
+              <button
+                className={`btn btn-success w-28 ${isRunning ? 'btn-outline' : ''}`}
+                onClick={() => {
+                  if (isRunning && data?.id) {
+                    cancel(data.id);
+                  } else if (data?.id) {
+                    launch(data.id);
+                  }
+                }}
+              >
+                {isRunning ? 'Cancel' : 'Play'}
+              </button>
+            )}
 
             <div className="dropdown dropdown-end z-10">
               <button className="btn btn-soft btn-circle">
                 <EllipsisVertical />
               </button>
-              <ul tabIndex={-1} className="dropdown-content menu bg-base-200 rounded-box z-1 min-w-38 shadow mt-3">
-                <li>
-                  <button className="text-nowrap" onClick={() => handleUpload(data!.id)}>
-                    <Upload size={16} />
-                    Upload modpack
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => instanceOpenFolder(data!.id)}>
-                    <FolderOpen size={16} />
-                    Open folder
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => instanceModal.open(data?.id)}>
-                    <SquarePen size={16} />
-                    Edit modpack
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="text-nowrap text-error"
-                    onClick={async () => {
-                      try {
-                        await deleteInstance(data!.id);
-                        toast.success('Deleted modpack successfully');
-                        queryClient.invalidateQueries({ queryKey: ['instances'] });
-                        navigation(ROUTES.library.path);
-                      } catch {
-                        console.error('Failed to delete modpack');
-                        toast.error('Failed to delete modpack');
-                      }
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    Delete instance
-                  </button>
-                </li>
-              </ul>
+
+              <ModpackActionMenu
+                className="bg-base-200 rounded-box z-1 min-w-40 shadow mt-3"
+                instanceId={data?.id ?? ''}
+              />
             </div>
           </div>
         </div>

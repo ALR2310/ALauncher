@@ -40,13 +40,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Downloader = exports.Status = exports.Mojang = exports.Microsoft = exports.Launch = exports.AZauth = void 0;
-const AZauth_js_1 = __importDefault(require("./Authenticator/AZauth.js"));
-exports.AZauth = AZauth_js_1.default;
+exports.Downloader = exports.Status = exports.Mojang = exports.Launch = void 0;
+// import AZauth from './Authenticator/AZauth.js';
 const Launch_js_1 = __importDefault(require("./Launch.js"));
 exports.Launch = Launch_js_1.default;
-const Microsoft_js_1 = __importDefault(require("./Authenticator/Microsoft.js"));
-exports.Microsoft = Microsoft_js_1.default;
+// import Microsoft from './Authenticator/Microsoft.js';
 const Mojang = __importStar(require("./Authenticator/Mojang.js"));
 exports.Mojang = Mojang;
 const status_js_1 = __importDefault(require("./StatusServer/status.js"));

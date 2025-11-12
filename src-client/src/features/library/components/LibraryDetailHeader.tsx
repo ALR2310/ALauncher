@@ -120,12 +120,12 @@ const LibraryDetailHeader = memo(({ data, isLoading }: LibraryDetailHeaderProps)
                     onClick={async () => {
                       try {
                         await deleteInstance(data!.id);
-                        toast.success('Instance deleted');
+                        toast.success('Deleted modpack successfully');
                         queryClient.invalidateQueries({ queryKey: ['instances'] });
                         navigation(ROUTES.library.path);
                       } catch {
-                        console.error('Failed to delete instance');
-                        toast.error('Failed to delete instance');
+                        console.error('Failed to delete modpack');
+                        toast.error('Failed to delete modpack');
                       }
                     }}
                   >

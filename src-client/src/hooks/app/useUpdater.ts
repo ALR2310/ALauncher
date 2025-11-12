@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { appCheckForUpdates, appInstallUpdates, FetchEventSource } from '~/api';
 
@@ -7,7 +7,7 @@ export function useUpdater() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [progress, setProgress] = useState<number | undefined>(undefined);
 
-  const checkForUpdates = async () => {
+  const checkForUpdates = useCallback(async () => {
     setIsUpdating(true);
 
     const check = await appCheckForUpdates();
@@ -36,7 +36,7 @@ export function useUpdater() {
     } else {
       setIsUpdating(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     return () => {

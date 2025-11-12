@@ -67,7 +67,7 @@ const ModalSelectInstance = ({
   return (
     <Modal
       ref={ref}
-      title={<p className="text-center block">Select Instance</p>}
+      title={<p className="text-center block">Select Modpack</p>}
       buttonCancel={{ show: false }}
       buttonSubmit={{ show: false }}
     >

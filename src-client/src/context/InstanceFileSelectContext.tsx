@@ -163,7 +163,7 @@ const ModalSelectInstanceFiles = ({
     const requiredFiles = new Set<string>();
     const defaultFilenames = ['instance.json', 'options.txt'];
     const requiredFilenames = ['instance.json'];
-    const defaultDirectories = ['config'];
+    const defaultDirectories = ['config', 'mods', 'resourcepacks'];
 
     const traverseAndSelect = (node: InstanceFolderTreeDto) => {
       if (node.type === 'file' && defaultFilenames.includes(node.name)) {
@@ -276,7 +276,7 @@ const ModalSelectInstanceFiles = ({
   return (
     <Modal
       ref={ref}
-      title={<p className="text-center block">Select Instance Files</p>}
+      title={<p className="text-center block">Select Files</p>}
       buttonSubmit={{ show: true, onClick: handleSubmit }}
     >
       {tree ? (

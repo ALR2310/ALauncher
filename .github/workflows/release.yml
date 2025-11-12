@@ -18,6 +18,10 @@ env:
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
   VITE_PORT: ${{ secrets.VITE_PORT }}
+  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+  FOLDER_ID: ${{ secrets.FOLDER_ID }}
 
 jobs:
   build-and-release:

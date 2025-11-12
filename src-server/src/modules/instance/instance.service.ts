@@ -10,11 +10,12 @@ import { BadRequestException, NotFoundException } from '~/common/filters/excepti
 import { logger } from '~/common/logger';
 
 import { appService } from '../app/app.service';
-import { instanceCloudService } from './instance-cloud.service';
+import { FileResponse, googleDriveService } from '../storage/drive.service';
 
 export const instanceService = new (class InstanceService {
   private instanceDirCache: string | null = null;
   private readonly limit = pLimit(10);
+  private readonly folderId = process.env.FOLDER_ID!;
 
   async findAll(payload: InstanceQueryDto): Promise<InstanceDto[]> {
     const { sortBy = 'lastPlayed', sortDir = 'desc', checkStatus = false } = payload;
@@ -54,8 +55,23 @@ export const instanceService = new (class InstanceService {
       return locals;
     }
 
-    const cloudInstances = await instanceCloudService.findAll().catch(() => []);
-    const cloudMap = new Map(cloudInstances.map((cloud: any) => [cloud.id, cloud]) as [string, any][]);
+    const cloudFiles = await googleDriveService
+      .list({
+        q: `'${this.folderId}' in parents`,
+        fields: ['properties'],
+      })
+      .catch(() => []);
+
+    const cloudMap = new Map(
+      cloudFiles.map((file: FileResponse) => [
+        file.properties.id,
+        {
+          id: file.properties.id,
+          updatedAt: file.properties.updatedAt,
+          modifiedTime: file.modifiedTime,
+        },
+      ]) as Array<[string, any]>,
+    );
 
     const list = locals.map((local) => {
       const cloud = cloudMap.get(local.id);
@@ -88,7 +104,22 @@ export const instanceService = new (class InstanceService {
       throw new NotFoundException(`Instance with ID "${id}" not found`);
     }
 
-    const instanceCloud = await instanceCloudService.findOne(id).catch(() => null);
+    const cloudFiles = await googleDriveService
+      .list({
+        q: `'${this.folderId}' in parents and properties has { key='id' and value='${id}' }`,
+        fields: ['properties'],
+      })
+      .catch(() => []);
+
+    const instanceCloud =
+      cloudFiles.length > 0
+        ? {
+            id: cloudFiles[0].properties.id,
+            updatedAt: cloudFiles[0].properties.updatedAt,
+            modifiedTime: cloudFiles[0].modifiedTime,
+          }
+        : undefined;
+
     return this.mapLocalData(local, instanceCloud);
   }
 
@@ -242,13 +273,16 @@ export const instanceService = new (class InstanceService {
     return contentDir;
   }
 
-  private mapLocalData(instanceLocal: InstanceDto, instanceCloud?: any): InstanceDto {
+  private mapLocalData(
+    instanceLocal: InstanceDto,
+    instanceCloud?: { updatedAt?: string; modifiedTime?: string },
+  ): InstanceDto {
     if (!instanceCloud) {
       return { ...instanceLocal, status: InstanceStatusEnum.Latest };
     }
 
     const localTime = new Date(instanceLocal.updatedAt || instanceLocal.createdAt).getTime();
-    const cloudTime = new Date(instanceCloud.updatedAt || instanceCloud.modifiedTime).getTime();
+    const cloudTime = new Date(instanceCloud.updatedAt || instanceCloud.modifiedTime || '').getTime();
     const status = localTime !== cloudTime ? InstanceStatusEnum.UpdateAvailable : InstanceStatusEnum.Latest;
 
     return { ...instanceLocal, status };

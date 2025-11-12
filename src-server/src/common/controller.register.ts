@@ -44,7 +44,14 @@ export function controllerRegister(app: Hono, controllers: (ControllerClass | Co
     const controller = typeof ctrl === 'function' ? new (ctrl as any)() : ctrl;
 
     const basePath: string = Reflect.getMetadata(BASE_PATH_KEY, controller.constructor) || '';
-    const routes: RouteMetadata[] = Reflect.getMetadata(ROUTES_KEY, controller.constructor) || [];
+    const routes: RouteMetadata[] = (Reflect.getMetadata(ROUTES_KEY, controller.constructor) || []).sort((a, b) => {
+      const dynA = (a.path.match(/:[^/]+/g) || []).length;
+      const dynB = (b.path.match(/:[^/]+/g) || []).length;
+
+      if (dynA !== dynB) return dynA - dynB;
+
+      return b.path.length - a.path.length;
+    });
 
     for (const route of routes) {
       const honoBase = (app as any)._basePath || '';

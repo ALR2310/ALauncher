@@ -5,6 +5,7 @@ import { useContextSelector } from 'use-context-selector';
 
 import { DiscoverContext } from '~/context/DiscoverContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
+import { SettingContext } from '~/context/SettingContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
 export default function Sidebar() {
@@ -12,6 +13,7 @@ export default function Sidebar() {
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
   const { id } = useParams();
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
+  const modalSetting = useContextSelector(SettingContext, (v) => v);
 
   return (
     <div id="side-left-bar" className="flex flex-col justify-between">
@@ -94,6 +96,7 @@ export default function Sidebar() {
           <a
             className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
             data-tip="Setting"
+            onClick={modalSetting.open}
           >
             <Settings size={20} />
           </a>

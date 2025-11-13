@@ -7,7 +7,11 @@ import { DiscoverContext } from '~/context/DiscoverContext';
 import { LibraryModalContext } from '~/context/LibraryModalContext';
 import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
 
-export default function Sidebar() {
+interface SidebarProps {
+  onOpenSettings?: () => void;
+}
+
+export default function Sidebar({ onOpenSettings }: SidebarProps) {
   const libraryModal = useContextSelector(LibraryModalContext, (v) => v);
   const { data: instances } = useInstancesQuery({ sortBy: 'lastPlayed', sortDir: 'desc' });
   const { id } = useParams();
@@ -94,6 +98,7 @@ export default function Sidebar() {
           <a
             className={`tooltip z-10 tooltip-right py-4 transition-transform duration-300 hover:scale-95`}
             data-tip="Setting"
+            onClick={onOpenSettings}
           >
             <Settings size={20} />
           </a>

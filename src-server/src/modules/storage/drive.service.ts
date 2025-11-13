@@ -58,7 +58,8 @@ export const googleDriveService = new (class GoogleDriveService {
 
       return this.accessToken!;
     } catch (err: any) {
-      throw err.response?.data.error || err;
+      console.log(err);
+      throw new Error('Failed to obtain access token from Google OAuth2');
     }
   }
 
@@ -167,7 +168,7 @@ export const googleDriveService = new (class GoogleDriveService {
 
       return data.files;
     } catch (err: any) {
-      throw err.response?.data.error || err;
+      throw err.response?.data.error || err.data.error || err;
     }
   }
 

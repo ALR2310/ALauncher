@@ -18,7 +18,7 @@ export const useVersionLoadersQuery = (params: LoaderQueryDto) => {
   });
 };
 
-export const useVersionNotesQuery = (payload: ReleaseNoteQueryDto) => {
+export const useVersionNotesQuery = (payload: ReleaseNoteQueryDto = {}) => {
   return useQuery({
     queryKey: ['versionNotes', payload],
     queryFn: () => versionNotes(payload),

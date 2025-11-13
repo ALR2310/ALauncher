@@ -11,6 +11,7 @@ pub fn run() {
     dotenvy::from_filename(".env").ok();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![get_pid])
         .setup(|app| {
             windows::create_main_window(app);

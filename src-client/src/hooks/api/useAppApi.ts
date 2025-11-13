@@ -1,6 +1,9 @@
+import { AppConfigDto } from '@shared/dtos/app.dto';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { appExit, appGetConfig, appOpenFolder, appSetConfig, appVersion } from '~/api';
+import { appExit, appGetConfig, appOpenFolder, appSetConfig, appVersion, getSystemInfo } from '~/api';
+
+import { useDebounceCallback } from '../app/useDebounce';
 
 export const useAppVersionQuery = () => {
   return useQuery({
@@ -15,6 +18,13 @@ export const useAppExitMutation = () => {
   });
 };
 
+export const useAppSystemInfoQuery = () => {
+  return useQuery({
+    queryKey: ['systemInfo'],
+    queryFn: getSystemInfo,
+  });
+};
+
 export const useAppGetConfigQuery = () => {
   return useQuery({
     queryKey: ['appConfig'],
@@ -25,11 +35,36 @@ export const useAppGetConfigQuery = () => {
 
 export const useAppSetConfigMutation = () => {
   const queryClient = useQueryClient();
+  const debouncedSetConfig = useDebounceCallback(appSetConfig);
 
   return useMutation({
-    mutationFn: appSetConfig,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appConfig'] });
+    mutationFn: debouncedSetConfig,
+    onMutate: async (newConfig) => {
+      await queryClient.cancelQueries({ queryKey: ['appConfig'] });
+
+      const prevConfig = queryClient.getQueryData(['appConfig']);
+
+      queryClient.setQueryData(['appConfig'], (oldConfig: AppConfigDto | undefined) => {
+        if (!oldConfig) return oldConfig;
+        const { key, value } = newConfig;
+
+        const keys = key.split('.');
+        const newObj = structuredClone(oldConfig);
+
+        let target = newObj;
+        for (let i = 0; i < keys.length - 1; i++) {
+          target = target[keys[i]];
+        }
+        target[keys[keys.length - 1]] = value;
+        return newObj;
+      });
+
+      return { prevConfig };
+    },
+    onError: (_err, _newConfig, context) => {
+      if (context?.prevConfig) {
+        queryClient.setQueryData(['appConfig'], context.prevConfig);
+      }
     },
   });
 };

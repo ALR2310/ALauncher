@@ -1,4 +1,4 @@
-import { AppConfigDto, SetConfigDto } from '@shared/dtos/app.dto';
+import { AppConfigDto, AppSystemInfoDto, SetConfigDto } from '@shared/dtos/app.dto';
 
 import { API } from '.';
 
@@ -14,6 +14,10 @@ export async function appVersion() {
 
 export async function appExit() {
   return API.get(`${BASE_URL}/exit`);
+}
+
+export async function getSystemInfo() {
+  return API.get<AppSystemInfoDto>(`${BASE_URL}/system-info`);
 }
 
 export async function appGetConfig() {

@@ -1,11 +1,12 @@
-import { AppConfigDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
+import { AppConfigDto, AppSystemInfoDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
 import { ENV } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
-import { spawn } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import EventEmitter from 'events';
 import { readFile, rm, writeFile } from 'fs/promises';
 import set from 'lodash/set';
 import throttle from 'lodash/throttle';
+import os from 'os';
 import path from 'path';
 import axios from 'redaxios';
 import semver from 'semver';
@@ -29,7 +30,10 @@ const appConfig: AppConfigDto = {
   // Minecraft
   minecraft: {
     verify: false,
-    gameDir: '.minecraft',
+    gameDir:
+      process.env.NODE_ENV === ENV.Development
+        ? path.resolve('.minecraft')
+        : path.resolve(process.env.APPDATA ?? '', '.minecraft'),
     java: {
       type: JAVA_TYPE.JDK,
     },
@@ -38,13 +42,12 @@ const appConfig: AppConfigDto = {
       max: 1024,
     },
     screen: {
-      width: 400,
-      height: 250,
+      width: process.env.NODE_ENV === ENV.Development ? 950 : 400,
+      height: process.env.NODE_ENV === ENV.Development ? 600 : 240,
       fullscreen: false,
     },
   },
 };
-
 export const appService = new (class AppService {
   private readonly CONFIG_PATH = path.resolve('launcher.json');
   private setConfigMutex = new Mutex();
@@ -63,6 +66,37 @@ export const appService = new (class AppService {
 
   exit() {
     process.exit(0);
+  }
+
+  async getSystemInfo(): Promise<AppSystemInfoDto> {
+    const cpus = os.cpus();
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+
+    const platform = os.platform();
+    let gpu: { model: string; memory: number }[] = [];
+    if (platform === 'win32') gpu = this.getGPUInfoWin();
+    else if (platform === 'darwin') gpu = this.getGPUInfoMac();
+    else gpu = this.getGPUInfoLinux();
+
+    return {
+      platform,
+      arch: os.arch(),
+      os: {
+        release: os.release(),
+        hostname: os.hostname(),
+      },
+      cpu: {
+        model: cpus[0]?.model || 'Unknown',
+        cores: cpus.length,
+        speed: cpus[0]?.speed || 0,
+      },
+      memory: {
+        total: totalMem,
+        free: freeMem,
+      },
+      gpu,
+    };
   }
 
   async getConfig(): Promise<AppConfigDto> {
@@ -221,5 +255,46 @@ export const appService = new (class AppService {
     });
     child.unref();
     process.exit(0);
+  }
+
+  private getGPUInfoWin() {
+    try {
+      const output = execSync('wmic path win32_VideoController get Name,AdapterRAM', { encoding: 'utf8' });
+      const lines = output.trim().split('\n').slice(1);
+      return lines
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [name, ram] = line.split(/\s{2,}/);
+          return {
+            model: name.trim(),
+            memory: Number(ram?.trim() || 0) / 1024 / 1024, // MB
+          };
+        });
+    } catch {
+      return [];
+    }
+  }
+
+  private getGPUInfoMac() {
+    try {
+      const output = execSync('system_profiler SPDisplaysDataType', { encoding: 'utf8' });
+      const matches = [...output.matchAll(/Chipset Model: (.+)/g)];
+      return matches.map((m) => ({ model: m[1], memory: 0 }));
+    } catch {
+      return [];
+    }
+  }
+
+  private getGPUInfoLinux() {
+    try {
+      const output = execSync('lspci | grep -i vga', { encoding: 'utf8' });
+      return output
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => ({ model: line.split(':').pop()?.trim() || 'Unknown', memory: 0 }));
+    } catch {
+      return [];
+    }
   }
 })();

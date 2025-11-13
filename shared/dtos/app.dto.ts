@@ -80,6 +80,31 @@ const setConfigSchema = z.object({
   value: z.any(),
 });
 
+const appSystemInfoSchema = z.object({
+  platform: z.string(),
+  arch: z.string(),
+  os: z.object({
+    release: z.string(),
+    hostname: z.string(),
+  }),
+  cpu: z.object({
+    model: z.string(),
+    cores: z.number(),
+    speed: z.number(),
+  }),
+  memory: z.object({
+    total: z.number(),
+    free: z.number(),
+  }),
+  gpu: z.array(
+    z.object({
+      model: z.string(),
+      memory: z.number(),
+    }),
+  ),
+});
+
 export type AppConfigKey = (typeof appConfigKeys)[number];
 export class AppConfigDto extends createZodDto(appConfigSchema) {}
 export class SetConfigDto extends createZodDto(setConfigSchema) {}
+export class AppSystemInfoDto extends createZodDto(appSystemInfoSchema) {}

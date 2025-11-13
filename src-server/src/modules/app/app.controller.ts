@@ -16,6 +16,9 @@ export class AppController {
   @Get('exit')
   exit = () => appService.exit();
 
+  @Get('system-info')
+  getSystemInfo = () => appService.getSystemInfo();
+
   @Get('config')
   async getConfig() {
     return appService.getConfig();

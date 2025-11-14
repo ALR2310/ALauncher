@@ -1,3 +1,4 @@
+import { ENV } from '@shared/enums/general.enum';
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router';
 
@@ -30,7 +31,7 @@ export default function MainLayout() {
   const isLoaded = !isUpdating && !isAppLoading && !isInstanceLoading && !isVersionLoading && !isNoteLoading;
 
   useEffect(() => {
-    if (isTauri && import.meta.env.MODE !== 'development') checkForUpdates();
+    if (isTauri && import.meta.env.MODE !== ENV.Development) checkForUpdates();
   }, [checkForUpdates]);
 
   const openSettings = () => {

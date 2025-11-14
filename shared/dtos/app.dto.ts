@@ -104,7 +104,13 @@ const appSystemInfoSchema = z.object({
   ),
 });
 
+const appVersionSchema = z.object({
+  coreVersion: z.string(),
+  dataVersion: z.string(),
+});
+
 export type AppConfigKey = (typeof appConfigKeys)[number];
 export class AppConfigDto extends createZodDto(appConfigSchema) {}
 export class SetConfigDto extends createZodDto(setConfigSchema) {}
 export class AppSystemInfoDto extends createZodDto(appSystemInfoSchema) {}
+export class AppVersionDto extends createZodDto(appVersionSchema) {}

@@ -1,4 +1,4 @@
-import { AppConfigDto, AppSystemInfoDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
+import { AppConfigDto, AppSystemInfoDto, AppVersionDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
 import { ENV } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
 import { execSync, spawn } from 'child_process';
@@ -15,6 +15,7 @@ import { Open } from 'unzipper';
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 
 import pkg from '../../../../package.json' assert { type: 'json' };
+import pkgTauri from '../../../../src-tauri/tauri.conf.json' assert { type: 'json' };
 
 const appConfig: AppConfigDto = {
   // General
@@ -60,8 +61,11 @@ export const appService = new (class AppService {
     return { status: 'ok' };
   }
 
-  getVersion() {
-    return { version: pkg.version };
+  getVersion(): AppVersionDto {
+    return {
+      coreVersion: pkgTauri.version,
+      dataVersion: pkg.version,
+    };
   }
 
   exit() {
@@ -136,7 +140,7 @@ export const appService = new (class AppService {
   }
 
   async checkForUpdates(forceRefresh = false) {
-    const currentVersion = this.getVersion().version;
+    const currentVersion = this.getVersion().dataVersion;
     const gitToken = process.env.NODE_ENV === ENV.Development ? process.env.GITHUB_TOKEN : undefined;
 
     const now = Date.now();
@@ -145,7 +149,7 @@ export const appService = new (class AppService {
     }
 
     try {
-      const res = await axios.get('https://api.github.com/repos/ALR2310/ALauncher/releases/latest', {
+      const res = await axios.get(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/releases/latest`, {
         headers: gitToken ? { Authorization: `token ${gitToken}` } : undefined,
       });
       const latest = res.data;

@@ -1,16 +1,16 @@
 import 'dotenv/config';
 
 import { Octokit } from '@octokit/rest';
-import archiver from 'archiver';
 import axios from 'axios';
 import { execSync } from 'child_process';
-import { createWriteStream, readdirSync, statSync } from 'fs';
-import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
+import { readdirSync, statSync } from 'fs';
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises';
 import path from 'path';
 import * as ResEdit from 'resedit';
 import semver from 'semver';
 
 import pkg from '../../package.json' assert { type: 'json' };
+import { Zipper } from '../../src-server/src/utils/zipper.utils';
 
 const repo = process.env.GITHUB_REPOSITORY!;
 const token = process.env.GITHUB_TOKEN!;
@@ -60,26 +60,47 @@ async function prepareNodeRuntime() {
   await writeFile('dist/runtime.bin', Buffer.from(modifiedExe));
 }
 
-export async function compress(srcDir: string, outFile: string) {
-  return new Promise<void>((resolve, reject) => {
-    const output = createWriteStream(outFile);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+async function getAllFiles(dir: string, baseDir: string = dir): Promise<string[]> {
+  const files: string[] = [];
+  const entries = await readdir(dir);
 
-    output.on('close', resolve);
-    archive.on('error', reject);
-    archive.pipe(output);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry);
+    const statResult = await stat(fullPath);
 
-    const base = path.basename(outFile);
-    for (const entry of readdirSync(srcDir)) {
-      if (entry === base) continue;
-      const full = path.join(srcDir, entry);
-      const stat = statSync(full);
-      if (stat.isDirectory()) archive.directory(full, entry);
-      else archive.file(full, { name: entry });
+    if (statResult.isDirectory()) {
+      const subFiles = await getAllFiles(fullPath, baseDir);
+      files.push(...subFiles);
+    } else {
+      files.push(fullPath);
     }
+  }
 
-    archive.finalize();
-  });
+  return files;
+}
+
+export async function compress(srcDir: string, outFile: string) {
+  const base = path.basename(outFile);
+  const allFiles: string[] = [];
+
+  // Đọc tất cả files trong thư mục
+  const entries = readdirSync(srcDir);
+  for (const entry of entries) {
+    if (entry === base) continue;
+    const full = path.join(srcDir, entry);
+    const statResult = statSync(full);
+
+    if (statResult.isDirectory()) {
+      const files = await getAllFiles(full, srcDir);
+      allFiles.push(...files);
+    } else {
+      allFiles.push(full);
+    }
+  }
+
+  // Sử dụng Zipper để nén
+  const zipper = new Zipper();
+  await zipper.compress(allFiles, outFile);
 }
 
 //================= Github method =================//

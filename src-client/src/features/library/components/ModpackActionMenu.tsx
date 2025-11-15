@@ -26,7 +26,7 @@ function ModpackActionMenuComponent({ className, instanceId }: ModpackActionMenu
     async (id: string) => {
       const files = await selectInstanceFiles(id);
       if (files && files.length > 0) {
-        toast.promise(uploadInstance({ id, filesPath: files }), {
+        toast.promise(uploadInstance({ id, filePaths: files }), {
           pending: 'Uploading...',
           success: 'Upload successfully',
           error: {

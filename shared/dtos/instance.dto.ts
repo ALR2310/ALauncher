@@ -103,7 +103,7 @@ const instanceCloudSchema = instanceSchema
 
 const instanceCloudUploadQuerySchema = z.object({
   id: z.string(),
-  filesPath: z.array(z.string()),
+  filePaths: z.array(z.string()),
 });
 
 const instanceCloudDownloadResponseSchema = baseResponseSchema.extend({

@@ -10,9 +10,9 @@ import os from 'os';
 import path from 'path';
 import axios from 'redaxios';
 import semver from 'semver';
-import { Open } from 'unzipper';
 
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
+import { Zipper } from '~/utils';
 
 import pkg from '../../../../package.json' assert { type: 'json' };
 import pkgTauri from '../../../../src-tauri/tauri.conf.json' assert { type: 'json' };
@@ -204,6 +204,7 @@ export const appService = new (class AppService {
 
       const downloader = new Downloader();
       const event = new EventEmitter();
+      const zipper = new Zipper();
 
       downloader.downloadFile(fileUrl, './', fileName);
       downloader
@@ -215,7 +216,7 @@ export const appService = new (class AppService {
             if (p >= s) {
               try {
                 await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
-                await this.decompress(path.resolve(fileName), path.resolve());
+                await zipper.decompress(path.resolve(fileName), path.resolve());
                 await rm(path.resolve(fileName), { force: true });
 
                 this.updateCache = null;
@@ -243,11 +244,6 @@ export const appService = new (class AppService {
     } finally {
       this.isUpdating = false;
     }
-  }
-
-  private async decompress(filePath: string, outDir: string) {
-    const directory = await Open.file(filePath);
-    await directory.extract({ path: outDir });
   }
 
   private reloadRuntime() {

@@ -14,17 +14,17 @@ import { CategoryClassEnum, InstanceContentEnum } from '@shared/enums/general.en
 import { Mutex } from 'async-mutex';
 import { CurseForgeFileRelationType } from 'curseforge-api';
 import EventEmitter from 'events';
-import { createReadStream, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { access, constants, mkdir, readdir, rename, rm, stat } from 'fs/promises';
 import throttle from 'lodash/throttle';
 import pLimit from 'p-limit';
 import path from 'path';
-import unzipper from 'unzipper';
 
 import { NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
 import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 import { DownloadOptions } from '~/libraries/minecraft-java-core/build/utils/Downloader';
+import { Zipper } from '~/utils';
 import { getFingerprints } from '~/utils/fingerprint.utils';
 import { getHash } from '~/utils/hashes.utils';
 
@@ -245,6 +245,7 @@ export const instanceContentService = new (class InstanceContentService {
     const totalSize = fileDownloads.reduce((sum, file) => sum + (file.length || 0), 0);
     const downloader = new Downloader();
     const event = new EventEmitter();
+    const zipper = new Zipper();
 
     downloader.downloadFileMultiple(fileDownloads, totalSize, config.downloadMultiple);
 
@@ -264,12 +265,7 @@ export const instanceContentService = new (class InstanceContentService {
 
                   event.emit('extract', `Extracting ${path.basename(file.path)}`);
 
-                  await new Promise<void>((resolve, reject) => {
-                    createReadStream(file.path)
-                      .pipe(unzipper.Extract({ path: folder }))
-                      .on('close', resolve)
-                      .on('error', reject);
-                  });
+                  await zipper.decompress(file.path, folder);
                 } catch {
                   logger(`Failed to extract ${path.basename(file.path)}`);
                 }

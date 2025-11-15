@@ -10,5 +10,6 @@
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["src", "vite.config.mjs", "../shared", "../.d.ts", "../global.d.ts"]
+  "include": ["src", "vite.config.mjs", "../shared", "../.d.ts", "../global.d.ts"],
+  "exclude": ["../dist"]
 }

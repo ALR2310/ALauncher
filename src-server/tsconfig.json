@@ -11,4 +11,5 @@
     }
   },
   "include": ["src", "../scripts", "../shared", "../global.d.ts"],
+  "exclude": ["../dist"]
 }

@@ -12,8 +12,7 @@ import pLimit from 'p-limit';
 import path from 'path';
 
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
-import { getHash } from '~/utils';
-import { compressInstance, decompressInstance } from '~/utils/compress.utils';
+import { getHash, Zipper } from '~/utils';
 
 import { FileResponse, googleDriveService } from '../storage/drive.service';
 import { instanceService } from './instance.service';
@@ -61,7 +60,7 @@ export const instanceCloudService = new (class InstanceCloudService {
   }
 
   async upload(payload: InstanceCloudUploadQueryDto) {
-    const { id, filesPath } = payload;
+    const { id, filePaths } = payload;
 
     const instance = await instanceService.findOne(id);
 
@@ -73,7 +72,9 @@ export const instanceCloudService = new (class InstanceCloudService {
       await googleDriveService.delete(fileExisting[0].id);
     }
 
-    const dataStream = compressInstance(filesPath);
+    const zipper = new Zipper();
+
+    const dataStream = await zipper.compress(filePaths);
 
     const fileId = await googleDriveService.upload({
       data: dataStream,
@@ -115,8 +116,11 @@ export const instanceCloudService = new (class InstanceCloudService {
     const targetDir = outDir || (await instanceService.getDir(id));
 
     // Download and extract to target directory
+    const zipper = new Zipper();
+
     const dataStream = await googleDriveService.download(fileMetadata.id);
-    await decompressInstance(dataStream, targetDir);
+
+    await zipper.decompress(dataStream, targetDir);
 
     return {
       message: 'Download and extraction completed',

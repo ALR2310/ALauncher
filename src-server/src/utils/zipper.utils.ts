@@ -31,7 +31,6 @@ export class Zipper extends EventEmitter {
     const entries: Entry[] = [];
     let totalSize = 0;
 
-    // Xử lý nếu input là mảng files
     if (Array.isArray(input)) {
       const commonBase = this.findCommonBase(input);
 
@@ -50,7 +49,6 @@ export class Zipper extends EventEmitter {
         totalSize += st.size;
       }
     } else {
-      // Xử lý nếu input là đường dẫn thư mục/file
       const walk = async (realPath: string, zipPath: string) => {
         const st = await stat(realPath);
 
@@ -136,7 +134,6 @@ export class Zipper extends EventEmitter {
   async decompress(filePath: string, outputDir: string): Promise<void>;
   async decompress(stream: Readable, outputDir: string): Promise<void>;
   async decompress(input: string | Readable, outputDir: string): Promise<void> {
-    // Nếu input là stream, lưu vào file tạm trước
     if (input instanceof Readable) {
       const tempFilePath = path.join(
         os.tmpdir(),
@@ -145,7 +142,6 @@ export class Zipper extends EventEmitter {
       const writeStream = createWriteStream(tempFilePath);
 
       try {
-        // Lưu stream vào file tạm
         await new Promise<void>((resolve, reject) => {
           input.pipe(writeStream);
           input.on('error', reject);
@@ -153,18 +149,14 @@ export class Zipper extends EventEmitter {
           writeStream.on('close', resolve);
         });
 
-        // Giải nén từ file tạm
         await this.decompress(tempFilePath, outputDir);
 
-        // Xóa file tạm
         try {
           await unlink(tempFilePath);
         } catch (err) {
-          // Bỏ qua lỗi nếu không xóa được file tạm
-          console.warn('Không thể xóa file tạm:', tempFilePath, err);
+          console.warn('Cannot delete temp file:', tempFilePath, err);
         }
       } catch (err) {
-        // Xóa file tạm nếu có lỗi
         try {
           await unlink(tempFilePath).catch(() => {});
         } catch {}
@@ -173,7 +165,6 @@ export class Zipper extends EventEmitter {
       return;
     }
 
-    // Xử lý như bình thường nếu input là file path
     const filePath = input;
     const fileStat = await stat(filePath);
     const totalSize = fileStat.size || 1;

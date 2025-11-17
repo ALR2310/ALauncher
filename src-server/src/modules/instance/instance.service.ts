@@ -13,7 +13,6 @@ import { appService } from '../app/app.service';
 import { FileResponse, googleDriveService } from '../storage/drive.service';
 
 export const instanceService = new (class InstanceService {
-  private instanceDirCache: string | null = null;
   private readonly limit = pLimit(10);
   private readonly folderId = process.env.FOLDER_ID!;
 
@@ -235,11 +234,7 @@ export const instanceService = new (class InstanceService {
    */
   async getDir(id?: string): Promise<string> {
     const config = await appService.getConfig();
-
-    if (!this.instanceDirCache) {
-      this.instanceDirCache = path.resolve(config.minecraft.gameDir, 'versions');
-    }
-    return path.join(this.instanceDirCache, id ?? '');
+    return path.join(config.minecraft.gameDir, 'versions', id ?? '');
   }
 
   /**

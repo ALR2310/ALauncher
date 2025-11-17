@@ -43,14 +43,15 @@ const appConfig: AppConfigDto = {
       max: 1024,
     },
     screen: {
-      width: process.env.NODE_ENV === ENV.Development ? 950 : 400,
-      height: process.env.NODE_ENV === ENV.Development ? 600 : 240,
+      width: 950,
+      height: 600,
       fullscreen: false,
     },
   },
 };
 export const appService = new (class AppService {
   private readonly CONFIG_PATH = path.resolve('launcher.json');
+  private configCache: AppConfigDto | null = null;
   private setConfigMutex = new Mutex();
   private isUpdating = false;
   private updateCache: { hasUpdate: boolean; assets: any[] } | null = null;
@@ -104,9 +105,12 @@ export const appService = new (class AppService {
   }
 
   async getConfig(): Promise<AppConfigDto> {
+    if (this.configCache) return this.configCache;
+
     try {
       const config = await readFile(this.CONFIG_PATH, 'utf-8');
-      return JSON.parse(config);
+      this.configCache = JSON.parse(config);
+      return this.configCache!;
     } catch (error) {
       await writeFile(this.CONFIG_PATH, JSON.stringify(appConfig, null, 2), 'utf-8');
       return appConfig;

@@ -31,7 +31,10 @@ const appConfig: AppConfigDto = {
   // Minecraft
   minecraft: {
     verify: false,
-    gameDir: '',
+    gameDir:
+      process.env.NODE_ENV === ENV.Development
+        ? path.resolve('.minecraft')
+        : path.resolve(process.env.APPDATA ?? '', '.minecraft'),
     java: {
       type: JAVA_TYPE.JDK,
     },
@@ -102,20 +105,11 @@ export const appService = new (class AppService {
 
   async getConfig(): Promise<AppConfigDto> {
     try {
-      const config = JSON.parse(await readFile(this.CONFIG_PATH, 'utf-8'));
-
-      if (!config.minecraft.gameDir) {
-        config.minecraft.gameDir = this.getDefaultGameDir();
-        await writeFile(this.CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
-      }
-
-      return config;
+      const config = await readFile(this.CONFIG_PATH, 'utf-8');
+      return JSON.parse(config);
     } catch (error) {
-      const defaultConfig = { ...appConfig };
-      defaultConfig.minecraft.gameDir = this.getDefaultGameDir();
-
-      await writeFile(this.CONFIG_PATH, JSON.stringify(defaultConfig, null, 2), 'utf-8');
-      return defaultConfig;
+      await writeFile(this.CONFIG_PATH, JSON.stringify(appConfig, null, 2), 'utf-8');
+      return appConfig;
     }
   }
 
@@ -302,12 +296,5 @@ export const appService = new (class AppService {
     } catch {
       return [];
     }
-  }
-
-  private getDefaultGameDir() {
-    if (process.env.NODE_ENV === ENV.Development) {
-      return path.resolve('.minecraft');
-    }
-    return path.resolve(process.env.APPDATA || '', '.minecraft');
   }
 })();

@@ -1,12 +1,13 @@
 "use strict";
-/**
- * @author Luuxis
- * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
- */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const os_1 = __importDefault(require("os"));
+/**
+ * @author Luuxis
+ * Luuxis License v1.0 (voir fichier LICENSE pour les détails en FR/EN)
+ */
 const events_1 = require("events");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -141,6 +142,9 @@ class Launch extends events_1.EventEmitter {
         if (this.isCancelled) {
             this.emit('cancelled', 'Launch has been cancelled');
             return;
+        }
+        if (this.options.forceGPU && os_1.default.platform() === 'win32') {
+            (0, child_process_1.execSync)(`reg add "HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences" /v "${java}" /t REG_SZ /d "GpuPreference=2;" /f`);
         }
         this.minecraftProcess = (0, child_process_1.spawn)(java, Arguments, { cwd: logs, detached: this.options.detached });
         this.minecraftProcess.stdout?.on('data', (data) => this.emit('data', data.toString('utf-8')));

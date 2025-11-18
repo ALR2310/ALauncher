@@ -154,6 +154,10 @@ export type LaunchOPTS = {
      */
     verify: boolean;
     /**
+     * Force the use of a dedicated GPU.
+     */
+    forceGPU?: boolean;
+    /**
      * Files to ignore from instance. (idk actually luuxis please verify this)
      */
     ignored: string[];

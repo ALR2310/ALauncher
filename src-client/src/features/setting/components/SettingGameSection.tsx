@@ -86,6 +86,16 @@ export default function SettingGameSection() {
         onClick={handleChooseGameDir}
       />
 
+      <label className="label self-start">Force GPU:</label>
+      <select
+        className="select col-span-2 cursor-pointer"
+        value={String(appConfig?.minecraft.forceGPU ?? false)}
+        onChange={(e) => setConfig({ key: 'minecraft.forceGPU', value: e.target.value === 'true' })}
+      >
+        <option value="true">On</option>
+        <option value="false">Off</option>
+      </select>
+
       <label className="label self-start">Screen:</label>
       <div className="col-span-2 grid grid-cols-3 gap-2">
         <label className="label">Width:</label>

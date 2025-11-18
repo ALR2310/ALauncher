@@ -47,6 +47,7 @@ export const instanceLaunchService = new (class InstanceLaunchService {
       instance: path.join('..', 'versions', id),
       mcp: undefined,
       verify: false,
+      forceGPU: config.minecraft.forceGPU,
       ignored: [],
       java: config.minecraft.java,
       screen: config.minecraft.screen,

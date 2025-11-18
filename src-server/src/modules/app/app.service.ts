@@ -30,6 +30,7 @@ const appConfig: AppConfigDto = {
   },
   // Minecraft
   minecraft: {
+    forceGPU: true,
     verify: false,
     gameDir:
       process.env.NODE_ENV === ENV.Development
@@ -43,8 +44,8 @@ const appConfig: AppConfigDto = {
       max: 1024,
     },
     screen: {
-      width: 950,
-      height: 600,
+      width: 854,
+      height: 480,
       fullscreen: false,
     },
   },

@@ -27,6 +27,7 @@ const appConfigSchema = z.object({
   }),
   // Minecraft
   minecraft: z.object({
+    forceGPU: z.boolean().default(true),
     verify: z.boolean().default(false),
     gameDir: z.string().default('.minecraft'),
     java: z.object({
@@ -61,6 +62,7 @@ const appConfigKeys = [
   // minecraft
   'minecraft',
   'minecraft.verify',
+  'minecraft.forceGPU',
   'minecraft.gameDir',
   'minecraft.java',
   'minecraft.java.path',

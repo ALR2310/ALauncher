@@ -1,4 +1,5 @@
 import { JAVA_TYPE } from '@shared/dtos/app.dto';
+import { useQueryClient } from '@tanstack/react-query';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -6,17 +7,14 @@ import { toast } from 'react-toastify';
 import { useAppGetConfigQuery, useAppSetConfigMutation, useAppSystemInfoQuery } from '~/hooks/api/useAppApi';
 
 export default function SettingGameSection() {
+  const queryClient = useQueryClient();
   const { data: systemInfo } = useAppSystemInfoQuery();
   const { data: appConfig } = useAppGetConfigQuery();
   const { mutateAsync: setConfig } = useAppSetConfigMutation();
+  const [ram, setRam] = useState<number>(0);
 
-  const [customRam, setCustomRam] = useState('');
-
-  useEffect(() => {
-    if (appConfig?.minecraft.memory.max) {
-      setCustomRam(String(appConfig.minecraft.memory.max));
-    }
-  }, [appConfig]);
+  // Sync ram from config
+  useEffect(() => appConfig && setRam(appConfig.minecraft.memory.max), [appConfig]);
 
   const ramOptions = useMemo(() => {
     if (!systemInfo) return [];
@@ -36,21 +34,27 @@ export default function SettingGameSection() {
     return options;
   }, [systemInfo]);
 
-  const handleCustomRamChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '');
-    if (!systemInfo) return;
+  const selectedOption = ramOptions.includes(ram) ? ram : 'custom';
 
-    const totalMB = systemInfo.memory.total / (1024 * 1024);
-    const limitMB = totalMB * 0.8;
+  const handleSelectRam = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === 'custom') return;
+    const numeric = Number(val);
+    setRam(numeric);
+    setConfig({ key: 'minecraft.memory.max', value: numeric });
+  };
+
+  const handleInputRam = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (!val) return;
     const numeric = Number(val);
 
-    if (val === '' || numeric === 0) {
-      setCustomRam('1024');
-      setConfig({ key: 'minecraft.memory.max', value: 1024 });
-    } else if (numeric <= limitMB) {
-      setCustomRam(val);
-      setConfig({ key: 'minecraft.memory.max', value: numeric });
-    }
+    const totalMB = systemInfo!.memory.total / 1024 / 1024;
+    const limitMB = totalMB * 0.8;
+    const safe = Math.min(numeric, limitMB);
+
+    setRam(safe);
+    setConfig({ key: 'minecraft.memory.max', value: safe });
   };
 
   const handleChooseGameDir = async () => {
@@ -64,11 +68,12 @@ export default function SettingGameSection() {
     });
 
     if (selected) {
-      setConfig({ key: 'minecraft.gameDir', value: selected });
+      setConfig({ key: 'minecraft.gameDir', value: selected }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['instances'] });
+        queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
+      });
     }
   };
-
-  const currentRam = appConfig?.minecraft.memory.max ?? 0;
 
   return (
     <div className="grid grid-cols-3 gap-3 items-center">
@@ -133,16 +138,7 @@ export default function SettingGameSection() {
 
       <label className="label">RAM:</label>
       <div className="join col-span-2">
-        <select
-          className="select join-item"
-          value={ramOptions.includes(currentRam) ? currentRam : 'custom'}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val === 'custom') return;
-            setCustomRam(val);
-            setConfig({ key: 'minecraft.memory.max', value: Number(val) });
-          }}
-        >
+        <select className="select join-item" value={selectedOption} onChange={handleSelectRam}>
           {ramOptions.map((v) => (
             <option key={v} value={v}>
               {Math.floor(v / 1024)} GB
@@ -152,14 +148,7 @@ export default function SettingGameSection() {
         </select>
 
         <label className="input join-item flex items-center gap-1">
-          <input
-            type="text"
-            inputMode="numeric"
-            className="grow"
-            value={customRam}
-            onChange={handleCustomRamChange}
-            placeholder="custom"
-          />
+          <input type="text" inputMode="numeric" className="grow" value={ram} onChange={handleInputRam} />
           <span>MB</span>
         </label>
       </div>

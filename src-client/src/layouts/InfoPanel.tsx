@@ -118,7 +118,7 @@ export default function InfoPanel() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
-    <div className="flex flex-col min-h-0 py-3 px-1 w-72 lg:w-80 space-y-4">
+    <div className="flex flex-col min-h-0 py-3 pr-3 px-1 w-72 lg:w-80 space-y-4">
       <div className="flex gap-2 p-3 bg-base-100 rounded-xl border border-base-content/10">
         <Img
           src={steveFace}

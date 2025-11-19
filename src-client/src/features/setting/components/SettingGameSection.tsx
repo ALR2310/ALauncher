@@ -4,6 +4,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 
+import Tooltip from '~/components/Tooltip';
 import { useAppGetConfigQuery, useAppSetConfigMutation, useAppSystemInfoQuery } from '~/hooks/api/useAppApi';
 
 const SCREEN_PRESETS = [
@@ -134,7 +135,10 @@ export default function SettingGameSection() {
 
   return (
     <div className="grid grid-cols-3 gap-3 items-center">
-      <label className="label">Game Location:</label>
+      <Tooltip content="Set the directory where Minecraft game files are stored">
+        <label className="label">Game Location:</label>
+      </Tooltip>
+
       <input
         type="text"
         className="input cursor-pointer col-span-2"
@@ -143,7 +147,9 @@ export default function SettingGameSection() {
         onClick={handleChooseGameDir}
       />
 
-      <label className="label self-start">Force GPU:</label>
+      <Tooltip content="Force GPU acceleration for better performance">
+        <label className="label self-start">Force GPU:</label>
+      </Tooltip>
       <select
         className="select col-span-2 cursor-pointer"
         value={String(appConfig?.minecraft.forceGPU ?? false)}
@@ -153,9 +159,13 @@ export default function SettingGameSection() {
         <option value="false">Off</option>
       </select>
 
-      <label className="label self-start">Screen:</label>
+      <Tooltip content="Choose display resolution or set custom dimensions">
+        <label className="label self-start">Screen:</label>
+      </Tooltip>
       <div className="col-span-2 grid grid-cols-3 gap-2">
-        <label className="label">Resolution:</label>
+        <Tooltip content="Select from preset resolutions or enter custom values">
+          <label className="label">Resolution:</label>
+        </Tooltip>
         <select
           className="select cursor-pointer col-span-2"
           value={selectedScreenPreset}
@@ -171,15 +181,21 @@ export default function SettingGameSection() {
 
         {selectedScreenPreset === 'custom' && (
           <>
-            <label className="label">Width:</label>
+            <Tooltip content="Screen width in pixels">
+              <label className="label">Width:</label>
+            </Tooltip>
             <input type="number" className="input col-span-2" value={screenWidth} onChange={handleInputScreenWidth} />
 
-            <label className="label">Height:</label>
+            <Tooltip content="Screen height in pixels">
+              <label className="label">Height:</label>
+            </Tooltip>
             <input type="number" className="input col-span-2" value={screenHeight} onChange={handleInputScreenHeight} />
           </>
         )}
 
-        <label className="label">Fullscreen:</label>
+        <Tooltip content="Stretch the game to cover the entire screen">
+          <label className="label">Fullscreen:</label>
+        </Tooltip>
         <select
           className="select cursor-pointer col-span-2"
           value={String(appConfig?.minecraft.screen.fullscreen ?? false)}
@@ -190,9 +206,13 @@ export default function SettingGameSection() {
         </select>
       </div>
 
-      <label className="label self-start">JAVA:</label>
+      <Tooltip content="Configure Java runtime for Minecraft">
+        <label className="label self-start">JAVA:</label>
+      </Tooltip>
       <div className="col-span-2 grid grid-cols-3 gap-2">
-        <label className="label">Type:</label>
+        <Tooltip content="Choose Java version to use">
+          <label className="label">Type:</label>
+        </Tooltip>
         <select
           className="select col-span-2"
           onChange={(e) => setConfig({ key: 'minecraft.java.type', value: e.target.value })}
@@ -204,14 +224,20 @@ export default function SettingGameSection() {
           ))}
         </select>
 
-        <label className="label">Version:</label>
+        <Tooltip content="Java version installed on your system">
+          <label className="label">Version:</label>
+        </Tooltip>
         <input type="number" className="input col-span-2" placeholder="Default" readOnly />
 
-        <label className="label">Path:</label>
+        <Tooltip content="Location of Java executable">
+          <label className="label">Path:</label>
+        </Tooltip>
         <input type="text" className="input col-span-2" placeholder="Default" readOnly />
       </div>
 
-      <label className="label">RAM:</label>
+      <Tooltip content="Amount of RAM allocated for Minecraft">
+        <label className="label">RAM:</label>
+      </Tooltip>
       <div className="join col-span-2">
         <select className="select join-item" value={selectedOption} onChange={handleSelectRam}>
           {ramOptions.map((v) => (

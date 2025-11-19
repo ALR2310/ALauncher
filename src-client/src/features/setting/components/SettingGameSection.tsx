@@ -6,15 +6,33 @@ import { toast } from 'react-toastify';
 
 import { useAppGetConfigQuery, useAppSetConfigMutation, useAppSystemInfoQuery } from '~/hooks/api/useAppApi';
 
+const SCREEN_PRESETS = [
+  { label: '854 x 480', width: 854, height: 480 },
+  { label: '1280 x 720', width: 1280, height: 720 },
+  { label: '1366 x 768', width: 1366, height: 768 },
+  { label: '1600 x 900', width: 1600, height: 900 },
+  { label: '1920 x 1080', width: 1920, height: 1080 },
+  { label: '2560 x 1440', width: 2560, height: 1440 },
+  { label: '3840 x 2160', width: 3840, height: 2160 },
+];
+
 export default function SettingGameSection() {
   const queryClient = useQueryClient();
   const { data: systemInfo } = useAppSystemInfoQuery();
   const { data: appConfig } = useAppGetConfigQuery();
   const { mutateAsync: setConfig } = useAppSetConfigMutation();
   const [ram, setRam] = useState<number>(0);
+  const [screenWidth, setScreenWidth] = useState<number>(0);
+  const [screenHeight, setScreenHeight] = useState<number>(0);
 
-  // Sync ram from config
-  useEffect(() => appConfig && setRam(appConfig.minecraft.memory.max), [appConfig]);
+  // Sync config
+  useEffect(() => {
+    if (appConfig) {
+      setRam(appConfig.minecraft.memory.max);
+      setScreenWidth(appConfig.minecraft.screen.width ?? 1920);
+      setScreenHeight(appConfig.minecraft.screen.height ?? 1080);
+    }
+  }, [appConfig]);
 
   const ramOptions = useMemo(() => {
     if (!systemInfo) return [];
@@ -35,6 +53,45 @@ export default function SettingGameSection() {
   }, [systemInfo]);
 
   const selectedOption = ramOptions.includes(ram) ? ram : 'custom';
+
+  const selectedScreenPreset = useMemo(() => {
+    return (
+      SCREEN_PRESETS.find((preset) => preset.width === screenWidth && preset.height === screenHeight)?.label || 'custom'
+    );
+  }, [screenWidth, screenHeight]);
+
+  const handleSelectScreenPreset = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === 'custom') return;
+
+    const preset = SCREEN_PRESETS.find((p) => p.label === val);
+    if (preset) {
+      setScreenWidth(preset.width);
+      setScreenHeight(preset.height);
+      try {
+        setConfig({ key: 'minecraft.screen.width', value: preset.width });
+        setConfig({ key: 'minecraft.screen.height', value: preset.height });
+      } catch (error) {
+        toast.error('Failed to set screen resolution.');
+      }
+    }
+  };
+
+  const handleInputScreenWidth = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (!val) return;
+    const numeric = Number(val);
+    setScreenWidth(numeric);
+    setConfig({ key: 'minecraft.screen.width', value: numeric });
+  };
+
+  const handleInputScreenHeight = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (!val) return;
+    const numeric = Number(val);
+    setScreenHeight(numeric);
+    setConfig({ key: 'minecraft.screen.height', value: numeric });
+  };
 
   const handleSelectRam = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
@@ -98,21 +155,29 @@ export default function SettingGameSection() {
 
       <label className="label self-start">Screen:</label>
       <div className="col-span-2 grid grid-cols-3 gap-2">
-        <label className="label">Width:</label>
-        <input
-          type="number"
-          className="input col-span-2"
-          value={appConfig?.minecraft.screen.width ?? ''}
-          onChange={(e) => setConfig({ key: 'minecraft.screen.width', value: Number(e.target.value) })}
-        />
+        <label className="label">Resolution:</label>
+        <select
+          className="select cursor-pointer col-span-2"
+          value={selectedScreenPreset}
+          onChange={handleSelectScreenPreset}
+        >
+          {SCREEN_PRESETS.map((preset) => (
+            <option key={preset.label} value={preset.label}>
+              {preset.label}
+            </option>
+          ))}
+          <option value="custom">Custom</option>
+        </select>
 
-        <label className="label">Height:</label>
-        <input
-          type="number"
-          className="input col-span-2"
-          value={appConfig?.minecraft.screen.height ?? ''}
-          onChange={(e) => setConfig({ key: 'minecraft.screen.height', value: Number(e.target.value) })}
-        />
+        {selectedScreenPreset === 'custom' && (
+          <>
+            <label className="label">Width:</label>
+            <input type="number" className="input col-span-2" value={screenWidth} onChange={handleInputScreenWidth} />
+
+            <label className="label">Height:</label>
+            <input type="number" className="input col-span-2" value={screenHeight} onChange={handleInputScreenHeight} />
+          </>
+        )}
 
         <label className="label">Fullscreen:</label>
         <select

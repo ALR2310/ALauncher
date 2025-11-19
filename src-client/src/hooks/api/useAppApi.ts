@@ -3,8 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { appExit, appGetConfig, appOpenFolder, appSetConfig, appVersion, getSystemInfo } from '~/api';
 
-import { useDebounceCallback } from '../app/useDebounce';
-
 export const useAppVersionQuery = () => {
   return useQuery({
     queryKey: ['appVersion'],
@@ -35,10 +33,9 @@ export const useAppGetConfigQuery = () => {
 
 export const useAppSetConfigMutation = () => {
   const queryClient = useQueryClient();
-  const debouncedSetConfig = useDebounceCallback(appSetConfig);
 
   return useMutation({
-    mutationFn: debouncedSetConfig,
+    mutationFn: appSetConfig,
     onMutate: async (newConfig) => {
       await queryClient.cancelQueries({ queryKey: ['appConfig'] });
 

@@ -265,15 +265,20 @@ export const appService = new (class AppService {
   private getGPUInfoWin() {
     try {
       const output = execSync('wmic path win32_VideoController get Name,AdapterRAM', { encoding: 'utf8' });
+
       const lines = output.trim().split('\n').slice(1);
+
       return lines
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line) => {
-          const [name, ram] = line.split(/\s{2,}/);
+          const match = line.match(/^\s*(\d*)\s*(.*)$/);
+          const ramRaw = match?.[1] ?? '';
+          const name = match?.[2]?.trim() ?? '';
+
           return {
-            model: name.trim(),
-            memory: Number(ram?.trim() || 0) / 1024 / 1024, // MB
+            model: name || 'Unknown',
+            memory: ramRaw ? Number(ramRaw) / 1024 / 1024 : 0, // MB
           };
         });
     } catch {

@@ -138,7 +138,6 @@ export default function SettingGameSection() {
       <Tooltip content="Set the directory where Minecraft game files are stored">
         <label className="label">Game Location:</label>
       </Tooltip>
-
       <input
         type="text"
         className="input cursor-pointer col-span-2"

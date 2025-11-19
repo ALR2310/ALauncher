@@ -7,8 +7,8 @@ import { DiscoverProvider } from '~/context/DiscoverContext';
 import { LibraryProvider } from '~/context/LibraryContext';
 import SettingPage from '~/features/setting/SettingPage';
 import { useAppGetConfigQuery } from '~/hooks/api/useAppApi';
-import { useInstancesQuery } from '~/hooks/api/useInstanceApi';
-import { useVersionNotesQuery, useVersionReleasesQuery } from '~/hooks/api/useVersionApi';
+import { useInstancesCloudQuery, useInstancesQuery } from '~/hooks/api/useInstanceApi';
+import { useVersionNotesQuery } from '~/hooks/api/useVersionApi';
 import { useUpdater } from '~/hooks/app/useUpdater';
 
 import Sidebar from './Sidebar';
@@ -23,16 +23,20 @@ export default function MainLayout() {
   const drawerToggleRef = useRef<HTMLInputElement>(null);
 
   const { checkForUpdates, isUpdating, progress } = useUpdater();
+  const { data: appConfig } = useAppGetConfigQuery();
   const { isLoading: isAppLoading } = useAppGetConfigQuery();
   const { isLoading: isInstanceLoading } = useInstancesQuery();
-  const { isLoading: isVersionLoading } = useVersionReleasesQuery();
   const { isLoading: isNoteLoading } = useVersionNotesQuery();
+  const { isLoading: isInstanceCloudLoading } = useInstancesCloudQuery();
 
-  const isLoaded = !isUpdating && !isAppLoading && !isInstanceLoading && !isVersionLoading && !isNoteLoading;
+  const isLoaded = !isUpdating && !isAppLoading && !isInstanceLoading && !isNoteLoading && !isInstanceCloudLoading;
 
   useEffect(() => {
-    if (isTauri && import.meta.env.MODE !== ENV.Development) checkForUpdates();
-  }, [checkForUpdates]);
+    const isDev = import.meta.env.MODE === ENV.Development;
+    const allowUpdate = appConfig?.autoUpdate ?? false;
+
+    if (isTauri && !isDev && allowUpdate) checkForUpdates();
+  }, [appConfig?.autoUpdate, checkForUpdates]);
 
   const openSettings = () => {
     if (drawerToggleRef.current) {

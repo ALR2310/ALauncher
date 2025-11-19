@@ -19,7 +19,7 @@ import pkgTauri from '../../../../src-tauri/tauri.conf.json' assert { type: 'jso
 
 const appConfig: AppConfigDto = {
   // General
-  language: 'vi',
+  language: 'en',
   theme: 'dark',
   autoUpdate: true,
   downloadMultiple: 5,
@@ -37,7 +37,7 @@ const appConfig: AppConfigDto = {
         ? path.resolve('.minecraft')
         : path.resolve(process.env.APPDATA ?? '', '.minecraft'),
     java: {
-      type: JAVA_TYPE.JDK,
+      type: JAVA_TYPE.JRE,
     },
     memory: {
       min: 1024,

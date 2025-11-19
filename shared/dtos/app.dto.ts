@@ -14,7 +14,7 @@ export enum JAVA_TYPE {
 
 const appConfigSchema = z.object({
   // General
-  language: z.string().default('en_US'),
+  language: z.string().default('en'),
   theme: z.string().default('system'),
   autoUpdate: z.boolean().default(true),
   downloadMultiple: z.number().min(1).max(10).default(3),
@@ -33,7 +33,7 @@ const appConfigSchema = z.object({
     java: z.object({
       path: z.string().optional(),
       version: z.string().optional(),
-      type: z.enum(JAVA_TYPE).default(JAVA_TYPE.JDK),
+      type: z.enum(JAVA_TYPE).default(JAVA_TYPE.JRE),
     }),
     memory: z.object({
       min: z.number().min(512).default(1024),

@@ -12,7 +12,7 @@ export function useUpdater() {
 
     const check = await appCheckForUpdates();
 
-    if (check.hasUpdate) {
+    if (check.hasCoreUpdate || check.hasDataUpdate) {
       evtRef.current = await appInstallUpdates();
 
       evtRef.current.addEventListener('progress', (e) => {

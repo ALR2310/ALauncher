@@ -1,7 +1,15 @@
-import { AppConfigDto, AppSystemInfoDto, AppVersionDto, JAVA_TYPE, SetConfigDto } from '@shared/dtos/app.dto';
+import {
+  AppConfigDto,
+  AppSystemInfoDto,
+  AppVersionDto,
+  AssetEntryDto,
+  CheckUpdateResponseDto,
+  JAVA_TYPE,
+  SetConfigDto,
+} from '@shared/dtos/app.dto';
 import { ENV } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
-import { execSync, spawn } from 'child_process';
+import { execFile, execSync, spawn } from 'child_process';
 import EventEmitter from 'events';
 import { readFile, rm, writeFile } from 'fs/promises';
 import set from 'lodash/set';
@@ -15,7 +23,7 @@ import { Downloader } from '~/libraries/minecraft-java-core/build/Index';
 import { Zipper } from '~/utils';
 
 import pkg from '../../../../package.json' assert { type: 'json' };
-import pkgTauri from '../../../../src-tauri/tauri.conf.json' assert { type: 'json' };
+import tauriPkg from '../../../../src-tauri/tauri.conf.json' assert { type: 'json' };
 
 const appConfig: AppConfigDto = {
   // General
@@ -50,14 +58,20 @@ const appConfig: AppConfigDto = {
     },
   },
 };
+
 export const appService = new (class AppService {
   private readonly CONFIG_PATH = path.resolve('launcher.json');
   private configCache: AppConfigDto | null = null;
   private setConfigMutex = new Mutex();
   private isUpdating = false;
-  private updateCache: { hasUpdate: boolean; assets: any[] } | null = null;
+  private updateCache: CheckUpdateResponseDto | null = null;
   private cacheTimestamp: number | null = null;
   private readonly CACHE_TTL = 5 * 60 * 1000;
+
+  private readonly githubAPI = axios.create({
+    baseURL: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}`,
+    headers: { Authorization: `token ${process.env.GIT_PAT}` },
+  });
 
   getStatus() {
     return { status: 'ok' };
@@ -65,7 +79,7 @@ export const appService = new (class AppService {
 
   getVersion(): AppVersionDto {
     return {
-      coreVersion: pkgTauri.version,
+      coreVersion: tauriPkg.version,
       dataVersion: pkg.version,
     };
   }
@@ -145,8 +159,7 @@ export const appService = new (class AppService {
   }
 
   async checkForUpdates(forceRefresh = false) {
-    const currentVersion = this.getVersion().dataVersion;
-    const gitToken = process.env.NODE_ENV === ENV.Development ? process.env.GITHUB_TOKEN : undefined;
+    const { dataVersion, coreVersion } = this.getVersion();
 
     const now = Date.now();
     if (!forceRefresh && this.updateCache && this.cacheTimestamp && now - this.cacheTimestamp < this.CACHE_TTL) {
@@ -154,15 +167,33 @@ export const appService = new (class AppService {
     }
 
     try {
-      const res = await axios.get(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/releases/latest`, {
-        headers: gitToken ? { Authorization: `token ${gitToken}` } : undefined,
-      });
-      const latest = res.data;
-      const latestVersion = latest?.tag_name?.replace(/^v/, '') ?? '0.0.0';
-      const hasUpdate = semver.gt(latestVersion, currentVersion);
+      const latest: any = await this.githubAPI(`/releases/latest`).then((r) => r.data);
+      const assets: AssetEntryDto[] = latest?.assets ?? [];
 
-      const result = {
-        hasUpdate,
+      let latestDataVersion = latest?.tag_name?.replace(/^v/, '') ?? '0.0.0';
+      let latestCoreVersion = coreVersion;
+
+      const manifestAsset = assets.find((a) => a.name === 'manifest.json');
+
+      if (manifestAsset) {
+        try {
+          const manifest: AppVersionDto = await this.githubAPI
+            .get(manifestAsset.url, {
+              headers: { Accept: 'application/octet-stream' },
+              responseType: 'json',
+            })
+            .then((r) => r.data);
+
+          latestCoreVersion = manifest.coreVersion ?? latestCoreVersion;
+          latestDataVersion = manifest.dataVersion ?? latestDataVersion;
+        } catch (err) {
+          console.log('Failed to get manifest', err);
+        }
+      }
+
+      const result: CheckUpdateResponseDto = {
+        hasDataUpdate: semver.gt(latestDataVersion, dataVersion),
+        hasCoreUpdate: semver.gt(latestCoreVersion, coreVersion),
         assets: (latest?.assets as any[]) ?? [],
       };
 
@@ -172,8 +203,9 @@ export const appService = new (class AppService {
       return result;
     } catch (err: any) {
       console.error('Check update error:', err?.message ?? err);
-      const errorResult = {
-        hasUpdate: false,
+      const errorResult: CheckUpdateResponseDto = {
+        hasDataUpdate: false,
+        hasCoreUpdate: false,
         assets: [],
       };
 
@@ -192,47 +224,82 @@ export const appService = new (class AppService {
     try {
       const check = await this.checkForUpdates();
 
-      if (!check.hasUpdate) {
+      if (!check.hasCoreUpdate && !check.hasDataUpdate) {
         this.isUpdating = false;
         return null;
       }
 
-      const asset = check.assets.find((a: any) => a.name.includes('Update.zip'));
+      const downloader = new Downloader();
+      const event = new EventEmitter();
+      const zipper = new Zipper();
+
+      let asset: AssetEntryDto | undefined;
+
+      if (check.hasCoreUpdate) {
+        asset = check.assets.find((a) => a.name.endsWith('-setup.exe'));
+      } else if (check.hasDataUpdate) {
+        asset = check.assets.find((a) => a.name.includes('Update.zip'));
+      }
 
       if (!asset) {
         this.isUpdating = false;
         return null;
       }
 
-      const fileUrl = asset.browser_download_url;
       const fileName = asset.name;
+      const fileUrl = asset.url;
+      let isDone = false;
 
-      const downloader = new Downloader();
-      const event = new EventEmitter();
-      const zipper = new Zipper();
+      const gitToken = process.env.GITHUB_TOKEN;
 
-      downloader.downloadFile(fileUrl, './', fileName);
+      downloader.downloadFile(fileUrl, './', fileName, {
+        Authorization: `token ${gitToken}`,
+        Accept: 'application/octet-stream',
+      });
+
       downloader
         .on(
           'progress',
           throttle(async (p, s) => {
             event.emit('progress', ((p / s) * 100).toFixed(2));
 
-            if (p >= s) {
-              try {
-                await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
-                await zipper.decompress(path.resolve(fileName), path.resolve());
-                await rm(path.resolve(fileName), { force: true });
+            if (!isDone && p >= s) {
+              isDone = true;
 
-                this.updateCache = null;
-                this.cacheTimestamp = null;
+              try {
+                // Clean old assets folder
+                await rm(path.resolve('assets'), { recursive: true, force: true }).catch(() => {});
+
+                if (check.hasCoreUpdate) {
+                  execFile(path.resolve(fileName), ['/S'], async (error) => {
+                    if (error) {
+                      event.emit('error', error);
+                      this.isUpdating = false;
+                      return;
+                    }
+
+                    const appPath = path.join(path.dirname(process.execPath), 'ALauncher.exe');
+
+                    spawn(appPath, [], {
+                      detached: true,
+                      stdio: 'ignore',
+                    }).unref();
+                  });
+                } else if (check.hasDataUpdate) {
+                  await zipper.decompress(path.resolve(fileName), path.resolve());
+                }
+
+                // Remove the installer or update zip
+                await rm(path.resolve(fileName), { force: true }).catch(() => {});
 
                 event.emit('done');
+
                 setTimeout(() => {
                   this.reloadRuntime();
                 }, 100);
               } catch (err) {
                 event.emit('error', err);
+                this.isUpdating = false;
               }
             }
           }, 500),
@@ -246,8 +313,6 @@ export const appService = new (class AppService {
     } catch (err) {
       this.isUpdating = false;
       throw err;
-    } finally {
-      this.isUpdating = false;
     }
   }
 
@@ -265,15 +330,20 @@ export const appService = new (class AppService {
   private getGPUInfoWin() {
     try {
       const output = execSync('wmic path win32_VideoController get Name,AdapterRAM', { encoding: 'utf8' });
+
       const lines = output.trim().split('\n').slice(1);
+
       return lines
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line) => {
-          const [name, ram] = line.split(/\s{2,}/);
+          const match = line.match(/^\s*(\d*)\s*(.*)$/);
+          const ramRaw = match?.[1] ?? '';
+          const name = match?.[2]?.trim() ?? '';
+
           return {
-            model: name.trim(),
-            memory: Number(ram?.trim() || 0) / 1024 / 1024, // MB
+            model: name || 'Unknown',
+            memory: ramRaw ? Number(ramRaw) / 1024 / 1024 : 0, // MB
           };
         });
     } catch {

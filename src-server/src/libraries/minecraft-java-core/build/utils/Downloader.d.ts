@@ -33,7 +33,7 @@ export default class Downloader extends EventEmitter {
      * @param dirPath - Local folder path where the file is saved
      * @param fileName - Name of the file (e.g., "mod.jar")
      */
-    downloadFile(url: string, dirPath: string, fileName: string): Promise<void>;
+    downloadFile(url: string, dirPath: string, fileName: string, headers?: Record<string, string>): Promise<void>;
     /**
      * Downloads multiple files concurrently (up to the specified limit).
      * Emits "progress" events with cumulative bytes downloaded vs. total size,

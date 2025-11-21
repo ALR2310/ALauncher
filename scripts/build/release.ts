@@ -10,7 +10,9 @@ import * as ResEdit from 'resedit';
 import semver from 'semver';
 
 import pkg from '../../package.json' assert { type: 'json' };
+import { ENV } from '../../shared/enums/general.enum';
 import { Zipper } from '../../src-server/src/utils/zipper.utils';
+import tauriPkg from '../../src-tauri/tauri.conf.json' assert { type: 'json' };
 
 const repo = process.env.GITHUB_REPOSITORY!;
 const token = process.env.GITHUB_TOKEN!;
@@ -174,6 +176,15 @@ async function getBaseSha(latestVersion: string): Promise<string> {
 
 //=================== Main method =================//
 
+async function generateManifest(dataVersion: string, coreVersion: string) {
+  const manifest = {
+    dataVersion,
+    coreVersion,
+  };
+
+  await writeFile(path.join('dist', 'manifest.json'), JSON.stringify(manifest, null, 2));
+}
+
 async function generateChangelog(latestVersion: string) {
   const headSha = await getLatestCommitSha();
   const baseSha = await getBaseSha(latestVersion);
@@ -241,6 +252,8 @@ async function uploadRelease(version: string, changelogs: string) {
 }
 
 (async () => {
+  const isDev = process.env.NODE_ENV === ENV.Development;
+
   const currentVersion = pkg.version;
   const latestVersion = ((await getLatestRelease()) ?? { tag_name: '0.0.0' }).tag_name.replace(/^v/, '');
 
@@ -260,11 +273,13 @@ async function uploadRelease(version: string, changelogs: string) {
 
       // Compress main files
       await rm('dist/runtime.bin', { force: true }).catch(() => {});
+      await generateManifest(pkg.version, tauriPkg.version);
       await compress('dist', 'dist/Update.zip');
 
-      const changelogs = await generateChangelog(latestVersion);
-
-      await uploadRelease(currentVersion, changelogs);
+      if (!isDev) {
+        const changelogs = await generateChangelog(latestVersion);
+        await uploadRelease(currentVersion, changelogs);
+      }
     } catch (err: any) {
       console.error(`Failed to prepare and build: ${err.message}`);
       process.exit(1);

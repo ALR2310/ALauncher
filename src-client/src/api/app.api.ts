@@ -1,4 +1,10 @@
-import { AppConfigDto, AppSystemInfoDto, AppVersionDto, SetConfigDto } from '@shared/dtos/app.dto';
+import {
+  AppConfigDto,
+  AppSystemInfoDto,
+  AppVersionDto,
+  CheckUpdateResponseDto,
+  SetConfigDto,
+} from '@shared/dtos/app.dto';
 
 import { API } from '.';
 
@@ -32,11 +38,8 @@ export async function appOpenFolder() {
   return API.get(`${BASE_URL}/open-folder`);
 }
 
-export async function appCheckForUpdates(): Promise<{
-  hasUpdate: boolean;
-  assets: any[];
-}> {
-  return API.get(`${BASE_URL}/update/check`);
+export async function appCheckForUpdates() {
+  return API.get<CheckUpdateResponseDto>(`${BASE_URL}/update/check`);
 }
 
 export async function appInstallUpdates() {

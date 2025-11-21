@@ -248,6 +248,7 @@ async function uploadRelease(version: string, changelogs: string) {
   const filePath = path.join(bundleDir, exeFile);
 
   await upload('dist/Update.zip', 'Update.zip', 'application/zip');
+  await upload('dist/manifest.json', 'manifest.json', 'application/json');
   await upload(filePath, `ALauncher_${version}_x64-setup.exe`, 'application/vnd.microsoft.portable-executable');
 }
 
@@ -273,8 +274,8 @@ async function uploadRelease(version: string, changelogs: string) {
 
       // Compress main files
       await rm('dist/runtime.bin', { force: true }).catch(() => {});
-      await generateManifest(pkg.version, tauriPkg.version);
       await compress('dist', 'dist/Update.zip');
+      await generateManifest(pkg.version, tauriPkg.version);
 
       if (!isDev) {
         const changelogs = await generateChangelog(latestVersion);

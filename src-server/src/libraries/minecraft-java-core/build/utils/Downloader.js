@@ -28,12 +28,12 @@ class Downloader extends events_1.EventEmitter {
      * @param dirPath - Local folder path where the file is saved
      * @param fileName - Name of the file (e.g., "mod.jar")
      */
-    async downloadFile(url, dirPath, fileName) {
+    async downloadFile(url, dirPath, fileName, headers) {
         if (!fs_1.default.existsSync(dirPath)) {
             fs_1.default.mkdirSync(dirPath, { recursive: true });
         }
         const writer = fs_1.default.createWriteStream(`${dirPath}/${fileName}`);
-        const response = await fetch(url);
+        const response = await fetch(url, { headers });
         const contentLength = response.headers.get('content-length');
         const totalSize = contentLength ? parseInt(contentLength, 10) : 0;
         let downloaded = 0;
@@ -186,7 +186,7 @@ class Downloader extends events_1.EventEmitter {
         try {
             const res = await fetch(url, {
                 method: 'HEAD',
-                signal: controller.signal
+                signal: controller.signal,
             });
             clearTimeout(timeoutId);
             if (res.status === 200) {
@@ -217,7 +217,7 @@ class Downloader extends events_1.EventEmitter {
                 return {
                     url: testURL,
                     size: res.size,
-                    status: 200
+                    status: 200,
                 };
             }
         }

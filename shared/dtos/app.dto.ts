@@ -111,8 +111,33 @@ const appVersionSchema = z.object({
   dataVersion: z.string(),
 });
 
+const assetEntrySchema = z.object({
+  id: z.string(),
+  node_id: z.string(),
+  url: z.string(),
+  name: z.string(),
+  label: z.string(),
+  uploader: z.record(z.string(), z.any()),
+  content_type: z.string(),
+  state: z.string(),
+  size: z.number(),
+  digest: z.string(),
+  download_count: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  browser_download_url: z.string(),
+});
+
+const checkUpdateResponseSchema = z.object({
+  hasDataUpdate: z.boolean(),
+  hasCoreUpdate: z.boolean(),
+  assets: z.array(assetEntrySchema),
+});
+
 export type AppConfigKey = (typeof appConfigKeys)[number];
 export class AppConfigDto extends createZodDto(appConfigSchema) {}
 export class SetConfigDto extends createZodDto(setConfigSchema) {}
 export class AppSystemInfoDto extends createZodDto(appSystemInfoSchema) {}
 export class AppVersionDto extends createZodDto(appVersionSchema) {}
+export class AssetEntryDto extends createZodDto(assetEntrySchema) {}
+export class CheckUpdateResponseDto extends createZodDto(checkUpdateResponseSchema) {}

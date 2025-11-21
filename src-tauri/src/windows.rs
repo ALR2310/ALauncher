@@ -1,8 +1,6 @@
 use std::{env, os::windows::process::CommandExt, path::Path, process::Command};
 use tauri::{App, WebviewUrl, WebviewWindowBuilder};
 
-use crate::log::logger;
-
 fn spawn_runtime_process<P: AsRef<Path>>(runtime_path: P, data_path: P) {
     const CREATE_NO_WINDOW: u32 = 0x08000000;
 
@@ -17,11 +15,8 @@ fn spawn_runtime_process<P: AsRef<Path>>(runtime_path: P, data_path: P) {
                 runtime_path.as_ref().exists(),
                 data_path.as_ref().exists()
             );
-            logger(&error_msg);
             panic!("{}", error_msg);
         });
-
-    logger("runtime.bin started successfully");
 }
 
 pub fn create_main_window(app: &App) {
@@ -35,11 +30,6 @@ pub fn create_main_window(app: &App) {
 
     let runtime_path = exe_dir.join("runtime.bin");
     let data_path = exe_dir.join("data.bin");
-
-    logger(&format!("ENV = {}", node_env));
-    logger(&format!("exe_dir = {:?}", exe_dir));
-    logger(&format!("runtime_path = {:?}", runtime_path));
-    logger(&format!("data_path = {:?}", data_path));
 
     if node_env == "production" {
         spawn_runtime_process(&runtime_path, &data_path);

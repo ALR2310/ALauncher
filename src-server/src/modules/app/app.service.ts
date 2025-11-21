@@ -67,10 +67,11 @@ export const appService = new (class AppService {
   private updateCache: CheckUpdateResponseDto | null = null;
   private cacheTimestamp: number | null = null;
   private readonly CACHE_TTL = 5 * 60 * 1000;
+  private readonly GIT_TOKEN = process.env.GIT_PAT;
 
   private readonly githubAPI = axios.create({
     baseURL: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}`,
-    headers: { Authorization: `token ${process.env.GIT_PAT}` },
+    headers: { Authorization: `token ${this.GIT_TOKEN}` },
   });
 
   getStatus() {
@@ -250,10 +251,8 @@ export const appService = new (class AppService {
       const fileUrl = asset.url;
       let isDone = false;
 
-      const gitToken = process.env.GITHUB_TOKEN;
-
       downloader.downloadFile(fileUrl, './', fileName, {
-        Authorization: `token ${gitToken}`,
+        Authorization: `token ${this.GIT_TOKEN}`,
         Accept: 'application/octet-stream',
       });
 

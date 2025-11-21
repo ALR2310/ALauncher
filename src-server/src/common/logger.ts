@@ -1,5 +1,7 @@
 import { ENV } from '@shared/enums/general.enum';
-import { appendFile } from 'fs/promises';
+import { appendFile, writeFile } from 'fs/promises';
+
+let logInitialized = false;
 
 function safeStringify(obj: any): string {
   const cache = new WeakSet();
@@ -40,6 +42,11 @@ export async function logger(...messages: unknown[]) {
   }
 
   try {
+    if (!logInitialized) {
+      await writeFile('ALauncher.log', '', 'utf-8');
+      logInitialized = true;
+    }
+
     await appendFile('ALauncher.log', line, 'utf-8');
   } catch (err) {
     console.error('Failed to write log:', err);

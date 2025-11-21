@@ -41,9 +41,23 @@ export const instanceContentService = new (class InstanceContentService {
     const { id, contentType } = payload;
 
     const instance = await instanceService.findOne(id);
-    const contentDir = await instanceService.getContentDir(id, contentType);
-
     const current = instance[contentType] ?? [];
+
+    // For datapacks, we don't need to scan directories, just get from instance and fetch content info
+    if (contentType === InstanceContentEnum.DataPacks) {
+      const contentIds = current.map((c) => c.id).join(',');
+      if (!contentIds) {
+        return {
+          data: [],
+          pagination: { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 },
+        };
+      }
+
+      return await contentService.findAll({ instance: id, ids: contentIds });
+    }
+
+    // For other content types, scan directory and sync with instance.json
+    const contentDir = await instanceService.getContentDir(id, contentType);
     const metaMap = new Map(current.map((c) => [c.fileName + ':' + c.fileLength, c]));
 
     const files = await readdir(contentDir, { withFileTypes: true }).catch(() => []);

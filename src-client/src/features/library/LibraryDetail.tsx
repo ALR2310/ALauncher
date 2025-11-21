@@ -44,10 +44,12 @@ export default function LibraryDetail() {
   const setFileLoader = useContextSelector(DiscoverContext, (v) => v.setFileLoader);
   const [localData, setLocalData] = useState<ContentDto[]>(contents?.data || []);
 
-  // Sync contents data to local state
+  // Sync contents data to local state when contentType or contents change
   useEffect(() => {
-    if (contents?.data) setLocalData(contents.data);
-  }, [contents?.data]);
+    if (contents?.data !== undefined) {
+      setLocalData(contents.data);
+    }
+  }, [contents?.data, contentType]);
 
   useEffect(() => {
     if (instance) {

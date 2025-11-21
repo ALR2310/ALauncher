@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 
-import { ConfirmProvider } from './context/ConfirmContext';
 import { InstanceFileSelectProvider } from './context/InstanceFileSelectContext';
 import { InstanceSelectProvider } from './context/InstanceSelectContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
@@ -19,6 +18,7 @@ import HomeView from './features/home/HomeView';
 import LibraryLayout from './features/library/layouts/LibraryLayout';
 import LibraryDetail from './features/library/LibraryDetail';
 import LibraryList from './features/library/LibraryList';
+import { ConfirmContainer } from './global/confirm/confirmContainer';
 import { useWindow } from './hooks/app/useWindow';
 import MainLayout from './layouts/MainLayout';
 
@@ -43,20 +43,18 @@ const queryClient = new QueryClient({
 const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfirmProvider>
-        <LibraryModalProvider>
-          <InstanceSelectProvider>
-            <InstanceFileSelectProvider>
-              <TooltipProvider>
-                <ThemeProvider>
-                  {children}
-                  <ToastContainer autoClose={2000} theme="dark" pauseOnHover={false} />
-                </ThemeProvider>
-              </TooltipProvider>
-            </InstanceFileSelectProvider>
-          </InstanceSelectProvider>
-        </LibraryModalProvider>
-      </ConfirmProvider>
+      <LibraryModalProvider>
+        <InstanceSelectProvider>
+          <InstanceFileSelectProvider>
+            <TooltipProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </TooltipProvider>
+          </InstanceFileSelectProvider>
+        </InstanceSelectProvider>
+      </LibraryModalProvider>
+
+      <ConfirmContainer />
+      <ToastContainer autoClose={2000} theme="dark" pauseOnHover={false} />
     </QueryClientProvider>
   );
 };

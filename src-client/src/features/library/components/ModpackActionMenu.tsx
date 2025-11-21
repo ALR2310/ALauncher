@@ -30,8 +30,8 @@ function ModpackActionMenuComponent({ className, instanceId }: ModpackActionMenu
           pending: 'Uploading...',
           success: 'Upload successfully',
           error: {
-            render({ err }: any) {
-              return `Upload failed: ${err?.message || 'Unknown error'}`;
+            render({ data }: { data: any }) {
+              return `${data?.message || 'Upload failed'}`;
             },
           },
         });
@@ -51,8 +51,8 @@ function ModpackActionMenuComponent({ className, instanceId }: ModpackActionMenu
         pending: 'Deleting...',
         success: 'Delete successfully',
         error: {
-          render({ err }: any) {
-            return `Delete failed: ${err?.message || 'Unknown error'}`;
+          render({ data }: { data: any }) {
+            return `${data?.message || 'Delete failed'}`;
           },
         },
       },

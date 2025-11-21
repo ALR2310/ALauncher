@@ -181,7 +181,17 @@ export const instanceCloudService = new (class InstanceCloudService {
 
   async delete(id: string): Promise<BaseResponseDto> {
     try {
-      await googleDriveService.delete(id);
+      const file = await googleDriveService
+        .list({
+          q: `'${this.folderId}' in parents and properties has { key='id' and value='${id}' }`,
+        })
+        .then((res) => (res.length > 0 ? res[0] : null));
+
+      if (!file) {
+        throw new NotFoundException('Not found instance in cloud storage');
+      }
+
+      await googleDriveService.delete(file.id);
       return { message: 'Instance cloud deleted successfully' };
     } catch (err: any) {
       throw new BadRequestException(err.message);

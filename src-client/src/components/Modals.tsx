@@ -11,6 +11,7 @@ export interface ModalProps {
   ref?: RefObject<HTMLDialogElement | null>;
   title?: React.ReactNode | string;
   className?: string;
+  modalClassName?: string;
   buttonSubmit?: ButtonProps;
   buttonCancel?: ButtonProps;
   backdropClose?: boolean;
@@ -22,6 +23,7 @@ export function Modal({
   ref,
   title,
   className,
+  modalClassName,
   buttonSubmit = { show: true },
   buttonCancel = { show: true },
   backdropClose = true,
@@ -29,7 +31,7 @@ export function Modal({
   children,
 }: ModalProps) {
   return (
-    <dialog ref={ref} className={`modal outline-none`}>
+    <dialog ref={ref} className={`modal outline-none ${modalClassName || ''}`}>
       <div className={`modal-box outline-none ${className}`}>
         {iconClose && (
           <form method="dialog">

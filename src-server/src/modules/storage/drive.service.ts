@@ -127,7 +127,7 @@ export const googleDriveService = new (class GoogleDriveService {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (err: any) {
-      throw err.response?.data.error || err;
+      throw err.data.error || err;
     }
   }
 

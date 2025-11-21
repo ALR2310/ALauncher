@@ -4,16 +4,21 @@ import { InstanceStatusEnum } from '@shared/enums/general.enum';
 import { useQueryClient } from '@tanstack/react-query';
 import { CurseForgeModLoaderType } from 'curseforge-api';
 import debounce from 'lodash/debounce';
-import { Gamepad2, PencilLine } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Gamepad2, PencilLine, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'react-toastify';
 
 import instanceLogo from '~/assets/images/instance-logo.webp';
 import steveFace from '~/assets/images/steve-face.png';
 import Img from '~/components/Img';
+import { confirm } from '~/global/confirm';
 import { useAppGetConfigQuery, useAppSetConfigMutation } from '~/hooks/api/useAppApi';
-import { useInstanceCloudDownloadMutation, useInstancesCloudQuery } from '~/hooks/api/useInstanceApi';
+import {
+  useInstanceCloudDeleteMutation,
+  useInstanceCloudDownloadMutation,
+  useInstancesCloudQuery,
+} from '~/hooks/api/useInstanceApi';
 import { useVersionNotesInfinite } from '~/hooks/api/useVersionApi';
 
 const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
@@ -31,21 +36,46 @@ const ReleaseCard = ({ data }: { data: ReleaseNoteDto }) => {
 
 const ModpackCard = ({ data }: { data: InstanceDto }) => {
   const queryClient = useQueryClient();
-  const { mutateAsync: downloadInstance, isPending } = useInstanceCloudDownloadMutation();
+  const { mutateAsync: downloadInstanceCloud, isPending } = useInstanceCloudDownloadMutation();
+  const { mutateAsync: deleteInstanceCloud } = useInstanceCloudDeleteMutation();
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = () =>
     toast.promise(
-      downloadInstance(data.id).then(() => {
+      downloadInstanceCloud(data.id).then(() => {
         queryClient.invalidateQueries({ queryKey: ['instances'] });
         queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
       }),
       {
         pending: 'Downloading...',
         success: 'Download successfully',
-        error: 'Download failed',
+        error: {
+          render({ data }: { data: any }) {
+            return `${data?.message || 'Download failed'}`;
+          },
+        },
       },
     );
-  }, [data.id, downloadInstance, queryClient]);
+
+  const handleDelete = () =>
+    confirm('Are you sure you want to delete this modpack from the cloud?', 'Confirm Delete').then(async (ok) => {
+      if (!ok) return;
+
+      toast.promise(
+        deleteInstanceCloud(data.id).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
+          queryClient.invalidateQueries({ queryKey: ['instances'] });
+        }),
+        {
+          pending: 'Deleting...',
+          success: 'Deleted successfully',
+          error: {
+            render({ data }: { data: any }) {
+              return `${data?.message || 'Delete failed'}`;
+            },
+          },
+        },
+      );
+    });
 
   return (
     <div
@@ -65,14 +95,17 @@ const ModpackCard = ({ data }: { data: InstanceDto }) => {
         className={`absolute left-0 right-0 bottom-0 w-full p-2 bg-base-300/60 space-y-3 translate-y-[calc(100%-40px)] transform transition-transform duration-300 group-hover:translate-y-0 group-focus:translate-y-0`}
       >
         <p className="font-semibold">{data.name}</p>
-        <div className="h-10 w-full">
+        <div className="h-10 w-full join">
           <button
-            className="btn btn-success btn-block"
+            className="btn btn-success flex-1 join-item"
             onClick={handleDownload}
             disabled={data.status === InstanceStatusEnum.Latest || isPending}
           >
             {isPending && <span className="loading loading-spinner"></span>}{' '}
             {data.status === InstanceStatusEnum.Latest ? 'Downloaded' : 'Download'}
+          </button>
+          <button className="btn btn-error join-item" onClick={handleDelete}>
+            <Trash2 size={20} />
           </button>
         </div>
       </div>

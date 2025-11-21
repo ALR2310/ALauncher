@@ -116,6 +116,10 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
           contentType,
           contentIds: ids,
         });
+
+        setContentIds([]);
+        setSelectAll(false);
+        setIsIndeterminate(false);
       } catch (err) {
         console.error(err);
         onDelete?.({ contentIds: ids, error: err });

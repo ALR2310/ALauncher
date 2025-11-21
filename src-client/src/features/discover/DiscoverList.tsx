@@ -8,6 +8,7 @@ import { useContextSelector } from 'use-context-selector';
 import { DiscoverContext } from '~/context/DiscoverContext';
 import { useContentsInfinite } from '~/hooks/api/useContentApi';
 import { useContainer } from '~/hooks/app/useContainer';
+import { useDebounce } from '~/hooks/app/useDebounce';
 
 import ContentCard from './components/ContentCard';
 import ContentCardSkeleton from './components/ContentCardSkeleton';
@@ -36,11 +37,13 @@ export default function DiscoverList() {
   const loaderType = useContextSelector(DiscoverContext, (v) => v.loaderType);
   const instanceId = useContextSelector(DiscoverContext, (v) => v.instanceId);
 
+  const searchFilterDebounced = useDebounce(searchFilter);
+
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useContentsInfinite({
     instance: instanceId,
     classId: categoryType,
     categoryIds: Array.from(categoryIds).join(','),
-    searchFilter,
+    searchFilter: searchFilterDebounced,
     gameVersion,
     modLoaderType: loaderType === 0 ? undefined : loaderType,
     sortField,

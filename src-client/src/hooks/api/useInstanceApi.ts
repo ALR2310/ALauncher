@@ -87,9 +87,11 @@ export function useInstanceAddContentSSE() {
   const [estimated, setEstimated] = useState('');
   const [isDone, setIsDone] = useState(false);
   const evtRef = useRef<FetchEventSource | null>(null);
+  const isUnmountingRef = useRef(false);
 
   const addContent = useCallback((params: InstanceContentAddQueryDto) => {
     if (evtRef.current) return;
+    isUnmountingRef.current = false;
     evtRef.current = instanceAddContent(params);
 
     setIsDownloading(true);
@@ -107,16 +109,24 @@ export function useInstanceAddContentSSE() {
       setIsDone(true);
       evtRef?.current?.close();
     });
-    evtRef.current.addEventListener('error', () => {
+    evtRef.current.addEventListener('error', (e) => {
+      console.log(e);
       setIsDownloading(false);
-      toast.error('Failed to install. Please try again.');
+
+      if (!isUnmountingRef.current) {
+        toast.error('Failed to install. Please try again.');
+      }
+
       evtRef?.current?.close();
       evtRef.current = null;
     });
   }, []);
 
   useEffect(() => {
-    return () => evtRef.current?.close();
+    return () => {
+      isUnmountingRef.current = true;
+      evtRef.current?.close();
+    };
   }, []);
 
   return { addContent, isDownloading, progress, speed, estimated, isDone };

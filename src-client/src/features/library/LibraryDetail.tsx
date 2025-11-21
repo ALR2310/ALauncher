@@ -39,6 +39,7 @@ export default function LibraryDetail() {
   const setGameVersion = useContextSelector(DiscoverContext, (v) => v.setGameVersion);
   const setCategoryType = useContextSelector(DiscoverContext, (v) => v.setCategoryType);
   const setLoaderType = useContextSelector(DiscoverContext, (v) => v.setLoaderType);
+  const setSearchFilter = useContextSelector(DiscoverContext, (v) => v.setSearchFilter);
   const setInstanceId = useContextSelector(DiscoverContext, (v) => v.setInstanceId);
   const setFileVersion = useContextSelector(DiscoverContext, (v) => v.setFileVersion);
   const setFileLoader = useContextSelector(DiscoverContext, (v) => v.setFileLoader);
@@ -55,6 +56,7 @@ export default function LibraryDetail() {
     if (instance) {
       setInstanceId(instance.id);
       setGameVersion(instance.version);
+      setSearchFilter('');
       setCategoryType(tab);
       setLoaderType(instance.loader ? instance.loader.type : 0);
       setFileVersion(instance.version);

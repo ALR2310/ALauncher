@@ -3,7 +3,8 @@ import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
 import { abbreviateNumber } from '@shared/utils/general.utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, Download, Gamepad2, HardDrive } from 'lucide-react';
+import { open } from '@tauri-apps/plugin-shell';
+import { CalendarDays, Download, ExternalLink, Gamepad2, HardDrive } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'react-toastify';
@@ -42,7 +43,7 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
   }, [data.instance?.status]);
 
   const buttonClassName = useMemo(() => {
-    const classes = ['btn', 'btn-success', 'btn-block'];
+    const classes: string[] = [];
 
     if (status === 'Installed') classes.push('btn-soft');
     if (status === 'Update') classes.push('btn-outline');
@@ -73,7 +74,7 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
 
       <div className="flex-1 justify-between">
         <div className="flex">
-          <div className="flex-4/5 space-y-1">
+          <div className="flex-4/6 space-y-1">
             <Link
               to={ROUTES.discover.detail(data.slug)}
               className="w-[90%] text-lg line-clamp-1 font-semibold text-base-content/70 hover:link hover:link-success!"
@@ -83,9 +84,16 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
 
             <div className="text-sm text-base-content/50 line-clamp-1 w-[90%]">{data.summary}</div>
           </div>
-          <div className="flex-1/5">
+          <div className="flex-2/6 join">
             <button
-              className={buttonClassName}
+              className={`btn btn-success join-item`}
+              onClick={() => open(data.links.websiteUrl)}
+              title="View on website"
+            >
+              <ExternalLink size={16} />
+            </button>
+            <button
+              className={`btn btn-success ${buttonClassName} join-item flex-1`}
               onClick={handleAddContent}
               title={isDownloading || status === 'Installed' ? 'Action not available' : status}
             >

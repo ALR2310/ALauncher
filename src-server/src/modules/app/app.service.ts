@@ -31,6 +31,7 @@ const appConfig: AppConfigDto = {
   theme: 'dark',
   autoUpdate: true,
   downloadMultiple: 5,
+  hiddenLauncher: true,
   // Auth
   auth: {
     type: 'offline',

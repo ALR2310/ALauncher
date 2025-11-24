@@ -11,7 +11,7 @@ import instanceLogo from '~/assets/images/instance-logo.webp';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 
-import { ModpackActionMenu } from './ModpackActionMenu';
+import ModpackActionMenu from './ModpackActionMenu';
 
 const BACKGROUND_IMAGE = import.meta.env.VITE_ENV ? 'https://i.imgur.com/4b1k0aH.png' : instanceLogo;
 

@@ -81,6 +81,18 @@ export default function SettingGeneralSection() {
           </option>
         ))}
       </select>
+
+      <Tooltip content="Hide the launcher window when launching a game">
+        <label className="label">Hidden Launcher:</label>
+      </Tooltip>
+      <select
+        className="select col-span-2"
+        value={appConfig?.hiddenLauncher ? 'true' : 'false'}
+        onChange={(e) => setConfig({ key: 'hiddenLauncher', value: e.target.value === 'true' })}
+      >
+        <option value="true">Enabled</option>
+        <option value="false">Disabled</option>
+      </select>
     </div>
   );
 }

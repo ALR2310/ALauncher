@@ -1,6 +1,7 @@
 import { ROUTES } from '@shared/constants/routes';
 import { CategoryClassEnum } from '@shared/enums/general.enum';
 import { capitalize } from '@shared/utils/general.utils';
+import { open } from '@tauri-apps/plugin-shell';
 import { Download, ExternalLink } from 'lucide-react';
 import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
@@ -100,7 +101,17 @@ export default function DiscoverDetailLayout() {
               const label = key.replace(/Url$/, '');
 
               return (
-                <a key={key} href={value} className="tab items-center">
+                <a
+                  key={key}
+                  className="tab items-center"
+                  href={value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    open(value);
+                  }}
+                >
                   <span className="me-1">{capitalize(label)}</span>
                   <ExternalLink size={16} />
                 </a>

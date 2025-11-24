@@ -160,11 +160,11 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
           <div className="flex items-stretch gap-2">
             <Img className="w-9 h-9" src={row.logo.url} alt={v} />
 
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col min-w-0">
               <Link to={ROUTES.discover.detail(row.slug)} className="line-clamp-1 hover:underline hover:text-success">
                 {v}
               </Link>
-              <span className="line-clamp-1 text-base-content/60">{row.instance?.fileName}</span>
+              <span className="line-clamp-1 text-base-content/60 w-[90%]">{row.instance?.fileName}</span>
             </div>
           </div>
         ),

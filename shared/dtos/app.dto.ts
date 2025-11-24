@@ -18,6 +18,7 @@ const appConfigSchema = z.object({
   theme: z.string().default('system'),
   autoUpdate: z.boolean().default(true),
   downloadMultiple: z.number().min(1).max(10).default(3),
+  hiddenLauncher: z.boolean().default(true),
   // Auth
   auth: z.object({
     type: z.enum(['offline', 'microsoft', 'mojang', 'elyby']).default('offline'),
@@ -53,6 +54,7 @@ const appConfigKeys = [
   'theme',
   'autoUpdate',
   'downloadMultiple',
+  'hiddenLauncher',
   // auth
   'auth',
   'auth.type',

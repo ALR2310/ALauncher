@@ -119,7 +119,7 @@ export default function TitleBar() {
     >
       <div className="flex items-center h-full pl-1 space-x-4">
         <Link to={ROUTES.home.path} className="flex items-center h-full">
-          <Img src={icon} alt="title icon" className="h-full p-3" data-tauri-drag-region />
+          <Img src={icon} alt="title icon" className="h-full" data-tauri-drag-region />
           <p className="font-semibold text-xl" data-tauri-drag-region>
             <span className="text-success">A</span>L<span className="text-success">a</span>uncher
           </p>

@@ -52,6 +52,22 @@ export function useWindow() {
           },
         ],
       }),
+      action: (event) => {
+        switch (event.type) {
+          case 'DoubleClick':
+            console.log(event);
+            getCurrentWindow()
+              .isVisible()
+              .then((visible) => {
+                if (visible) {
+                  hide();
+                } else {
+                  show();
+                }
+              });
+            break;
+        }
+      },
     });
 
     trayRef.current = tray;

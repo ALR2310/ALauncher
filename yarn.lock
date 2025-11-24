@@ -1101,6 +1101,13 @@
   dependencies:
     "@tauri-apps/api" "^2.8.0"
 
+"@tauri-apps/plugin-shell@~2":
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-shell/-/plugin-shell-2.3.3.tgz#ddbd9253d55e18343c6179243fd4fd2075bf15e8"
+  integrity sha512-Xod+pRcFxmOWFWEnqH5yZcA7qwAMuaaDkMR1Sply+F8VfBj++CGnj2xf5UoialmjZ2Cvd8qrvSCbU+7GgNVsKQ==
+  dependencies:
+    "@tauri-apps/api" "^2.8.0"
+
 "@tybys/wasm-util@^0.10.1":
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.1.tgz#ecddd3205cf1e2d5274649ff0eedd2991ed7f414"

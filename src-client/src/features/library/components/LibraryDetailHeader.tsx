@@ -11,7 +11,7 @@ import Img from '~/components/Img';
 import Progress from '~/components/Progress';
 import { LibraryContext } from '~/context/LibraryContext';
 
-import { ModpackActionMenu } from './ModpackActionMenu';
+import ModpackActionMenu from './ModpackActionMenu';
 
 interface LibraryDetailHeaderProps {
   data: InstanceDto | undefined;

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { createContext } from 'use-context-selector';
 
 import { FetchEventSource, instanceCancel, instanceLaunch } from '~/api';
+import { useAppGetConfigQuery } from '~/hooks/api/useAppApi';
 import { useInstanceCloudSyncMutation } from '~/hooks/api/useInstanceApi';
 import { useWindow } from '~/hooks/app/useWindow';
 
@@ -33,6 +34,7 @@ const LibraryContext = createContext<LibraryContextType>(null!);
 const LibraryProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const { mutateAsync: instanceCloudSync } = useInstanceCloudSyncMutation();
+  const { data: appConfig } = useAppGetConfigQuery();
   const [instances, setInstances] = useState<Map<string, InstanceLaunchState>>(new Map());
   const refs = useRef<Map<string, FetchEventSource>>(new Map());
   const { hide, show } = useWindow();
@@ -95,7 +97,7 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
         }));
 
         // Hidden app
-        hide();
+        if (appConfig?.hiddenLauncher) hide();
       });
       evt.addEventListener('speed', (e) => updateState(id, { speed: e.data }));
       evt.addEventListener('estimated', (e) => updateState(id, { estimated: e.data }));
@@ -111,7 +113,7 @@ const LibraryProvider = ({ children }: { children: ReactNode }) => {
         cleanup(id);
       });
     },
-    [cleanup, hide, updateState],
+    [appConfig?.hiddenLauncher, cleanup, hide, updateState],
   );
 
   const cancel = useCallback(

@@ -1,6 +1,6 @@
 {
   "name": "alauncher",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -21,6 +21,7 @@
     "@tanstack/react-virtual": "^3.13.12",
     "@tauri-apps/api": "^2.9.0",
     "@tauri-apps/plugin-dialog": "~2",
+    "@tauri-apps/plugin-shell": "~2",
     "@xmcl/nbt": "^3.0.2",
     "async-mutex": "^0.5.0",
     "axios": "^1.13.2",

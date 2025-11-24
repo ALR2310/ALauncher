@@ -14,7 +14,7 @@ interface ModpackActionMenuProps {
   instanceId: string;
 }
 
-function ModpackActionMenuComponent({ className, instanceId }: ModpackActionMenuProps) {
+function ModpackActionMenu({ className, instanceId }: ModpackActionMenuProps) {
   const navigation = useNavigate();
   const queryClient = useQueryClient();
   const { mutateAsync: deleteInstance, isPending: isDeleting } = useInstanceDeleteMutation();
@@ -85,4 +85,4 @@ function ModpackActionMenuComponent({ className, instanceId }: ModpackActionMenu
   );
 }
 
-export const ModpackActionMenu = memo(ModpackActionMenuComponent);
+export default memo(ModpackActionMenu);

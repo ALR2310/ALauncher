@@ -14,7 +14,7 @@ import path from 'path';
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { getHash, Zipper } from '~/utils';
 
-import { FileResponse, googleDriveService } from '../../storage/drive.service';
+import { FileResponse, googleDriveService } from '../storage/drive.service';
 import { instanceService } from './instance.service';
 
 export const instanceCloudService = new (class InstanceCloudService {

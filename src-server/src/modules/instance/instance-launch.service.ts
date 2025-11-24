@@ -11,7 +11,7 @@ import { Mojang } from '~/libraries/minecraft-java-core/build/Index';
 import Launch, { LaunchOPTS } from '~/libraries/minecraft-java-core/build/Launch';
 import { BundleItem } from '~/libraries/minecraft-java-core/build/Minecraft/Minecraft-Bundle';
 
-import { appService } from '../../app/app.service';
+import { appService } from '../app/app.service';
 import { instanceService } from './instance.service';
 
 export const instanceLaunchService = new (class InstanceLaunchService {

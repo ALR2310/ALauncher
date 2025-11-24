@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 
+import { DiscoverInstallProvider } from './context/DiscoverInstallContext';
 import { InstanceFileSelectProvider } from './context/InstanceFileSelectContext';
 import { InstanceSelectProvider } from './context/InstanceSelectContext';
 import { LibraryModalProvider } from './context/LibraryModalContext';
@@ -44,13 +45,15 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <LibraryModalProvider>
-        <InstanceSelectProvider>
-          <InstanceFileSelectProvider>
-            <TooltipProvider>
-              <ThemeProvider>{children}</ThemeProvider>
-            </TooltipProvider>
-          </InstanceFileSelectProvider>
-        </InstanceSelectProvider>
+        <DiscoverInstallProvider>
+          <InstanceSelectProvider>
+            <InstanceFileSelectProvider>
+              <TooltipProvider>
+                <ThemeProvider>{children}</ThemeProvider>
+              </TooltipProvider>
+            </InstanceFileSelectProvider>
+          </InstanceSelectProvider>
+        </DiscoverInstallProvider>
       </LibraryModalProvider>
 
       <ConfirmContainer />

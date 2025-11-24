@@ -1,5 +1,4 @@
 import { splitCamelCase } from '@shared/utils/general.utils';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-api';
 import { Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -26,6 +25,7 @@ const SortField = [
 export default function DiscoverList() {
   const { height, width } = useContainer();
   const scrollElementRef = useRef<HTMLDivElement | null>(null);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
   const sortField = useContextSelector(DiscoverContext, (v) => v.sortField);
   const setSortField = useContextSelector(DiscoverContext, (v) => v.setSortField);
@@ -67,25 +67,21 @@ export default function DiscoverList() {
     [setSearchFilter],
   );
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({
-    count: allContents.length,
-    getScrollElement: () => scrollElementRef.current,
-    estimateSize: () => 120,
-    gap: 16,
-    overscan: 5,
-  });
-
-  const virtualItems = virtualizer.getVirtualItems();
-
   useEffect(() => {
-    if (!virtualItems.length) return;
-    const lastItem = virtualItems[virtualItems.length - 1];
-    if (!lastItem) return;
-    if (lastItem.index >= allContents.length - 3 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [virtualItems, allContents.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+    if (!loaderRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
+      },
+      { root: scrollElementRef.current, rootMargin: '0px 0px 200px 0px', threshold: 0.1 },
+    );
+
+    const current = loaderRef.current;
+    observer.observe(current);
+    return () => observer.unobserve(current);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <div className="flex" style={{ height, width }}>
@@ -113,54 +109,20 @@ export default function DiscoverList() {
               ))}
             </div>
           ) : (
-            <div
-              style={{
-                height: `${virtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
-              {virtualItems.map((virtualItem) => {
-                const content = allContents[virtualItem.index];
-                return (
-                  <div
-                    key={virtualItem.key}
-                    data-index={virtualItem.index}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${virtualItem.size}px`,
-                      transform: `translateY(${virtualItem.start}px)`,
-                    }}
-                  >
-                    <ContentCard
-                      data={content}
-                      gameVersion={gameVersion}
-                      categoryType={categoryType}
-                      instanceId={instanceId}
-                    />
-                  </div>
-                );
-              })}
+            <div className="space-y-4">
+              {allContents.map((content, idx) => (
+                <ContentCard
+                  key={idx}
+                  data={content}
+                  gameVersion={gameVersion}
+                  categoryType={categoryType}
+                  instanceId={instanceId}
+                />
+              ))}
 
-              {isFetchingNextPage && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: `${virtualizer.getTotalSize()}px`,
-                    left: 0,
-                    width: '100%',
-                    padding: '12px 0',
-                    textAlign: 'center',
-                    fontSize: '0.875rem',
-                    opacity: 0.7,
-                  }}
-                >
-                  Loading more...
-                </div>
-              )}
+              <div ref={loaderRef} className="py-3 text-center text-sm opacity-70">
+                {isFetchingNextPage ? 'Loading more...' : hasNextPage ? 'Load more' : ''}
+              </div>
             </div>
           )}
 

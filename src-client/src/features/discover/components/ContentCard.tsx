@@ -2,16 +2,16 @@ import { ROUTES } from '@shared/constants/routes';
 import { categoryMap } from '@shared/dtos/category.dto';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
 import { abbreviateNumber } from '@shared/utils/general.utils';
-import { useQueryClient } from '@tanstack/react-query';
 import { open } from '@tauri-apps/plugin-shell';
 import { CalendarDays, Download, ExternalLink, Gamepad2, HardDrive } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'react-toastify';
+import { useContextSelector } from 'use-context-selector';
 
 import Img from '~/components/Img';
 import Progress from '~/components/Progress';
-import { useInstanceAddContentSSE } from '~/hooks/api/useInstanceApi';
+import { DiscoverInstallContext } from '~/context/DiscoverInstallContext';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 interface ContentCardProps {
@@ -22,12 +22,19 @@ interface ContentCardProps {
 }
 
 function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
-  const queryClient = useQueryClient();
+  const { selectInstance } = useSelectInstance();
   const formattedDate = useMemo(() => new Date(data.dateModified).toLocaleDateString(), [data.dateModified]);
   const categoryName = useMemo(() => categoryMap.idToText[data.classId ?? 0], [data.classId]);
-  const { addContent, progress, isDownloading, estimated, speed, isDone } = useInstanceAddContentSSE();
+  const { addContent, getState } = useContextSelector(DiscoverInstallContext, (ctx) => ({
+    addContent: ctx.addContent,
+    getState: ctx.getState,
+  }));
 
-  const { selectInstance } = useSelectInstance();
+  const state = useMemo(() => getState(data.id), [getState, data.id]);
+  const progress = state?.progress;
+  const isDownloading = state?.isDownloading;
+  const estimated = state?.estimated;
+  const speed = state?.speed;
 
   const status = useMemo(() => {
     switch (data.instance?.status) {
@@ -51,13 +58,6 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
 
     return classes.join(' ');
   }, [status, isDownloading]);
-
-  // Invalidate contents query to refresh status
-  useEffect(() => {
-    if (isDone && instanceId) {
-      queryClient.invalidateQueries({ queryKey: ['contents'] });
-    }
-  }, [isDone, instanceId, queryClient]);
 
   const handleAddContent = useCallback(async () => {
     const id = instanceId ?? (await selectInstance());
@@ -95,6 +95,7 @@ function ContentCard({ data, gameVersion, instanceId }: ContentCardProps) {
             <button
               className={`btn btn-success ${buttonClassName} join-item flex-1`}
               onClick={handleAddContent}
+              disabled={isDownloading}
               title={isDownloading || status === 'Installed' ? 'Action not available' : status}
             >
               {status}

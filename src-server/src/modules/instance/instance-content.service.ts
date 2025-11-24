@@ -113,7 +113,7 @@ export const instanceContentService = new (class InstanceContentService {
 
     if (newList.length !== current.length) {
       instance[contentType] = newList;
-      instanceService.update(id, instance);
+      await instanceService.update(id, instance);
     }
 
     const contentIds = newList.map((c) => c.id).join(',');
@@ -157,7 +157,7 @@ export const instanceContentService = new (class InstanceContentService {
         }
       }
 
-      instanceService.update(instanceId, instance);
+      await instanceService.update(instanceId, instance);
       return this.downloadContents({ id: instanceId, grouped, worlds });
     });
   }

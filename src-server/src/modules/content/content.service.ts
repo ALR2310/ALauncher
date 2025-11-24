@@ -23,7 +23,7 @@ import pick from 'lodash/pick';
 import { BadRequestException } from '~/common/filters/exception.filter';
 
 import { curseForgeService } from '../curseforge/curseforge.service';
-import { instanceService } from '../instance/instance.service';
+import { instanceService } from '../instance/v1/instance.service';
 
 const splitVersions = (arr: string[]) => {
   const versionRegex = /^\d+(\.\d+)*$/;

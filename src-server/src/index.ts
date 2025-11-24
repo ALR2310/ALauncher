@@ -16,7 +16,7 @@ import { createRateLimiter } from './common/middlewares/rate.limiter';
 import { AppController } from './modules/app/app.controller';
 import { CategoryController } from './modules/category/category.controller';
 import { ContentController } from './modules/content/content.controller';
-import { InstanceController } from './modules/instance/instance.controller';
+import { InstanceControllerV1 } from './modules/instance/v1/instance.controller';
 import { VersionController } from './modules/version/version.controller';
 
 const app = new Hono()
@@ -31,7 +31,7 @@ controllerRegister(app.basePath('/api'), [
   AppController,
   CategoryController,
   ContentController,
-  InstanceController,
+  InstanceControllerV1,
   VersionController,
 ]);
 

@@ -9,8 +9,8 @@ import path from 'path';
 import { BadRequestException, NotFoundException } from '~/common/filters/exception.filter';
 import { logger } from '~/common/logger';
 
-import { appService } from '../app/app.service';
-import { FileResponse, googleDriveService } from '../storage/drive.service';
+import { appService } from '../../app/app.service';
+import { FileResponse, googleDriveService } from '../../storage/drive.service';
 
 export const instanceService = new (class InstanceService {
   private readonly limit = pLimit(10);

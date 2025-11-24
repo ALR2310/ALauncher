@@ -69,7 +69,7 @@ export async function handleDownloaderSSE(
 }
 
 @Controller('instances')
-export class InstanceController {
+export class InstanceControllerV1 {
   @Get()
   @Validate(InstanceQueryDto)
   async findAll(@Query() query: InstanceQueryDto) {

@@ -28,9 +28,9 @@ import { Zipper } from '~/utils';
 import { getFingerprints } from '~/utils/fingerprint.utils';
 import { getHash } from '~/utils/hashes.utils';
 
-import { appService } from '../app/app.service';
-import { contentService } from '../content/content.service';
-import { curseForgeService } from '../curseforge/curseforge.service';
+import { appService } from '../../app/app.service';
+import { contentService } from '../../content/content.service';
+import { curseForgeService } from '../../curseforge/curseforge.service';
 import { instanceService } from './instance.service';
 
 export const instanceContentService = new (class InstanceContentService {

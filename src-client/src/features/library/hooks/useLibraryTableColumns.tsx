@@ -1,7 +1,7 @@
 import { ROUTES } from '@shared/constants/routes';
 import { ContentDto, ContentInstanceStatus } from '@shared/dtos/content.dto';
 import { InstanceContentEnum } from '@shared/enums/general.enum';
-import { Plus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
@@ -208,12 +208,7 @@ export const useLibraryTableColumns = ({ data, contentType, onToggle, onDelete }
                   <Trash2 size={16}></Trash2>
                 </button>
               </>
-            ) : (
-              <Link to={ROUTES.discover.path} className="btn btn-success btn-sm btn-soft btn-block">
-                <Plus size={20}></Plus>
-                Adds
-              </Link>
-            )}
+            ) : null}
           </div>
         ),
         render: (_, row) => (

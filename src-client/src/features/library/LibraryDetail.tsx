@@ -2,7 +2,7 @@ import { ROUTES } from '@shared/constants/routes';
 import { ContentDto } from '@shared/dtos/content.dto';
 import { CategoryClassEnum, InstanceContentEnum } from '@shared/enums/general.enum';
 import { useQueryClient } from '@tanstack/react-query';
-import { RefreshCcw } from 'lucide-react';
+import { Plus, RefreshCcw, Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useContextSelector } from 'use-context-selector';
@@ -25,6 +25,9 @@ const tabs = [
 export default function LibraryDetail() {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState(CategoryClassEnum.Mods);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -44,6 +47,15 @@ export default function LibraryDetail() {
   const setFileVersion = useContextSelector(DiscoverContext, (v) => v.setFileVersion);
   const setFileLoader = useContextSelector(DiscoverContext, (v) => v.setFileLoader);
   const [localData, setLocalData] = useState<ContentDto[]>(contents?.data || []);
+
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return localData;
+
+    const query = searchQuery.toLowerCase().trim();
+    return localData.filter((content) => {
+      return content.name?.toLowerCase().includes(query) || content.description?.toLowerCase().includes(query);
+    });
+  }, [localData, searchQuery]);
 
   // Sync contents data to local state when contentType or contents change
   useEffect(() => {
@@ -113,6 +125,16 @@ export default function LibraryDetail() {
     [contents?.data],
   );
 
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['contents'] });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const tableColumns = useLibraryTableColumns({
     data: localData,
     contentType,
@@ -126,27 +148,63 @@ export default function LibraryDetail() {
       <LibraryDetailHeader data={instance} isLoading={isLoadingInstance} />
 
       {/* Tabs */}
-      <div className="flex-1 flex flex-col min-h-0 gap-1">
-        <div className="flex justify-between items-center">
-          <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
-            {tabs.map((t) => (
+      <div className="flex-1 flex flex-col min-h-0 gap-2">
+        <div className="tabs tabs-border tabs-border-success flex-nowrap overflow-x-auto">
+          {tabs.map((t) => (
+            <input
+              key={t}
+              type="radio"
+              name="content_type"
+              className={`tab`}
+              aria-label={`${CategoryClassEnum[t]}${tab === t ? ` (${localData.length})` : ''}`}
+              onChange={() => setTab(t)}
+              defaultChecked={t === tab}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
+          <div
+            className={`flex transition-all duration-300 ease-in-out origin-right ${
+              showSearch ? 'w-auto opacity-100' : 'w-0 opacity-0 pointer-events-none'
+            }`}
+          >
+            {showSearch && (
               <input
-                key={t}
-                type="radio"
-                name="content_type"
-                className={`tab`}
-                aria-label={`${CategoryClassEnum[t]}${tab === t ? ` (${localData.length})` : ''}`}
-                onChange={() => setTab(t)}
-                defaultChecked={t === tab}
+                type="search"
+                placeholder="Search..."
+                className="input input-sm animate-slideIn"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
               />
-            ))}
+            )}
           </div>
 
           <button
-            className="btn btn-soft btn-sm"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['contents'] })}
+            className="btn btn-sm btn-soft btn-square"
+            onClick={() => {
+              if (showSearch) {
+                setShowSearch(false);
+                setSearchQuery('');
+              } else {
+                setShowSearch(true);
+              }
+            }}
           >
-            <RefreshCcw size={16} />
+            <Search size={20} />
+          </button>
+
+          <Link to={ROUTES.discover.path} className="btn btn-soft btn-sm btn-success">
+            <Plus size={20}></Plus>Add Content
+          </Link>
+
+          <button className="btn btn-soft btn-sm btn-square" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCcw
+              size={16}
+              className={isRefreshing ? 'animate-spin' : ''}
+              style={isRefreshing ? { animationDirection: 'reverse' } : {}}
+            />
           </button>
         </div>
 
@@ -156,7 +214,7 @@ export default function LibraryDetail() {
           columns={tableColumns}
           isLoading={isLoading}
           loadingCount={6}
-          data={localData}
+          data={filteredData}
           onSortChange={(key, dir) => console.log('Sort changed:', key, dir)}
           emptyState={
             <>

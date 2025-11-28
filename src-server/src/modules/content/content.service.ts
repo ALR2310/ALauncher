@@ -50,6 +50,7 @@ export const contentService = new (class ContentService {
       contents = await curseForgeService.getMods(ids.split(',').map((id) => Number(id)));
     } else {
       const hasSlug = Boolean(rest.searchFilter);
+      rest.categoryIds && (rest.categoryIds = `[${rest.categoryIds}]`);
 
       if (!hasSlug) {
         const res = await curseForgeService.searchMods(rest);

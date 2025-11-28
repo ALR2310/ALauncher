@@ -12,12 +12,14 @@ import {
 import { InstanceContentDto } from '@shared/dtos/instance.dto';
 import { InstanceContentEnum } from '@shared/enums/general.enum';
 import { capitalize, compareVersion, formatBytes } from '@shared/utils/general.utils';
+import { CurseForgeMod } from 'curseforge-api';
 import {
   CurseForgeFileReleaseType,
   CurseForgeFileStatus,
   CurseForgeModLoaderType,
   CurseForgePagination,
 } from 'curseforge-api/v1/Types';
+import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 
 import { BadRequestException } from '~/common/filters/exception.filter';
@@ -42,12 +44,32 @@ export const contentService = new (class ContentService {
 
     let pagination: CurseForgePagination = { index: 0, pageSize: 0, resultCount: 0, totalCount: 0 };
 
-    const contents = ids
-      ? await curseForgeService.getMods(ids.split(',').map((id) => Number(id)))
-      : await curseForgeService.searchMods(rest).then((res) => {
-          pagination = res.pagination;
-          return res.data;
-        });
+    let contents: CurseForgeMod[] = [];
+
+    if (ids?.length) {
+      contents = await curseForgeService.getMods(ids.split(',').map((id) => Number(id)));
+    } else {
+      const hasSlug = Boolean(rest.searchFilter);
+
+      if (!hasSlug) {
+        const res = await curseForgeService.searchMods(rest);
+        pagination = res.pagination;
+        contents = res.data;
+      } else {
+        const [searchRes, slugRes] = await Promise.all([
+          curseForgeService.searchMods(rest),
+          curseForgeService.searchMods({
+            ...omit(rest, ['searchFilter']),
+            slug: rest.searchFilter,
+          }),
+        ]);
+
+        const finalRes = slugRes.data.length > 0 ? slugRes : searchRes;
+
+        pagination = finalRes.pagination;
+        contents = finalRes.data;
+      }
+    }
 
     const instance = instanceId ? await instanceService.findOne(instanceId) : null;
 

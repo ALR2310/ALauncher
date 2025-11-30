@@ -129,6 +129,7 @@ export default function SettingGameSection() {
       setConfig({ key: 'minecraft.gameDir', value: selected }).then(() => {
         queryClient.invalidateQueries({ queryKey: ['instances'] });
         queryClient.invalidateQueries({ queryKey: ['instancesCloud'] });
+        queryClient.invalidateQueries({ queryKey: ['appConfig'] });
       });
     }
   };

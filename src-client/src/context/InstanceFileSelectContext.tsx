@@ -163,7 +163,7 @@ const ModalSelectInstanceFiles = ({
     const requiredFiles = new Set<string>();
     const defaultFilenames = ['instance.json', 'options.txt'];
     const requiredFilenames = ['instance.json'];
-    const defaultDirectories = ['config', 'mods', 'resourcepacks'];
+    const defaultDirectories = ['config', 'mods', 'resourcepacks', 'shaderpacks'];
 
     const traverseAndSelect = (node: InstanceFolderTreeDto) => {
       if (node.type === 'file' && defaultFilenames.includes(node.name)) {

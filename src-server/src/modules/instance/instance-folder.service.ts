@@ -21,7 +21,7 @@ const excludedDirs = new Set([
   'natives',
 ]);
 
-const excludedExts = new Set(['.tmp', '.zip', '.log']);
+const excludedExts = new Set(['.tmp', '.log']);
 
 export const instanceFolderService = new (class InstanceFolderService {
   async openFolder(id: string): Promise<{ message: string }> {

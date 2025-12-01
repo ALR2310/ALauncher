@@ -143,7 +143,17 @@ export const instanceService = new (class InstanceService {
       const instanceDir = await this.getDir();
       const instancePath = await this.getPath(id);
       const existing = await this.findOne(id);
-      const updated = { ...existing, ...data, id: data.id ?? id, updatedAt: new Date().toISOString() };
+      
+      // Only update updatedAt if there are actual content changes (excluding lastPlayed)
+      const contentKeys = Object.keys(data).filter((key) => key !== 'lastPlayed');
+      const shouldUpdateTimestamp = contentKeys.length > 0;
+      
+      const updated = { 
+        ...existing, 
+        ...data, 
+        id: data.id ?? id, 
+        updatedAt: shouldUpdateTimestamp ? new Date().toISOString() : existing.updatedAt 
+      };
 
       await writeFile(instancePath, JSON.stringify(updated, null, 2), 'utf-8');
 

@@ -31,11 +31,38 @@ function MenuItem({ node }: { node: CategoryNode }) {
 
   const checked = categoryIds.has(node.id);
 
+  const getAllChildIds = (currentNode: CategoryNode): number[] => {
+    const ids = [currentNode.id];
+    currentNode.children.forEach((child) => {
+      ids.push(...getAllChildIds(child));
+    });
+    return ids;
+  };
+
+  const getCheckboxState = (): boolean | 'indeterminate' => {
+    if (node.children.length === 0) {
+      return categoryIds.has(node.id);
+    }
+
+    const allChildIds = getAllChildIds(node).slice(1);
+    const selectedChildCount = allChildIds.filter((id) => categoryIds.has(id)).length;
+
+    if (checked) return true;
+
+    return selectedChildCount === 0 ? false : 'indeterminate';
+  };
+
   const handleToggle = () => {
     setCategoryIds((prev) => {
       const next = new Set(prev);
-      if (next.has(node.id)) next.delete(node.id);
-      else next.add(node.id);
+      const allChildIds = getAllChildIds(node);
+
+      if (checked || getCheckboxState() === 'indeterminate') {
+        allChildIds.forEach((id) => next.delete(id));
+      } else {
+        allChildIds.forEach((id) => next.add(id));
+      }
+
       return next;
     });
   };
@@ -55,6 +82,9 @@ function MenuItem({ node }: { node: CategoryNode }) {
       </li>
     );
 
+  const checkboxState = getCheckboxState();
+  const isIndeterminate = checkboxState === 'indeterminate';
+
   return (
     <li>
       <details>
@@ -62,8 +92,13 @@ function MenuItem({ node }: { node: CategoryNode }) {
           <label className="flex min-w-0 items-center gap-2">
             <input
               type="checkbox"
-              className="checkbox checkbox-sm checked:checkbox-success"
-              checked={checked}
+              className={`checkbox checkbox-sm checked:checkbox-success ${isIndeterminate ? 'checkbox-success' : ''}`}
+              checked={checkboxState === true}
+              ref={(el) => {
+                if (el) {
+                  el.indeterminate = isIndeterminate;
+                }
+              }}
               onChange={handleToggle}
             />
             <span className="truncate flex-1">{node.name}</span>

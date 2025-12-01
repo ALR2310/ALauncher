@@ -1,26 +1,28 @@
 import { ContentFileDto } from '@shared/dtos/content.dto';
-import { useCallback, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useContextSelector } from 'use-context-selector';
 
 import { Column } from '~/components/DataTable';
 import Tooltip from '~/components/Tooltip';
 import { DiscoverContext } from '~/context/DiscoverContext';
-import { DiscoverInstallContext } from '~/context/DiscoverInstallContext';
-import { useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
+import { useInstanceAddContentSSE, useInstanceOneQuery } from '~/hooks/api/useInstanceApi';
 import { useSelectInstance } from '~/hooks/app/useSelectInstance';
 
 type FileStatus = 'idle' | 'installing' | 'installed';
 
 export function useFilesTableColumns() {
+  const queryClient = useQueryClient();
+
   const { selectInstance } = useSelectInstance();
-  const { addContent } = useContextSelector(DiscoverInstallContext, (ctx) => ({
-    addContent: ctx.addContent,
-  }));
+
+  const { addContent, isDone } = useInstanceAddContentSSE();
 
   const instanceId = useContextSelector(DiscoverContext, (v) => v.instanceId);
 
   const [fileStatuses, setFileStatuses] = useState<Map<number, FileStatus>>(new Map());
+  const [currentFileId, setCurrentFileId] = useState<number | null>(null);
 
   const { data: instance } = useInstanceOneQuery(instanceId!);
 
@@ -45,11 +47,21 @@ export function useFilesTableColumns() {
       const id = instanceId ?? (await selectInstance());
       if (!id) return toast.warning('Please select an instance to add content to.');
 
+      setCurrentFileId(fileId);
       setFileStatuses((prev) => new Map(prev).set(fileId, 'installing'));
       addContent({ id, contentId: cid, fileId, worlds: undefined });
     },
     [addContent, instanceId, selectInstance],
   );
+
+  useEffect(() => {
+    if (isDone && currentFileId !== null) {
+      setFileStatuses((prev) => new Map(prev).set(currentFileId, 'installed'));
+      setCurrentFileId(null);
+      queryClient.invalidateQueries({ queryKey: ['contents'] });
+      queryClient.invalidateQueries({ queryKey: ['instance'] });
+    }
+  }, [isDone, currentFileId, queryClient]);
 
   const columns = useMemo<Column<ContentFileDto>[]>(
     () => [

@@ -1,7 +1,7 @@
 import { SetConfigDto } from '@shared/dtos/app.dto';
 import { streamSSE } from 'hono/streaming';
 
-import { Body, Context, Controller, Get, Put, Validate } from '~/common/decorators';
+import { Body, Context, Controller, Get, Put, Query, Validate } from '~/common/decorators';
 
 import { appService } from './app.service';
 
@@ -67,5 +67,10 @@ export class AppController {
 
       await done;
     });
+  }
+
+  @Get('watch-parent-process')
+  async watchParentProcess(@Query('pid') pid: number) {
+    return appService.watchParentProcess(pid);
   }
 }

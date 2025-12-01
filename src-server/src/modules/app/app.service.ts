@@ -9,6 +9,7 @@ import {
 } from '@shared/dtos/app.dto';
 import { ENV } from '@shared/enums/general.enum';
 import { Mutex } from 'async-mutex';
+import chalk from 'chalk';
 import { execFile, execSync, spawn } from 'child_process';
 import EventEmitter from 'events';
 import { readFile, rm, writeFile } from 'fs/promises';
@@ -158,6 +159,26 @@ export const appService = new (class AppService {
     else if (platform === 'darwin') spawn('open', [gameDir]);
     else spawn('xdg-open', [gameDir]);
     return { success: true };
+  }
+
+  async watchParentProcess(pid: number) {
+    pid = Number(pid);
+
+    if (isNaN(pid) || pid <= 0) {
+      throw new Error('Invalid PID');
+    }
+
+    console.log(chalk.redBright(`Watching parent process PID: ${pid}`));
+
+    const interval = setInterval(() => {
+      try {
+        process.kill(pid, 0);
+      } catch (err) {
+        console.log(chalk.redBright(`Parent process ${pid} exited, shutting down...`));
+        clearInterval(interval);
+        process.exit(0);
+      }
+    }, 5000);
   }
 
   async checkForUpdates(forceRefresh = false) {

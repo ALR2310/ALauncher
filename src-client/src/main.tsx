@@ -1,11 +1,12 @@
 import '@shared/utils/zod.utils';
 
+import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import dayjs from 'dayjs';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'react-toastify';
 
-import { appExit } from './api';
+import { appExit, appWatchParentProcess } from './api';
 import App from './App';
 
 const container = document.getElementById('root');
@@ -17,6 +18,9 @@ const root = createRoot(container!);
 
 // App Event
 if (window.isTauri) {
+  const pid = await invoke<number>('get_pid');
+  await appWatchParentProcess(pid);
+
   await listen('tauri://close-requested', () => appExit());
 }
 

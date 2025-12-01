@@ -38,6 +38,10 @@ export async function appOpenFolder() {
   return API.get(`${BASE_URL}/open-folder`);
 }
 
+export async function appWatchParentProcess(pid: number) {
+  return API.get(`${BASE_URL}/watch-parent-process`, { pid });
+}
+
 export async function appCheckForUpdates() {
   return API.get<CheckUpdateResponseDto>(`${BASE_URL}/update/check`);
 }

@@ -16,7 +16,7 @@
     "release": "tsx scripts/build/release.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.6",
+    "@hono/node-server": "^1.19.13",
     "@tanstack/react-query": "^5.90.6",
     "@tanstack/react-virtual": "^3.13.12",
     "@tauri-apps/api": "^2.9.0",
